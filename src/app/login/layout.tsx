@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
 
-const title = "Blunt."
-const description = "A example registry for distributing code using shadcn."
+const title = "Incremental"
+const description = ""
 
 export const metadata: Metadata = {
   title: `${title} | ${description}`,
