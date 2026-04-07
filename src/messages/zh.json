@@ -1,0 +1,30 @@
+{
+  "TabTitles": {
+    "home": "blunt."
+  },
+  "LoginPage": {
+    "login": "登录",
+    "email": "电子邮箱",
+    "rememberMe": "记住我",
+    "or": "或",
+    "forgotPassword": "忘记密码 ?",
+    "newAccount": "创建一个新账户",
+    "errorEmailNotRegistered": "邮箱未注册或已禁用",
+    "errorNetwork": "网络请求失败",
+    "welcomeBack": "欢迎回来，{name}",
+    "errorPasswordIncorrect": "密码错误",
+    "errorLogin": "登录时发生错误",
+    "welcome": "欢迎",
+    "hi": "你好，{name}",
+    "enterEmail": "输入邮箱以开始",
+    "enterPassword": "请输入您的密码",
+    "checking": "加载中...",
+    "nextStep": "下一步",
+    "passwordLabel": "密码",
+    "changeEmail": "修改邮箱",
+    "loggingIn": "登录中...",
+    "noAccount": "还没有账号？",
+    "signUp": "注册",
+    "loginWith": "通过 {provider} 登录"
+  }
+}

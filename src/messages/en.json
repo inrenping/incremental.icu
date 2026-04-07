@@ -1,0 +1,30 @@
+{
+  "TabTitles": {
+    "home": "blunt."
+  },
+  "LoginPage": {
+    "login": "login",
+    "email": "Email",
+    "rememberMe": "remember me",
+    "or": "Or",
+    "forgotPassword": "forgot password ?",
+    "newAccount": "create a new account",
+    "errorEmailNotRegistered": "Email not registered or disabled",
+    "errorNetwork": "Network request failed",
+    "welcomeBack": "Welcome back, {name}",
+    "errorPasswordIncorrect": "Incorrect password",
+    "errorLogin": "An error occurred during login",
+    "welcome": "Welcome",
+    "hi": "Hi, {name}",
+    "enterEmail": "Enter email to get started",
+    "enterPassword": "Please enter your password",
+    "checking": "Checking...",
+    "nextStep": "Next Step",
+    "passwordLabel": "Password",
+    "changeEmail": "Change Email",
+    "loggingIn": "Logging in...",
+    "noAccount": "Don't have an account?",
+    "signUp": "Sign up",
+    "loginWith": "Login with {provider}"
+  }
+}
