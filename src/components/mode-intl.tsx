@@ -2,29 +2,18 @@
 
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import React, { useState, useEffect } from "react"
+import { useLocale } from "next-intl"
+import React from "react"
 
 export function ModeIntl({ }: React.ComponentProps<typeof Button>) {
-  const [locale, setLocale] = useState<string>("");
   const router = useRouter();
+  const locale = useLocale();
 
-  useEffect(() => {
-    const cookieLocale = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("MYNEXTAPP_LOCALE="))
-      ?.split("=")[1];
-    if (cookieLocale) {
-      setLocale(cookieLocale)
-    } else {
-      const bowerLocale = navigator.language.slice(0, 2);
-      setLocale(bowerLocale);
-      document.cookie = `MYNEXTAPP_LOCALE=${bowerLocale};`;
-      router.refresh();
-    }
-  }, [router]);
   const changeLocale = (newLocale: string) => {
-    document.cookie = `MYNEXTAPP_LOCALE=${newLocale}; `;
-    setLocale(newLocale);
+    // 设置 cookie 存储用户选择的语言
+    document.cookie = `NEXT_INTL_LOCALE=${newLocale}; path=/; max-age=31536000`;
+
+    // 刷新页面让 next-intl 读取新的 cookie
     router.refresh();
   }
   return (

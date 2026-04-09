@@ -70,7 +70,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100 flex items-center justify-center p-4">
+    <div className="min-h-screen from-primary-50 to-primary-100 flex items-center justify-center p-4">
       <motion.div layout className="w-full max-w-md bg-white dark:bg-black rounded-2xl shadow-xl p-8">
 
         <div className='text-center space-y-2 mb-6'>
