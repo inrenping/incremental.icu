@@ -13,7 +13,7 @@ export function ModeToggle({
 
   return (
     <Button
-      variant="secondary"
+      variant="ghost"
       size="icon"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
       className={cn("size-9", className)}
