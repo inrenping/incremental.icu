@@ -58,6 +58,7 @@ export default function LoginPage() {
         storage.set('user', data.User);
         storage.set('tokenExpires', data.Expires);
         toast.success(t("welcomeBack", { name: displayName }));
+        // 登录成功，这里跳转到对应页面
         router.push('/dash');
       } else {
         toast.error(data.message || t("errorPasswordIncorrect"));
@@ -92,6 +93,20 @@ export default function LoginPage() {
               onSubmit={handleCheckEmail}
               className="space-y-4"
             >
+
+
+              <div className='space-y-2'>
+                <Label htmlFor='email'>{t("email")}</Label>
+                <Input
+                  id="email"
+                  type='email'
+                  placeholder="name@gmail.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+              </div>
+
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
@@ -114,17 +129,6 @@ export default function LoginPage() {
                 <span className="mx-auto">{t("loginWith", { provider: "GitHub" })}</span>
               </Button>
 
-              <div className='space-y-2'>
-                <Label htmlFor='email'>{t("email")}</Label>
-                <Input
-                  id="email"
-                  type='email'
-                  placeholder="name@gmail.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                />
-              </div>
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? t("checking") : t("nextStep")}
               </Button>
