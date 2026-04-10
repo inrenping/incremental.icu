@@ -1,7 +1,7 @@
 {
   "TabTitles": {
-    "title": "Incremental",
-    "description": ""
+    "title": "增量",
+    "description": "你的数字教练"
   },
   "LoginPage": {
     "login": "登录",

@@ -2,19 +2,21 @@ import { getRequestConfig } from 'next-intl/server';
 import { routing } from './routing';
 import { cookies } from 'next/headers';
 
+// 定义合法的 Locale 类型（例如 "en" | "zh"）
+type Locale = (typeof routing.locales)[number];
+
 export default getRequestConfig(async ({ requestLocale }) => {
   const cookieStore = await cookies();
 
-  // 首先从 cookie 读取用户选择的语言
   let locale = cookieStore.get('NEXT_INTL_LOCALE')?.value;
 
-  // 如果 cookie 中没有，使用请求的 locale
   if (!locale) {
-    locale = await requestLocale;
+    const requested = await requestLocale;
+    locale = requested;
   }
 
-  // 最后验证 locale 是否合法
-  if (!locale || !routing.locales.includes(locale as any)) {
+  // 验证 locale 是否合法，避免使用 any
+  if (!locale || !routing.locales.includes(locale as Locale)) {
     locale = routing.defaultLocale;
   }
 

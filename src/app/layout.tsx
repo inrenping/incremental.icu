@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import { Providers } from "@/components/providers";
+import { LayoutProvider } from "@/hooks/use-layout"
 import "./globals.css";
 import { getLocale, getMessages } from "next-intl/server";
 import { NextIntlClientProvider } from "next-intl";
@@ -35,12 +36,17 @@ export default async function RootLayout({
   const locale = await getLocale();
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            {children}
-          </Providers>
-        </NextIntlClientProvider>
+        <LayoutProvider>
+          <NextIntlClientProvider messages={messages}>
+            <Providers>
+              {children}
+            </Providers>
+          </NextIntlClientProvider>
+        </LayoutProvider>
       </body>
     </html>
   );
