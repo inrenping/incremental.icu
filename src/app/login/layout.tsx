@@ -2,14 +2,18 @@ import type { Metadata } from "next";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
+import { getMessages } from "next-intl/server";
 
-const title = "Incremental"
-const description = ""
+export async function generateMetadata(): Promise<Metadata> {
+  const messages = await getMessages();
+  const title = messages.TabTitles?.title ?? "Incremental";
+  const description = messages.TabTitles?.description ?? "";
 
-export const metadata: Metadata = {
-  title: `${title} | ${description}`,
-  description: description,
-};
+  return {
+    title: `${title} | ${description}`,
+    description,
+  };
+}
 
 export default async function RootLayout({
   children,

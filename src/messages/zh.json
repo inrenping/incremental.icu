@@ -1,14 +1,13 @@
 {
   "TabTitles": {
-    "home": "Incremental"
+    "title": "Incremental",
+    "description": ""
   },
   "LoginPage": {
     "login": "登录",
     "email": "电子邮箱",
     "rememberMe": "记住我",
     "or": "或",
-    "forgotPassword": "忘记密码 ?",
-    "newAccount": "创建一个新账户",
     "errorEmailNotRegistered": "邮箱未注册或已禁用",
     "errorNetwork": "网络请求失败",
     "welcomeBack": "欢迎回来，{name}",

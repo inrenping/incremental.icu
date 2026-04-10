@@ -1,14 +1,13 @@
 {
   "TabTitles": {
-    "home": "Incremental"
+    "title": "Incremental",
+    "description": ""
   },
   "LoginPage": {
     "login": "login",
     "email": "Email",
     "rememberMe": "remember me",
     "or": "Or",
-    "forgotPassword": "forgot password ?",
-    "newAccount": "create a new account",
     "errorEmailNotRegistered": "Email not registered or disabled",
     "errorNetwork": "Network request failed",
     "welcomeBack": "Welcome back, {name}",
