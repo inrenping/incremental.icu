@@ -6,6 +6,7 @@
   "LoginPage": {
     "login": "login",
     "email": "Email",
+    "username": "Username",
     "rememberMe": "remember me",
     "or": "Or",
     "errorEmailNotRegistered": "Email not registered or disabled",
@@ -17,13 +18,23 @@
     "hi": "Hi, {name}",
     "enterEmail": "Enter email to get started",
     "enterPassword": "Please enter your password",
+    "enterCode": "Please enter the verification code",
     "checking": "Checking...",
     "nextStep": "Next Step",
     "passwordLabel": "Password",
+    "verificationCodeLabel": "Verification Code",
     "changeEmail": "Change Email",
     "loggingIn": "Logging in...",
+    "alreadyHaveAccount": "Already have an account?",
     "noAccount": "Don't have an account?",
+    "submitting": "Submitting...",
     "signUp": "Sign up",
-    "loginWith": "Login with {provider}"
+    "createAccount": "Create Account",
+    "registerSubtitle": "Join us and start your journey",
+    "loginWith": "Login with {provider}",
+    "signUpWith": "Sign up with {provider}",
+    "resend": "Resend Code",
+    "loginLabel": "Login",
+    "registerSuccess": "Registration successful! Please verify your email."
   }
 }
