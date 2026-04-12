@@ -1,8 +1,8 @@
-name: Deploy Blunt Frontend
+name: Deploy Incremental Frontend
 
 on:
   push:
-    branches: ["master"]
+    branches: ["main"]
 
 jobs:
   build-and-deploy:

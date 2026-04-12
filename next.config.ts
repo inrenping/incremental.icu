@@ -4,12 +4,15 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   // proxy
   async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "http://127.0.0.1:8000/api/v1/:path*",
-      },
-    ];
-  },
+    if (process.env.NODE_ENV === "development") {
+      return [
+        {
+          source: "/api/:path*",
+          destination: `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/:path*`,
+        },
+      ];
+    }
+    return [];
+  }
 };
 export default withNextIntl(nextConfig);
