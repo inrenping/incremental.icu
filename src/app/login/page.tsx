@@ -21,26 +21,23 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`/api/auth/check?email=${encodeURIComponent(email)}`);
-      const data = await res.json();
+      const emailRes = await fetch(`/api/v1/user?email=${encodeURIComponent(email)}`);
+      const emailData = await emailRes.json();
 
-      if (!res.ok) {
-        toast.error(data.message || t("errorEmailNotRegistered"));
+      if (!emailRes.ok) {
+        toast.error(emailData.detail || t("errorEmailNotRegistered"));
         return;
       }
 
-      const sendRes = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      const sendRes = await fetch(`/api/v1/auth/send-captcha?email=${email}&purpose=login`, { method: 'POST' });
+      const sendData = await sendRes.json();
 
       if (sendRes.ok) {
         toast.success(t("codeSent"));
         // 携带邮箱跳转到验证码页面，同时传递 username 用于展示
-        router.push(`/login/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(data.username)}`);
+        router.push(`/login/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(emailData.user_name)}`);
       } else {
-        toast.error(t("errorSendCode"));
+        toast.error(sendData.detail || t("errorSendCode"));
       }
     } catch {
       toast.error(t("errorNetwork"));

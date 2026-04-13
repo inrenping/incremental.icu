@@ -36,11 +36,8 @@ export default function VerifyPage() {
   const handleResend = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/send`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(`/api/v1/auth/send-captcha?email=${email}&purpose=login`, { method: 'POST' });
+
       if (res.ok) {
         setCountdown(60);
         toast.success(t("codeSent"));
@@ -54,11 +51,7 @@ export default function VerifyPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, code }),
-      });
+      const res = await fetch(`/api/v1/auth/login?email=${email}&captcha=${code}`, { method: 'POST' });
       const data = await res.json();
 
       if (res.ok) {
@@ -68,7 +61,7 @@ export default function VerifyPage() {
         toast.success(t("welcomeBack", { name: displayName }));
         router.push('/dash');
       } else {
-        toast.error(data.message || t("errorPasswordIncorrect"));
+        toast.error(data.detail || t("errorPasswordIncorrect"));
       }
     } catch {
       toast.error(t("errorLogin"));

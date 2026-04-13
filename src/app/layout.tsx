@@ -6,6 +6,7 @@ import { LayoutProvider } from "@/hooks/use-layout"
 import "./globals.css";
 import { getLocale, getMessages } from "next-intl/server";
 import { NextIntlClientProvider } from "next-intl";
+import { Toaster } from "sonner";
 
 export async function generateMetadata(): Promise<Metadata> {
   const messages = await getMessages();
@@ -44,6 +45,7 @@ export default async function RootLayout({
           <NextIntlClientProvider messages={messages}>
             <Providers>
               {children}
+              <Toaster richColors position="top-center" />
             </Providers>
           </NextIntlClientProvider>
         </LayoutProvider>

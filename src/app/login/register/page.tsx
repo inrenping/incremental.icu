@@ -35,10 +35,10 @@ export default function RegisterPage() {
         // 注册成功后，通常跳转到登录页让用户开始流程
         router.push(`/login?email=${encodeURIComponent(email)}`);
       } else {
-        toast.error(data.message || t("errorRegister"));
+        toast.error(data.detail || t("errorRegister"));
       }
     } catch (err) {
-      toast.error(t("errorNetwork"));
+      toast.error(err as string || t("errorNetwork"));
     } finally {
       setIsLoading(false);
     }
