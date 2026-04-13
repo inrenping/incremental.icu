@@ -25,6 +25,9 @@
     "nextStep": "Next Step",
     "passwordLabel": "Password",
     "verificationCodeLabel": "Verification Code",
+    "sendCaptcha": "Send Code",
+    "captchaSent": "Verification code sent",
+    "errorInvalidEmail": "Please enter a valid email address",
     "changeEmail": "Change Email",
     "loggingIn": "Logging in...",
     "alreadyHaveAccount": "Already have an account?",
@@ -37,6 +40,7 @@
     "signUpWith": "Sign up with {provider}",
     "resend": "Resend Code",
     "loginLabel": "Login",
-    "registerSuccess": "Registration successful! Please verify your email."
+    "registerSuccess": "Registration successful!",
+    "errorRegister": "Registration failed"
   }
 }
