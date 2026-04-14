@@ -51,6 +51,7 @@ export default function RegisterPage() {
         toast.error(data.detail || "发送失败");
       }
     } catch (err) {
+      console.error(err);
       toast.error("网络错误，请稍后再试");
     } finally {
       setIsSending(false);
@@ -82,6 +83,7 @@ export default function RegisterPage() {
         toast.error(data.detail || t("errorRegister"));
       }
     } catch (err) {
+      console.error(err);
       toast.error(t("errorNetwork"));
     } finally {
       setIsLoading(false);
@@ -162,13 +164,23 @@ export default function RegisterPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" type="button" className="relative">
+            <Button
+              variant="outline"
+              type="button"
+              className="relative"
+              onClick={() => window.location.href = '/api/auth/google'}
+            >
               <IconBrandGoogleFilled className="h-4 w-4 mr-2" />
-              <span>Google</span>
+              <span>{t("loginWith", { provider: "Google" })}</span>
             </Button>
-            <Button variant="outline" type="button" className="relative">
+            <Button
+              variant="outline"
+              type="button"
+              className="relative"
+              onClick={() => window.location.href = '/api/auth/github'}
+            >
               <IconBrandGithubFilled className="h-4 w-4 mr-2" />
-              <span>Github</span>
+              <span>{t("loginWith", { provider: "GitHub" })}</span>
             </Button>
           </div>
         </form>

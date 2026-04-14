@@ -42,7 +42,7 @@ export default function LoginPage() {
     };
 
     checkAuth();
-  }, [router]);
+  }, [router, t]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,11 +103,12 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Button variant="outline" type="button" className="w-full relative">
+            <Button variant="outline" type="button" className="w-full relative" onClick={() => window.location.href = '/api/auth/google'}>
               <IconBrandGoogleFilled className="absolute left-4 h-4 w-4" />
               <span>{t("loginWith", { provider: "Google" })}</span>
             </Button>
-            <Button variant="outline" type="button" className="w-full relative">
+            <Button variant="outline" type="button" className="w-full relative" onClick={() => window.location.href = '/api/auth/github'}
+            >
               <IconBrandGithubFilled className="absolute left-4 h-4 w-4" />
               <span>{t("loginWith", { provider: "GitHub" })}</span>
             </Button>
