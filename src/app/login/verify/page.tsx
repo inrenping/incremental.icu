@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { storage } from '@/lib/storage';
+import { authFetch } from '@/lib/api';
 
 export default function VerifyPage() {
   const router = useRouter();
@@ -51,14 +52,30 @@ export default function VerifyPage() {
     e.preventDefault();
     setIsLoading(true);
     try {
+      // 1. 调用登录接口获取 Tokens
       const res = await fetch(`/api/v1/auth/login?email=${email}&captcha=${code}`, { method: 'POST' });
       const data = await res.json();
 
       if (res.ok) {
-        storage.set('accessToken', data.Token);
-        storage.set('refreshToken', data.RefreshToken);
-        storage.set('user', data.User);
-        toast.success(t("welcomeBack", { name: displayName }));
+        // 保存 Tokens
+        storage.set('accessToken', data.access_token);
+        storage.set('refreshToken', data.refresh_token);
+
+        // --- 完善 TODO: 根据 token 获取用户信息 ---
+        try {
+          const userRes = await authFetch('/api/v1/user/me', {
+            method: 'GET'
+          });
+
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            storage.set('user', userData.user);
+            toast.success(t("welcomeBack", { name: userData.user.username }));
+          }
+        } catch (userError) {
+          console.error("Failed to fetch user profile:", userError);
+        }
+
         router.push('/dash');
       } else {
         toast.error(data.detail || t("errorPasswordIncorrect"));
@@ -109,7 +126,7 @@ export default function VerifyPage() {
             <Button type="submit" className="w-full h-11" disabled={isLoading || code.length < 4}>
               {isLoading ? t("loggingIn") : t("loginLabel")}
             </Button>
-            <Button variant="ghost" type="button" className="w-full text-xs" onClick={() => router.back()}>
+            <Button variant="ghost" type="button" className="w-full text-xs" onClick={() => router.push('/login')}>
               {t("changeEmail")}
             </Button>
           </div>

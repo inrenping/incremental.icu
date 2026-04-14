@@ -31,6 +31,7 @@
     "changeEmail": "Change Email",
     "loggingIn": "Logging in...",
     "alreadyHaveAccount": "Already have an account?",
+    "alreadyLoggedIn": "{name} is already logged in",
     "noAccount": "Don't have an account?",
     "submitting": "Submitting...",
     "signUp": "Sign up",

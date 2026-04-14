@@ -1,6 +1,6 @@
 {
   "TabTitles": {
-    "title": "增量",
+    "title": "跬步",
     "description": "你的数字教练"
   },
   "LoginPage": {
@@ -31,6 +31,7 @@
     "changeEmail": "修改邮箱",
     "loggingIn": "登录中...",
     "alreadyHaveAccount": "已有账号？",
+    "alreadyLoggedIn": "{name} 已登录，跳转到首页",
     "noAccount": "还没有账号？",
     "submitting": "提交中...",
     "signUp": "立即注册",

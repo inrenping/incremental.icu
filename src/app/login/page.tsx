@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -9,12 +9,40 @@ import { Label } from '@/components/ui/label';
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { IconBrandGoogleFilled, IconBrandGithubFilled } from "@tabler/icons-react";
+import { storage } from '@/lib/storage';
+import { authFetch } from '@/lib/api';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const t = useTranslations("LoginPage");
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = storage.get('accessToken');
+      if (!token) return;
+
+      try {
+        const userRes = await authFetch('/api/v1/user/me', {
+          method: 'GET'
+        });
+
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          storage.set('user', userData.user);
+          toast.success(t("alreadyLoggedIn", { name: userData.user.username }));
+          router.replace('/dash');
+        } else {
+          storage.clearAuth();
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
