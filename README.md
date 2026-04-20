@@ -12,10 +12,14 @@
 
 - [shadcn](https://ui.shadcn.com/examples/dashboard)
 
-~~~
-npx shadcn@latest add card
-~~~
-
 - [alpine](https://alpine-registry.vercel.app/)
 
 - [tabler icons](https://tabler.io/icons)
+
+## GTIHUB ACTIONS 需要配置的变量
+
+- NEXT_PUBLIC_BACKEND_URL
+- GOOGLE_CLIENT_ID
+- GOOGLE_CLIENT_SECRET
+- GITHUB_CLIENT_ID
+- GITHUB_CLIENT_SECRET
