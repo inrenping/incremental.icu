@@ -24,7 +24,7 @@ export function SiteConfig({ className }: React.ComponentProps<typeof Button>) {
           properties: { layout: newLayout },
         })
       }}
-      className={cn("size-8", className)}
+      className={cn("hidden 3xl:inline-flex size-8", className)}
       title="Toggle layout"
     >
       <span className="sr-only">Toggle layout</span>
