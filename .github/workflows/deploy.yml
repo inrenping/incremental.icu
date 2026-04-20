@@ -1,0 +1,50 @@
+name: Deploy Incremental Frontend
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Build Next.js
+        env:
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+        run: npm run build
+
+      - name: Deploy to Server
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: ".next/,public/,package.json,package-lock.json,next.config.js"
+          target: "/var/www/blunt"
+          strip_components: 0
+
+      - name: Restart via PM2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd /var/www/blunt
+            npm install --production
+            # 自动检测并启动/重启
+            pm2 delete blunt || true
+            pm2 start npm --name "blunt" -- start -- -p 3000
+            pm2 save
