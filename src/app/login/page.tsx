@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { IconBrandGoogleFilled, IconBrandGithubFilled } from "@tabler/icons-react";
 import { storage } from '@/lib/storage';
 import { authFetch } from '@/lib/api';
+import { useGoogleLogin } from '@react-oauth/google';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -44,6 +45,58 @@ export default function LoginPage() {
     checkAuth();
   }, [router, t]);
 
+  // --- Google 登录处理 ---
+  const handleGoogleLogin = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      setIsLoading(true);
+      try {
+        // 1. 获取用户信息
+        const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+        });
+        const googleUser = await userInfoRes.json();
+
+        // 2. 发送给后端验证并登录
+        const res = await fetch('/api/v1/auth/google-login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: googleUser.email,
+            name: googleUser.name,
+            avatar: googleUser.picture,
+            googleId: googleUser.sub,
+            idToken: tokenResponse.access_token,
+            accessToken: tokenResponse.access_token
+          }),
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          storage.set('accessToken', data.access_token);
+          storage.set('user', data.user);
+          toast.success(t("welcome"));
+          router.replace('/dash');
+        } else {
+          toast.error(data.detail || "Google Login Failed");
+        }
+      } catch (err) {
+        console.error("Google login error:", err);
+        toast.error(t("errorNetwork"));
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => toast.error("Google Login Failed"),
+  });
+
+  // --- GitHub 登录处理 ---
+  const handleGitHubLogin = () => {
+    const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/api/v1/auth/github/callback`;
+    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user:email&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = githubUrl;
+  };
+
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -63,7 +116,7 @@ export default function LoginPage() {
       if (sendRes.ok) {
         toast.success(t("codeSent"));
         // 携带邮箱跳转到验证码页面，同时传递 username 用于展示
-        router.push(`/login/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(emailData.user_name)}`);
+        router.push(`/login/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(emailData.username)}`);
       } else {
         toast.error(sendData.detail || t("errorSendCode"));
       }
@@ -103,11 +156,22 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <Button variant="outline" type="button" className="w-full relative" onClick={() => window.location.href = '/api/auth/google'}>
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full relative"
+              onClick={() => handleGoogleLogin()}
+              disabled={isLoading}
+            >
               <IconBrandGoogleFilled className="absolute left-4 h-4 w-4" />
               <span>{t("loginWith", { provider: "Google" })}</span>
             </Button>
-            <Button variant="outline" type="button" className="w-full relative" onClick={() => window.location.href = '/api/auth/github'}
+            <Button
+              variant="outline"
+              type="button"
+              className="w-full relative"
+              onClick={handleGitHubLogin}
+              disabled={isLoading}
             >
               <IconBrandGithubFilled className="absolute left-4 h-4 w-4" />
               <span>{t("loginWith", { provider: "GitHub" })}</span>

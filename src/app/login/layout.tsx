@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getMessages } from "next-intl/server";
 import { SiteHeader } from "@/components/dash/site-header"
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export async function generateMetadata(): Promise<Metadata> {
   const messages = await getMessages();
@@ -20,7 +21,10 @@ export default async function RootLayout({
 }>) {
   return (<>
     <SiteHeader />
-    {children}
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+      {children}
+    </GoogleOAuthProvider>
+
   </>
   );
 }
