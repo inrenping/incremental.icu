@@ -65,8 +65,7 @@ export default function LoginPage() {
             name: googleUser.name,
             avatar: googleUser.picture,
             googleId: googleUser.sub,
-            idToken: tokenResponse.access_token,
-            accessToken: tokenResponse.access_token
+            access_token: tokenResponse.access_token
           }),
         });
 
