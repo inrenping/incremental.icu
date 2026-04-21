@@ -63,7 +63,7 @@ export default function LoginPage() {
           body: JSON.stringify({
             email: googleUser.email,
             name: googleUser.name,
-            avatar: googleUser.picture,
+            avagithubtar: googleUser.picture,
             googleId: googleUser.sub,
             access_token: tokenResponse.access_token
           }),
@@ -91,7 +91,8 @@ export default function LoginPage() {
   // --- GitHub 登录处理 ---
   const handleGitHubLogin = () => {
     const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
-    const redirectUri = `${window.location.origin}/api/v1/auth/github/callback`;
+    // const redirectUri = `${window.location.origin}/api/v1/auth/github/callback`;
+    const redirectUri = "`${window.location.origin}/login/callback";
     const githubUrl = `https://github.com/login/oauth/authorize?client_id=${clientId}&scope=user:email&redirect_uri=${encodeURIComponent(redirectUri)}`;
     window.location.href = githubUrl;
   };
