@@ -63,7 +63,7 @@ export default function LoginPage() {
       if (sendRes.ok) {
         toast.success(t("codeSent"));
         // 携带邮箱跳转到验证码页面，同时传递 username 用于展示
-        router.push(`/login/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(emailData.user_name)}`);
+        router.push(`/login/verify?email=${encodeURIComponent(email)}&name=${encodeURIComponent(emailData.username)}`);
       } else {
         toast.error(sendData.detail || t("errorSendCode"));
       }
