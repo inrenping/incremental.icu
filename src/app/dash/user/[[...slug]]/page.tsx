@@ -1,7 +1,7 @@
 
 import { notFound } from "next/navigation"
 
-export default async function dashPage(props: {
+export default async function userPage(props: {
   params: Promise<{ slug: string[] }>
 }) {
   const params = await props.params

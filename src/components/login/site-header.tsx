@@ -2,7 +2,7 @@ import { Separator } from "@/components/ui/separator"
 import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
 import { SiteConfig } from "@/components/site-config";
-import { IconBrandGithubFilled } from "@tabler/icons-react";
+import { GitHubLink } from '@/components/githubLink';
 import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
@@ -28,7 +28,7 @@ export function SiteHeader() {
                 target="_blank"
                 rel="noreferrer"
               >
-                <IconBrandGithubFilled className="h-5 w-5" />
+                <GitHubLink />
                 <span className="sr-only">GitHub</span>
               </a>
             </Button>

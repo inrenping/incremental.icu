@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator"
 import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
 import { SiteConfig } from "@/components/site-config";
-import { IconBrandGithubFilled, IconSettings } from "@tabler/icons-react";
+import { IconSettings } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { storage } from "@/lib/storage";
@@ -19,6 +19,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useTranslations } from "next-intl";
+import { GitHubLink } from '@/components/githubLink';
 
 interface User {
   id: number;
@@ -69,11 +70,11 @@ export function SiteHeader() {
 
             <Button variant="ghost" size="icon" asChild>
               <a
-                href="https://github.com/incremental-icu/incremental.icu"
+                href="https://github.com/inrenping/incremental.icu"
                 target="_blank"
                 rel="noreferrer"
               >
-                <IconBrandGithubFilled className="h-5 w-5" />
+                <GitHubLink />
                 <span className="sr-only">GitHub</span>
               </a>
             </Button>
@@ -90,7 +91,7 @@ export function SiteHeader() {
               <DropdownMenuContent align="end" className="w-9 px-0">
                 <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/settings')}>
+                <DropdownMenuItem onClick={() => router.push('/dash/user/' + user?.id)} className="focus:bg-primary/50">
                   <span>{t("userSettings")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
