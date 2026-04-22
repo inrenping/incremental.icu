@@ -35,6 +35,7 @@
     "createAccount": "Create Account",
     "registerSubtitle": "Join us and start your journey",
     "loginWith": "Login with {provider}",
+    "loginFail": "Login failed",
     "signUpWith": "Sign up with {provider}",
     "resend": "Resend Code",
     "loginLabel": "Login",
