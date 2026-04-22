@@ -39,6 +39,9 @@
     "resend": "Resend Code",
     "loginLabel": "Login",
     "registerSuccess": "Registration successful!",
-    "errorRegister": "Registration failed"
+    "errorRegister": "Registration failed",
+    "myAccount": "My Account",
+    "userSettings": "User Settings",
+    "logout": "Logout"
   }
 }
