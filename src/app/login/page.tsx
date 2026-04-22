@@ -63,7 +63,7 @@ export default function LoginPage() {
           body: JSON.stringify({
             email: googleUser.email,
             name: googleUser.name,
-            avagithubtar: googleUser.picture,
+            avatar: googleUser.picture,
             googleId: googleUser.sub,
             access_token: tokenResponse.access_token
           }),
