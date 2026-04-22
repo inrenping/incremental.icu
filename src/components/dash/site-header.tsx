@@ -59,28 +59,13 @@ export function SiteHeader() {
           <h1 className="text-base font-medium">Incremental</h1>
 
           <div className="ml-auto flex items-center gap-2">
-
             <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
-
             <ModeIntl />
             <ModeToggle />
             <SiteConfig />
-
             <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
-
-            <Button variant="ghost" size="icon" asChild>
-              <a
-                href="https://github.com/inrenping/incremental.icu"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <GitHubLink />
-                <span className="sr-only">GitHub</span>
-              </a>
-            </Button>
-
+            <GitHubLink />
             <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="rounded-full">
@@ -91,7 +76,7 @@ export function SiteHeader() {
               <DropdownMenuContent align="end" className="w-9 px-0">
                 <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/dash/user/' + user?.id)} className="focus:bg-primary/50">
+                <DropdownMenuItem onClick={() => router.push('/dash/user/profile')} className="focus:bg-primary/50">
                   <span>{t("userSettings")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />

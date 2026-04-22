@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect } from 'react';
+import Link from "next/link"
 import { IconBrandGithubFilled } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -8,12 +9,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function GitHubLink() {
   return (
     <Button asChild size="sm" variant="ghost" className="h-8 shadow-none gap-2">
-      <a href="https://github.com/inrenping/incremental.icu" target="_blank" rel="noreferrer">
+      <Link href="https://github.com/inrenping/incremental.icu" target="_blank" rel="noreferrer">
         <IconBrandGithubFilled className="h-4 w-4" />
         <Suspense fallback={<Skeleton className="h-4 w-8" />}>
           <StarsCount />
         </Suspense>
-      </a>
+      </Link>
     </Button>
   );
 }

@@ -3,7 +3,6 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
 import { SiteConfig } from "@/components/site-config";
 import { GitHubLink } from '@/components/githubLink';
-import { Button } from "@/components/ui/button";
 
 export function SiteHeader() {
   return (
@@ -19,19 +18,8 @@ export function SiteHeader() {
             <ModeIntl />
             <ModeToggle />
             <SiteConfig />
-
             <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
-
-            <Button variant="ghost" size="icon" asChild>
-              <a
-                href="https://github.com/incremental-icu/incremental.icu"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <GitHubLink />
-                <span className="sr-only">GitHub</span>
-              </a>
-            </Button>
+            <GitHubLink />
           </div>
         </div>
       </div>
