@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getMessages } from "next-intl/server";
 
-import { SiteHeader } from "@/components/dash/site-header"
+import { SiteHeader } from "@/components/dash/site-header-logged"
 
 export async function generateMetadata(): Promise<Metadata> {
   const messages = await getMessages();

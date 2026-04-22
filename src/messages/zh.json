@@ -39,6 +39,9 @@
     "resend": "重发验证码",
     "loginLabel": "登录",
     "registerSuccess": "注册成功！",
-    "errorRegister": "注册失败"
+    "errorRegister": "注册失败",
+    "myAccount": "我的账号",
+    "userSettings": "用户设置",
+    "logout": "登出"
   }
 }
