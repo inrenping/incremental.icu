@@ -48,6 +48,9 @@ export default function LoginPage() {
   // --- Google 登录处理 ---
   const handleGoogleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+
+      console.log('tokenResponse', tokenResponse);
+
       setIsLoading(true);
       try {
         // 1. 获取用户信息
@@ -65,7 +68,8 @@ export default function LoginPage() {
             name: googleUser.name,
             avatar: googleUser.picture,
             googleId: googleUser.sub,
-            access_token: tokenResponse.access_token
+            access_token: tokenResponse.access_token,
+            idToken: tokenResponse.access_token
           }),
         });
 
