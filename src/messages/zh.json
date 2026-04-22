@@ -38,6 +38,7 @@
     "signUpWith": "通过 {provider} 注册",
     "resend": "重发验证码",
     "loginLabel": "登录",
+    "loginFail": "登录失败",
     "registerSuccess": "注册成功！",
     "errorRegister": "注册失败",
     "myAccount": "我的账号",
