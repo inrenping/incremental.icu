@@ -41,8 +41,10 @@
     "loginFail": "登录失败",
     "registerSuccess": "注册成功！",
     "errorRegister": "注册失败",
-    "myAccount": "我的账号",
     "userSettings": "用户设置",
     "logout": "登出"
+  },
+  "UserPage": {
+    "myAccount": "我的账号"
   }
 }

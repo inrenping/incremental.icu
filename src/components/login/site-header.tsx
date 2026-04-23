@@ -18,7 +18,6 @@ export function SiteHeader() {
             <ModeIntl />
             <ModeToggle />
             <SiteConfig />
-            <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
             <GitHubLink />
           </div>
         </div>

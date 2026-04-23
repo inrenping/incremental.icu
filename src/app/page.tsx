@@ -16,5 +16,5 @@ export default function Home() {
     }
   }, [router])
 
-  return <div className="h-screen flex items-center justify-center">Loading...</div>
+  return <div className="h-screen flex items-center justify-center">Thinking...</div>
 }
