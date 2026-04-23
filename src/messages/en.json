@@ -41,8 +41,10 @@
     "loginLabel": "Login",
     "registerSuccess": "Registration successful!",
     "errorRegister": "Registration failed",
-    "myAccount": "My Account",
     "userSettings": "User Settings",
     "logout": "Logout"
+  },
+  "UserPage": {
+    "myAccount": "My Account"
   }
 }
