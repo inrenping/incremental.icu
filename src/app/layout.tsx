@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 import { Providers } from "@/components/providers";
 import { LayoutProvider } from "@/hooks/use-layout"
@@ -50,6 +51,7 @@ export default async function RootLayout({
           </NextIntlClientProvider>
         </LayoutProvider>
       </body>
+      <GoogleAnalytics gaId="G-10K4P7GLF3" />
     </html>
   );
 }
