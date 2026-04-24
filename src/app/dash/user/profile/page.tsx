@@ -81,18 +81,18 @@ export default function UserProfilePage() {
 
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 max-w-2xl">
-      <div className="space-y-1 shadow-sm">
+      <div className="space-y-1 ">
         <h1 className="text-xl font-semibold">我的个人资料</h1>
       </div>
-      <div className="rounded-xl bg-background p-6 shadow-sm">
+      <div className="rounded-xl bg-background p-6">
         <div className="grid gap-y-4 text-sm text-foreground">
           <div className="grid grid-cols-[120px_1fr] items-center gap-4 border-b border-border pb-4">
             <span className="text-sm text-muted-foreground">用户名</span>
-            <span className="font-semibold">{user?.username || '暂无用户名'}</span>
+            <span className="font-semibold">{user?.username}</span>
           </div>
           <div className="grid grid-cols-[120px_1fr] items-center gap-4 border-b border-border pb-4">
             <span className="text-sm text-muted-foreground">邮箱</span>
-            <span className="font-semibold">{user?.email || '暂无邮箱'}</span>
+            <span className="font-semibold">{user?.email}</span>
           </div>
           {SOCIAL_PROVIDERS.map((item) => {
             const social = socials.find((entry) => entry.provider === item.provider);
