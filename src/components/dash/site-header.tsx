@@ -75,7 +75,7 @@ export function SiteHeader() {
               <DropdownMenuContent align="end" className="w-9 px-0">
                 <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/dash/user/profile')} className="focus:bg-primary/50">
+                <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="focus:bg-primary/50">
                   <span>{t("userSettings")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
