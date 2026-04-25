@@ -1,7 +1,7 @@
 
 import { notFound } from "next/navigation"
 
-export default async function userPage(props: {
+export default async function UserPage(props: {
   params: Promise<{ slug: string[] }>
 }) {
   const params = await props.params
@@ -12,7 +12,7 @@ export default async function userPage(props: {
   }
   return (
     <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-
+      <p>user: {page}</p>
     </div>
   )
 }

@@ -14,12 +14,16 @@
 
 - [alpine](https://alpine-registry.vercel.app/)
 
-- [tabler icons](https://tabler.io/icons)
+- 图标包： [tabler icons](https://tabler.io/icons)
 
 ## GTIHUB ACTIONS 需要配置的变量
 
 - NEXT_PUBLIC_BACKEND_URL
 - GOOGLE_CLIENT_ID
+- NEXT_PUBLIC_GOOGLE_CLIENT_ID
 - GOOGLE_CLIENT_SECRET
 - GITHUB_CLIENT_ID
+- NEXT_PUBLIC_GITHUB_CLIENT_ID
 - GITHUB_CLIENT_SECRET
+
+前端部署平台： [vercel](https://vercel.com)

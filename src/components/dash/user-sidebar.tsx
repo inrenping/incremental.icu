@@ -16,9 +16,8 @@ import {
 } from "@/components/ui/sidebar"
 
 const USER_MENU_ITEMS = [
-  { name: "Profile", href: "/dash/user/profile", icon: IconUser },
-  { name: "Settings", href: "/dash/user/settings", icon: IconSettings },
-  { name: "Security", href: "/dash/user/security", icon: IconShieldLock },
+  { name: "Profile", href: "/settings/profile", icon: IconUser },
+  { name: "Apps", href: "/settings/apps", icon: IconUser }
 ]
 
 export function UserSidebar({
@@ -38,7 +37,7 @@ export function UserSidebar({
       <SidebarContent className="mx-auto no-scrollbar w-(--sidebar-menu-width) overflow-x-hidden px-2">
         <SidebarGroup className="pt-6">
           <SidebarGroupLabel className="font-medium text-muted-foreground">
-            Settings
+
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>

@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server';
 import { GarminConnect } from 'garmin-connect';
-import { JsonObject } from 'next-auth/adapters';
 
-export async function GET() {
+export async function POST(request: Request) {
   try {
-    // 建议使用环境变量存储敏感信息，并根据需要配置区域
-    // 中国版通常需要指定 domain 为 'garmin.cn'
-    const GCClient = new GarminConnect({
-      username: '',
-      password: ''
-    }, 'garmin.cn');
+    const body = await request.json();
+    const domainParam = body.domain;
+    const usernameParam = body.username;
+    const passwordParam = body.password;
 
-    // China Domain
-    // const GCClient = new GarminConnect({
-    //     username: 'your-email',
-    //     password: 'your-password'
-    // }, 'garmin.cn');
+    // 警告：不要将这些凭据直接暴露给前端用户。
+    if (!usernameParam || !passwordParam) {
+      return NextResponse.json({ error: 'Username and password are required in the request body.' }, { status: 400 });
+    }
+
+    // 建议使用环境变量存储敏感信息，并根据需要配置区域
+    // 默认是国际版。如果 domainParam 为 'cn'，则使用 'garmin.cn'
+    const garminDomain = (domainParam === 'cn' || domainParam === 'garmin.cn') ? 'garmin.cn' : undefined;
+
+    const GCClient = new GarminConnect({ // Use the extracted body parameters
+      username: usernameParam || '',
+      password: passwordParam || ''
+    }, garminDomain);
 
     await GCClient.login();
 
