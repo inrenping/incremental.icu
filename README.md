@@ -14,7 +14,7 @@
 
 - [alpine](https://alpine-registry.vercel.app/)
 
-- [tabler icons](https://tabler.io/icons)
+- 图标包： [tabler icons](https://tabler.io/icons)
 
 ## GTIHUB ACTIONS 需要配置的变量
 
