@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { IconAlertCircleFilled } from "@tabler/icons-react";
 
 export default function AppsPage() {
@@ -25,6 +26,7 @@ export default function AppsPage() {
   const [currentApp, setCurrentApp] = useState<any>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -170,6 +172,7 @@ export default function AppsPage() {
             setError(null);
             setUsername('');
             setPassword('');
+            setAgreed(false);
           }
         }}
       >
@@ -181,17 +184,6 @@ export default function AppsPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg text-[13px] leading-relaxed text-amber-800 dark:text-amber-200 space-y-2 border border-amber-200 dark:border-amber-800">
-              <div className="flex items-center gap-2 font-semibold">
-                <IconAlertCircleFilled className="h-4 w-4" />
-                安全提示
-              </div>
-              <p>
-                {currentApp?.id === 'coros'
-                  ? '为实现数据自动同步，服务端需加密保存您的账号和加密后的密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致登录失效。我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。'
-                  : '本工具仅在浏览器端通过登录获取访问凭证，服务器不保存您的密码。相关操作将按业界标准处理。尽管我们已采取严格的安全防护，但您仍需知晓，网络环境下仍存在不可预料的安全风险。'}
-              </p>
-            </div>
             <div className="grid gap-2">
               <Label htmlFor="username">用户名 / 邮箱</Label>
               <Input
@@ -213,12 +205,38 @@ export default function AppsPage() {
                 disabled={loading}
               />
             </div>
+            <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg text-[13px] leading-relaxed text-amber-800 dark:text-amber-200 space-y-2 border border-amber-200 dark:border-amber-800">
+              <div className="flex items-center gap-2 font-semibold">
+                <IconAlertCircleFilled className="h-4 w-4" />
+                安全提示
+              </div>
+              <p>
+                {currentApp?.id === 'coros'
+                  ? '为实现数据自动同步，服务端需加密保存您的账号和加密后的密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致登录失效。我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。'
+                  : '本工具仅在浏览器端通过登录获取访问凭证，服务器不保存您的密码。相关操作将按业界标准处理。尽管我们已采取严格的安全防护，但您仍需知晓，网络环境下仍存在不可预料的安全风险。'}
+              </p>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="terms"
+                checked={agreed}
+                onCheckedChange={(checked) => setAgreed(checked as boolean)}
+                disabled={loading}
+              />
+              <Label
+                htmlFor="terms"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                我已阅读并知晓上述安全提示
+              </Label>
+            </div>
+
             {error && <p className="text-sm text-destructive font-medium">{error}</p>}
           </div>
           <DialogFooter>
             <Button
               onClick={handleVerifyAndSave}
-              disabled={loading || !username || !password}
+              disabled={loading || !username || !password || !agreed}
               className="w-full sm:w-auto"
             >
               {loading ? '验证中...' : '验证并保存'}

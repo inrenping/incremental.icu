@@ -1,6 +1,6 @@
 {
   "TabTitles": {
-    "title": "Incremental",
+    "title": "Incremental-Alpha",
     "description": "A journey of a thousand miles begins with a single step"
   },
   "LoginPage": {
@@ -45,6 +45,9 @@
     "logout": "Logout"
   },
   "UserPage": {
+    "myAccount": "My Account"
+  },
+  "SettingPage": {
     "myAccount": "My Account"
   }
 }
