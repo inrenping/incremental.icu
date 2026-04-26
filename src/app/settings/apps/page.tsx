@@ -16,13 +16,24 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { IconAlertCircleFilled, IconCircleCheckFilled } from "@tabler/icons-react";
 import { authFetch } from '@/lib/api';
 
+interface AppConfig {
+  id: string;
+  label: string;
+  description: string;
+  isConnected: boolean;
+  email?: string;
+  status?: string;
+  addedAt?: string;
+  region?: string;
+  lastUpdate?: string;
+}
+
 export default function AppsPage() {
-  const [apps, setApps] = useState([
+  const [apps, setApps] = useState<AppConfig[]>([
     { id: 'garmin', label: 'Garmin Connect', description: '连接您的 Garmin Connect 账号', isConnected: false },
     { id: 'garmin_cn', label: 'Garmin Connect (CN)', description: '连接您的 Garmin Connect (中国) 账号', isConnected: false },
-    { id: 'coros', label: 'Coros', description: '连接您的 Coros 账号', isConnected: false },
+    { id: 'coros', label: 'Coros', description: '连接您的 Coros 账号', isConnected: false }
   ]);
-
   const [open, setOpen] = useState(false);
   const [currentApp, setCurrentApp] = useState<any>(null);
   const [username, setUsername] = useState('');
@@ -34,27 +45,25 @@ export default function AppsPage() {
 
   // 参考用户提供的请求模式：初始化获取应用连接状态
   const fetchAppsStatus = async () => {
-    // setLoading(true);
-    // try {
-    //   // 假设后端接口为 /api/apps/status
-    //   const response = await fetch('/api/apps/status');
-    //   if (!response.ok) {
-    //     const errorData = await response.json();
-    //     throw new Error(errorData.error || 'Failed to fetch status');
-    //   }
-    //   const data = await response.json();
+    setLoading(true);
+    try {
+      const response = await authFetch('/api/v1/settings/getAppsConfigs');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch status');
+      }
+      const data = await response.json();
 
-    //   // 更新状态：将后端返回的已连接信息合并到列表
-    //   setApps(prevApps => prevApps.map(app => {
-    //     const remoteInfo = data.find((d: any) => d.id === app.id);
-    //     return remoteInfo ? { ...app, ...remoteInfo } : app;
-    //   }));
-    // } catch (err: any) {
-    //   console.error("Fetch status error:", err);
-    //   // 这里通常不需要在弹窗外显示错误，或者可以用 toast 提示
-    // } finally {
-    //   setLoading(false);
-    // }
+      // 更新状态：将后端返回的已连接信息合并到列表
+      setApps(prevApps => prevApps.map(app => {
+        const remoteInfo = data.find((d: any) => d.id === app.id);
+        return remoteInfo ? { ...app, ...remoteInfo } : app;
+      }));
+    } catch (err: any) {
+      console.error("Fetch status error:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -67,7 +76,6 @@ export default function AppsPage() {
     setError(null);
 
     try {
-      // 参考 /dash/test 模式，针对 Garmin 应用使用特定的 /api/garmin 接口
       const isGarmin = currentApp.id.startsWith('garmin');
       const url = isGarmin ? '/api/garmin' : '/api/apps/connect';
 
@@ -110,7 +118,7 @@ export default function AppsPage() {
 
       setSuccess(true);
       // 验证成功后刷新列表数据
-      // await fetchAppsStatus();
+      await fetchAppsStatus();
     } catch (err: any) {
       setError(err.message || 'Failed to verify and save account');
     } finally {
@@ -153,7 +161,7 @@ export default function AppsPage() {
               {/* 应用详情（仅在已连接时显示） */}
               {app.isConnected ? (
                 <div className="grid gap-y-4">
-                  {/* <div className="grid grid-cols-[140px_1fr] items-center gap-4 border-b border-border pb-4">
+                  <div className="grid grid-cols-[140px_1fr] items-center gap-4 border-b border-border pb-4">
                     <span className="text-sm text-muted-foreground">账号</span>
                     <span className="font-semibold">{app.email}</span>
                   </div>
@@ -171,7 +179,7 @@ export default function AppsPage() {
                   <div className="grid grid-cols-[140px_1fr] items-center gap-4">
                     <span className="text-sm text-muted-foreground">上次登录信息更新</span>
                     <span className="font-semibold">{app.lastUpdate}</span>
-                  </div> */}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center text-muted-foreground italic pt-2">
