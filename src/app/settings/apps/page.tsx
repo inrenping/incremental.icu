@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { IconAlertCircleFilled, IconCircleCheckFilled } from "@tabler/icons-react";
+import { authFetch } from '@/lib/api';
 
 export default function AppsPage() {
   const [apps, setApps] = useState([
@@ -90,7 +91,7 @@ export default function AppsPage() {
       // 如果是 Garmin 应用，需要将验证后的响应数据保存到本地数据库
       if (isGarmin) {
         const verifyData = await response.json();
-        const saveResponse = await fetch('/api/v1/garmin/save', {
+        const saveResponse = await authFetch('/api/v1/garmin/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(verifyData),
