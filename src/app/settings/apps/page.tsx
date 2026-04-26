@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { IconAlertCircleFilled } from "@tabler/icons-react";
+import { IconAlertCircleFilled, IconCircleCheckFilled } from "@tabler/icons-react";
 
 export default function AppsPage() {
   const [apps, setApps] = useState([
@@ -28,6 +28,7 @@ export default function AppsPage() {
   const [password, setPassword] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // 参考用户提供的请求模式：初始化获取应用连接状态
@@ -82,16 +83,33 @@ export default function AppsPage() {
       console.log(response);
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || '验证失败，请检查账号密码');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
       }
 
-      // 验证成功后清理状态并关闭弹窗
-      setOpen(false);
-      setUsername('');
-      setPassword('');
+      // 如果是 Garmin 应用，需要将验证后的响应数据保存到本地数据库
+      if (isGarmin) {
+        const verifyData = await response.json();
+        const saveResponse = await fetch('/api/v1/garmin/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(verifyData),
+        });
+
+        if (!saveResponse.ok) {
+          const errorData = await saveResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || `保存连接信息失败 (HTTP ${saveResponse.status})`);
+        }
+
+        const saveResult = await saveResponse.json();
+        if (saveResult.status !== 'success') {
+          throw new Error(saveResult.message || '数据库保存失败');
+        }
+      }
+
+      setSuccess(true);
       // 验证成功后刷新列表数据
-      await fetchAppsStatus();
+      // await fetchAppsStatus();
     } catch (err: any) {
       setError(err.message || 'Failed to verify and save account');
     } finally {
@@ -173,6 +191,7 @@ export default function AppsPage() {
             setUsername('');
             setPassword('');
             setAgreed(false);
+            setSuccess(false);
           }
         }}
       >
@@ -191,7 +210,7 @@ export default function AppsPage() {
                 placeholder="请输入用户名"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                disabled={loading}
+                disabled={loading || success}
               />
             </div>
             <div className="grid gap-2">
@@ -202,7 +221,7 @@ export default function AppsPage() {
                 placeholder="请输入密码"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
+                disabled={loading || success}
               />
             </div>
             <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg text-[13px] leading-relaxed text-amber-800 dark:text-amber-200 space-y-2 border border-amber-200 dark:border-amber-800">
@@ -221,7 +240,7 @@ export default function AppsPage() {
                 id="terms"
                 checked={agreed}
                 onCheckedChange={(checked) => setAgreed(checked as boolean)}
-                disabled={loading}
+                disabled={loading || success}
               />
               <Label
                 htmlFor="terms"
@@ -231,12 +250,33 @@ export default function AppsPage() {
               </Label>
             </div>
 
+            {success && (
+              <div className="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-lg text-[13px] leading-relaxed text-emerald-800 dark:text-emerald-200 space-y-2 border border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-center gap-2 font-semibold">
+                  <IconCircleCheckFilled className="h-4 w-4" />
+                  验证通过
+                </div>
+                <p>
+                  您的账号已成功验证并安全保存。数据同步将在几分钟内开始。
+                </p>
+              </div>
+            )}
+
             {error && <p className="text-sm text-destructive font-medium">{error}</p>}
           </div>
           <DialogFooter>
+            {success && (
+              <Button
+                variant="outline"
+                onClick={() => setOpen(false)}
+                className="w-full sm:w-auto"
+              >
+                关闭
+              </Button>
+            )}
             <Button
               onClick={handleVerifyAndSave}
-              disabled={loading || !username || !password || !agreed}
+              disabled={loading || !username || !password || !agreed || success}
               className="w-full sm:w-auto"
             >
               {loading ? '验证中...' : '验证并保存'}
