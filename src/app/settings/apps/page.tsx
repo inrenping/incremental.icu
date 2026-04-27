@@ -99,10 +99,14 @@ export default function AppsPage() {
       // 如果是 Garmin 应用，需要将验证后的响应数据保存到本地数据库
       if (isGarmin) {
         const verifyData = await response.json();
-        const saveResponse = await authFetch('/api/v1/garmin/save', {
+        const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(verifyData),
+          body: JSON.stringify({
+            ...verifyData,
+            username,
+            password,
+          }),
         });
 
         if (!saveResponse.ok) {
@@ -278,7 +282,7 @@ export default function AppsPage() {
                 onClick={() => setOpen(false)}
                 className="w-full sm:w-auto"
               >
-                关闭
+                保存
               </Button>
             )}
             <Button
@@ -286,7 +290,7 @@ export default function AppsPage() {
               disabled={loading || !username || !password || !agreed || success}
               className="w-full sm:w-auto"
             >
-              {loading ? '验证中...' : '验证并保存'}
+              {loading ? '验证中...' : '验证'}
             </Button>
           </DialogFooter>
         </DialogContent>
