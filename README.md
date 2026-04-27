@@ -1,10 +1,30 @@
 # Incremental 前端
 
-## 注意
+一个用于佳明、高驰运动数据同步的网页工具。这是一个前端。（后续会做一个纯前端的自助部署版本）
 
-这是其个给用户使用的前端，另一个项目是管理员使用的前端，两个前端是分隔的。但后台是同一个。
+[对应后端服务 python fastapi 提供接口](https://github.com/inrenping/incremental-serve.git)
 
-> 部署之前记得先跑一下 `npm run lint`
+前端部署平台： [vercel](https://vercel.com)
+
+> 部署注意：后端接口地址需要写在 `/vercel.json`
+
+[邮件发送](resend.com)
+
+[前端佳明高驰登录参考](https://github.com/XiaoSiHwang/garmin-sync-coros)
+
+支持 Google 和 Github 原生的单点登录。
+
+[neon 数据库](https://console.neon.tech)
+
+文件存储还没定： vercel blob  或者 vultr oss
+
+网站状态监测[betterstack](https://betterstack.com)
+
+定时任务 github Actions
+
+Ci/CD 自动化部署 前端 vercel  后端 Gtihub Actions
+
+> 前端部署之前记得先跑一下 `npm run lint`
 
 ## 参考
 
@@ -25,5 +45,3 @@
 - GITHUB_CLIENT_ID
 - NEXT_PUBLIC_GITHUB_CLIENT_ID
 - GITHUB_CLIENT_SECRET
-
-前端部署平台： [vercel](https://vercel.com)
