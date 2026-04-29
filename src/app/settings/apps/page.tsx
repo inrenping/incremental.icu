@@ -76,8 +76,13 @@ export default function AppsPage() {
     setError(null);
 
     try {
-      const isGarmin = currentApp.id.startsWith('garmin');
-      const url = isGarmin ? '/api/garmin' : '/api/apps/connect';
+      let url = "";
+      if (currentApp.id.startsWith('garmin')) {
+        url = '/api/garmin';
+      } else if (currentApp.id.startsWith('coros')) {
+        url = '/api/coros';
+      }
+
 
       const response = await fetch(url, {
         method: 'POST',
@@ -97,7 +102,7 @@ export default function AppsPage() {
       }
 
       // 如果是 Garmin 应用，需要将验证后的响应数据保存到本地数据库
-      if (isGarmin) {
+      if (currentApp.id.startsWith('garmin')) {
         const verifyData = await response.json();
         const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
           method: 'POST',
@@ -155,8 +160,12 @@ export default function AppsPage() {
                     去连接
                   </Button>
                 ) : (
-                  <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                    断开连接
+                  <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      setCurrentApp(app);
+                      setOpen(true);
+                    }}>
+                    重新连接
                   </Button>
                 )}
 
@@ -208,7 +217,7 @@ export default function AppsPage() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>连接 {currentApp?.label}</DialogTitle>
             <DialogDescription>
