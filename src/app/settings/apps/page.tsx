@@ -99,10 +99,14 @@ export default function AppsPage() {
       // 如果是 Garmin 应用，需要将验证后的响应数据保存到本地数据库
       if (isGarmin) {
         const verifyData = await response.json();
-        const saveResponse = await authFetch('/api/v1/garmin/save', {
+        const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(verifyData),
+          body: JSON.stringify({
+            ...verifyData,
+            username,
+            password,
+          }),
         });
 
         if (!saveResponse.ok) {
@@ -239,9 +243,7 @@ export default function AppsPage() {
                 安全提示
               </div>
               <p>
-                {currentApp?.id === 'coros'
-                  ? '为实现数据自动同步，服务端需加密保存您的账号和加密后的密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致登录失效。我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。'
-                  : '本工具仅在浏览器端通过登录获取访问凭证，服务器不保存您的密码。相关操作将按业界标准处理。尽管我们已采取严格的安全防护，但您仍需知晓，网络环境下仍存在不可预料的安全风险。'}
+                为实现数据自动同步，服务端需加密保存您的账号和加密后的密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致凭证失效。<br />我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -280,7 +282,7 @@ export default function AppsPage() {
                 onClick={() => setOpen(false)}
                 className="w-full sm:w-auto"
               >
-                关闭
+                保存
               </Button>
             )}
             <Button
@@ -288,11 +290,11 @@ export default function AppsPage() {
               disabled={loading || !username || !password || !agreed || success}
               className="w-full sm:w-auto"
             >
-              {loading ? '验证中...' : '验证并保存'}
+              {loading ? '验证中...' : '验证'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 }
