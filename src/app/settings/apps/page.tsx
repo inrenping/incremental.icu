@@ -76,8 +76,13 @@ export default function AppsPage() {
     setError(null);
 
     try {
-      const isGarmin = currentApp.id.startsWith('garmin');
-      const url = isGarmin ? '/api/garmin' : '/api/apps/connect';
+      let url = "";
+      if (currentApp.id.startsWith('garmin')) {
+        url = '/api/garmin';
+      } else if (currentApp.id.startsWith('coros')) {
+        url = '/api/coros';
+      }
+
 
       const response = await fetch(url, {
         method: 'POST',
@@ -97,7 +102,7 @@ export default function AppsPage() {
       }
 
       // 如果是 Garmin 应用，需要将验证后的响应数据保存到本地数据库
-      if (isGarmin) {
+      if (currentApp.id.startsWith('garmin')) {
         const verifyData = await response.json();
         const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
           method: 'POST',
@@ -111,7 +116,7 @@ export default function AppsPage() {
 
         if (!saveResponse.ok) {
           const errorData = await saveResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || `保存连接信息失败 (HTTP ${saveResponse.status})`);
+          throw new Error(errorData.message || `连接服务失败 (HTTP ${saveResponse.status})`);
         }
 
         const saveResult = await saveResponse.json();
@@ -155,8 +160,12 @@ export default function AppsPage() {
                     去连接
                   </Button>
                 ) : (
-                  <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10">
-                    断开连接
+                  <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => {
+                      setCurrentApp(app);
+                      setOpen(true);
+                    }}>
+                    重新连接
                   </Button>
                 )}
 
@@ -208,7 +217,7 @@ export default function AppsPage() {
           }
         }}
       >
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>连接 {currentApp?.label}</DialogTitle>
             <DialogDescription>
@@ -243,7 +252,7 @@ export default function AppsPage() {
                 安全提示
               </div>
               <p>
-                为实现数据自动同步，服务端需加密保存您的账号和加密后的密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致凭证失效。<br />我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。
+                为实现数据自动同步，服务端需要获取您的账号和密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致凭证失效。<br />我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -276,6 +285,12 @@ export default function AppsPage() {
             {error && <p className="text-sm text-destructive font-medium">{error}</p>}
           </div>
           <DialogFooter>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto mr-auto"
+            >
+              {loading ? '测试中...' : '测试连接 ' + currentApp?.id}
+            </Button>
             {success && (
               <Button
                 variant="outline"

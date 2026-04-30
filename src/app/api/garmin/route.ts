@@ -15,9 +15,9 @@ export async function POST(request: Request) {
 
     // 建议使用环境变量存储敏感信息，并根据需要配置区域
     // 默认是国际版。如果 domainParam 为 'cn'，则使用 'garmin.cn'
-    const garminDomain = (domainParam === 'cn' || domainParam === 'garmin.cn') ? 'garmin.cn' : undefined;
+    const garminDomain = (domainParam === 'cn') ? 'garmin.cn' : undefined;
 
-    const GCClient = new GarminConnect({ // Use the extracted body parameters
+    const GCClient = new GarminConnect({
       username: usernameParam || '',
       password: passwordParam || ''
     }, garminDomain);
