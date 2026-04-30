@@ -80,7 +80,7 @@ const ActivityListPage = () => {
   return (
     <div className={cn(
       "p-6 mx-auto bg-gray-50 min-h-screen text-sm transition-all duration-300",
-      layout === "fixed" ? "max-w-[1400px]" : "max-w-none w-full"
+      layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
     )}>
       {/* 平台选择器 */}
       <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm mb-4">

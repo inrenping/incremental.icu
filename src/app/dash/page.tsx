@@ -3,6 +3,8 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { useLayout } from "@/hooks/use-layout";
+import { cn } from "@/lib/utils";
 import {
   IconRefresh,
   IconCircleCheckFilled,
@@ -13,6 +15,7 @@ import {
 } from "@tabler/icons-react";
 
 export default function DashPage() {
+  const { layout } = useLayout();
   // 模拟数据，实际开发时可从 API 获取
   const apps = [
     { id: 'garmin', label: '佳明国际版', isConnected: true, activities: 156, status: '已连接' },
@@ -27,7 +30,10 @@ export default function DashPage() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 p-6 max-w-5xl mx-auto">
+    <div className={cn(
+      "p-6 mx-auto bg-gray-50 min-h-screen text-sm transition-all duration-300",
+      layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
+    )}>
       {/* 核心操作区 */}
       <section className="text-center space-y-6 py-8 bg-muted/30 rounded-3xl border border-dashed border-border">
         <div className="space-y-2">

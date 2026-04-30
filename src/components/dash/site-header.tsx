@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTranslations } from "next-intl";
 import { GitHubLink } from '@/components/githubLink';
+import { useLayout } from "@/hooks/use-layout";
+import { cn } from "@/lib/utils";
 
 interface User {
   id: number;
@@ -28,7 +30,7 @@ interface User {
 }
 
 export function SiteHeader() {
-
+  const { layout } = useLayout();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -54,8 +56,11 @@ export function SiteHeader() {
 
   return (
     <header className="sticky top-0 z-50 py-4 w-full bg-background">
-      <div className="container-wrapper px-6 group-has-data-[slot=designer]/layout:max-w-none 3xl:fixed:px-0">
-        <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4! group-has-data-[slot=designer]/layout:fixed:max-w-none 3xl:fixed:container">
+      <div className={cn(
+        "px-6 transition-all duration-300 mx-auto",
+        layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
+      )}>
+        <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4!">
           <h1 className="text-base font-medium">Incremental</h1>
 
           <div className="ml-auto flex items-center gap-2">
