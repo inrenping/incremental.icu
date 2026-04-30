@@ -24,7 +24,8 @@ const ActivityListPage = () => {
       date: '2024-04-30',
       time: '06:32',
       type: '跑步',
-      duration: '42:15',
+      workoutTime: '42:15',
+      totalTime: '45:30',
       distance: '8.50 km',
       elevation: '45 m',
       platform: '佳明国际版',
@@ -35,7 +36,8 @@ const ActivityListPage = () => {
       date: '2024-04-29',
       time: '18:15',
       type: '远足',
-      duration: '1:28:03',
+      workoutTime: '1:28:03',
+      totalTime: '1:35:12',
       distance: '12.30 km',
       elevation: '680 m',
       platform: '佳明国际版',
@@ -46,7 +48,8 @@ const ActivityListPage = () => {
       date: '2024-04-28',
       time: '07:01',
       type: '游泳',
-      duration: '32:50',
+      workoutTime: '32:50',
+      totalTime: '33:10',
       distance: '1,500 m',
       elevation: '--',
       platform: '佳明国际版',
@@ -57,7 +60,8 @@ const ActivityListPage = () => {
       date: '2024-04-27',
       time: '06:45',
       type: '跑步',
-      duration: '55:22',
+      workoutTime: '55:22',
+      totalTime: '58:05',
       distance: '10.01 km',
       elevation: '20 m',
       platform: '佳明国际版',
@@ -68,7 +72,8 @@ const ActivityListPage = () => {
       date: '2024-04-26',
       time: '10:30',
       type: '越野跑',
-      duration: '2:15:40',
+      workoutTime: '2:15:40',
+      totalTime: '2:25:10',
       distance: '21.10 km',
       elevation: '1240 m',
       platform: '佳明国际版',
@@ -121,7 +126,8 @@ const ActivityListPage = () => {
               <th className="px-4 py-3 font-medium w-24">类型</th>
               <th className="px-4 py-3 font-medium">名称</th>
               <th className="px-4 py-3 font-medium">日期</th>
-              <th className="px-4 py-3 font-medium">耗时</th>
+              <th className="px-4 py-3 font-medium">运动时间</th>
+              <th className="px-4 py-3 font-medium">总时间</th>
               <th className="px-4 py-3 font-medium">距离</th>
               <th className="px-4 py-3 font-medium">海拔</th>
               <th className="px-4 py-3 font-medium">平台</th>
@@ -143,7 +149,10 @@ const ActivityListPage = () => {
                   <div className="font-mono">{act.date}</div>
                 </td>
                 <td className="px-4 py-3 text-gray-600 font-mono">
-                  {act.duration}
+                  {act.workoutTime}
+                </td>
+                <td className="px-4 py-3 text-gray-600 font-mono">
+                  {act.totalTime}
                 </td>
                 <td className="px-4 py-3 text-gray-600 font-mono">
                   {act.distance}

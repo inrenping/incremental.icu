@@ -18,9 +18,37 @@ export default function DashPage() {
   const { layout } = useLayout();
   // 模拟数据，实际开发时可从 API 获取
   const apps = [
-    { id: 'garmin', label: '佳明国际版', isConnected: true, activities: 156, status: '已连接' },
-    { id: 'garmin_cn', label: '佳明中国版', isConnected: false, activities: 0, status: '未连接' },
-    { id: 'coros', label: '高驰', isConnected: true, activities: 89, status: '已连接' },
+    {
+      id: "garmin",
+      label: "Garmin Connect",
+      description: "连接您的 Garmin Connect 账号",
+      isConnected: true,
+      email: "inrenping@gmail.com",
+      addedAt: "2026-04-26 11:35:07",
+      status: "验证通过",
+      region: "国际区",
+      lastUpdate: "2026-04-29 11:51:20",
+      count: 156
+    },
+    {
+      id: "garmin_cn",
+      label: "Garmin Connect (CN)",
+      description: "连接您的 Garmin Connect (中国) 账号",
+      isConnected: true,
+      email: null,
+      addedAt: "2026-04-26 13:02:50",
+      status: "验证通过",
+      region: "中国区",
+      lastUpdate: "2026-04-27 08:14:25",
+      count: 89
+    },
+    {
+      id: "coros",
+      label: "Coros",
+      description: "连接您的 Coros 账号",
+      isConnected: false,
+      count: 0
+    }
   ];
 
   const logs = [
@@ -31,7 +59,7 @@ export default function DashPage() {
 
   return (
     <div className={cn(
-      "p-6 mx-auto bg-gray-50 min-h-screen text-sm transition-all duration-300",
+      "flex flex-col gap-8 p-6 mx-auto bg-gray-50 min-h-screen text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
     )}>
       {/* 核心操作区 */}
@@ -52,7 +80,14 @@ export default function DashPage() {
       <section>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {apps.map((app) => (
-            <Card key={app.id} className="relative overflow-hidden">
+            <Card key={app.id} className="relative">
+              {app.count !== undefined && app.count > 0 && (
+                <div className="absolute -top-3 -right-3 z-20">
+                  <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground">
+                    {app.count}
+                  </Badge>
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -64,7 +99,7 @@ export default function DashPage() {
                   {app.isConnected ? (
                     <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 gap-1 border-emerald-200">
                       <IconCircleCheckFilled className="h-3 w-3" />
-                      已连接
+                      {app.status || '已连接'}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-amber-600 border-amber-200 gap-1">
@@ -75,14 +110,42 @@ export default function DashPage() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  {app.description}
+                </p>
                 {app.isConnected ? (
                   <>
-                    <div className="text-2xl font-bold">{app.activities} <span className="text-sm font-normal text-muted-foreground">条活动</span></div>
+                    <div className="space-y-1.5 border-t pt-3">
+                      {app.email && (
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted-foreground">账号</span>
+                          <span className="font-medium truncate">{app.email}</span>
+                        </div>
+                      )}
+                      {app.region && (
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted-foreground">地区</span>
+                          <span className="font-medium">{app.region}</span>
+                        </div>
+                      )}
+                      {app.addedAt && (
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted-foreground">添加关联时间</span>
+                          <span className="font-medium font-mono">{app.addedAt}</span>
+                        </div>
+                      )}
+                      {app.lastUpdate && (
+                        <div className="flex justify-between text-[11px]">
+                          <span className="text-muted-foreground">最后同步时间</span>
+                          <span className="font-medium font-mono">{app.lastUpdate}</span>
+                        </div>
+                      )}
+                    </div>
                     <Button variant="outline" size="sm" className="w-full text-muted-foreground">重新连接</Button>
                   </>
                 ) : (
                   <>
-                    <div className="h-8" /> {/* 占位保持高度一致 */}
+                    <div className="h-8" />
                     <Button size="sm" className="w-full">连接账户</Button>
                   </>
                 )}
