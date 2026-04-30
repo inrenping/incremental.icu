@@ -116,7 +116,7 @@ export default function AppsPage() {
 
         if (!saveResponse.ok) {
           const errorData = await saveResponse.json().catch(() => ({}));
-          throw new Error(errorData.message || `保存连接信息失败 (HTTP ${saveResponse.status})`);
+          throw new Error(errorData.message || `连接服务失败 (HTTP ${saveResponse.status})`);
         }
 
         const saveResult = await saveResponse.json();
@@ -252,7 +252,7 @@ export default function AppsPage() {
                 安全提示
               </div>
               <p>
-                为实现数据自动同步，服务端需加密保存您的账号和加密后的密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致凭证失效。<br />我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。
+                为实现数据自动同步，服务端需要获取您的账号和密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致凭证失效。<br />我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。
               </p>
             </div>
             <div className="flex items-center space-x-2">
@@ -285,6 +285,12 @@ export default function AppsPage() {
             {error && <p className="text-sm text-destructive font-medium">{error}</p>}
           </div>
           <DialogFooter>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto mr-auto"
+            >
+              {loading ? '测试中...' : '测试连接 ' + currentApp?.id}
+            </Button>
             {success && (
               <Button
                 variant="outline"
