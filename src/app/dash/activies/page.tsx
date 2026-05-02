@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
+import dayjs from 'dayjs';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   IconSearch,
@@ -8,6 +9,7 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
+  IconRefresh,
 } from '@tabler/icons-react';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
@@ -53,17 +55,6 @@ const ActivityListPage = () => {
     { platform: "garmin_cn", name: '佳明中国版', },
     { platform: "coros", name: '高驰' },
   ].map(p => ({ ...p, active: p.platform === platformSelected }));
-
-  // 动态修改页面标题
-  useEffect(() => {
-    const currentPlatform = platforms.find(p => p.platform === platformSelected);
-    if (currentPlatform) {
-      document.title = `活动列表 | ${currentPlatform.name}`;
-    } else {
-      document.title = '活动列表';
-    }
-    return () => { document.title = 'Incremental'; };
-  }, [platformSelected, platforms]);
 
   // 对接后端分页接口
   const fetchActivities = useCallback(async () => {
@@ -157,8 +148,15 @@ const ActivityListPage = () => {
         </div>
 
         <button
+          className="ml-auto px-4 py-1.5 border border-gray-200 rounded-md hover:bg-gray-50 text-gray-700 font-medium flex items-center gap-2"
+        >
+          <IconRefresh size={16} />
+          同步
+        </button>
+
+        <button
           onClick={fetchActivities}
-          className="ml-auto px-4 py-1.5 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium flex items-center gap-2"
+          className="px-4 py-1.5 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors font-medium flex items-center gap-2"
         >
           <IconSearch size={16} />
           查询
@@ -207,7 +205,7 @@ const ActivityListPage = () => {
                     <div className="font-medium text-gray-900">{act.title}</div>
                   </td>
                   <td className="px-4 py-3 text-gray-600">
-                    <div className="font-mono">{act.date}</div>
+                    <div className="font-mono">{dayjs(act.date).format('YYYY-MM-DD HH:mm')}</div>
                   </td>
                   <td className="px-4 py-3 text-gray-600 font-mono">
                     {act.workoutTime}
@@ -230,7 +228,7 @@ const ActivityListPage = () => {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-gray-600 font-mono text-xs whitespace-nowrap">
-                    {act.syncTime}
+                    {dayjs(act.syncTime).format('YYYY-MM-DD HH:mm')}
                   </td>
                 </tr>
               ))
