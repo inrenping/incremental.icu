@@ -62,13 +62,11 @@ export default function DashPage() {
 
   const logs = [
     { id: 1, type: 'success', title: '同步 12 条新活动到佳明国际版', time: '今天 14:22' },
-    { id: 2, type: 'success', title: '同步 5 条新活动到佳明国际版', time: '今天 13:00' },
-    { id: 3, type: 'error', title: '高驰授权过期，请重新连接', time: '昨天 09:15' },
   ];
 
   return (
     <div className={cn(
-      "flex flex-col gap-8 p-6 mx-auto bg-gray-50 min-h-screen text-sm transition-all duration-300",
+      "flex flex-col gap-8 p-6 mx-auto bg-gray-50 flex-1 text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
     )}>
       {/* 核心操作区 */}

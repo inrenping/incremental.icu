@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { storage } from '@/lib/storage';
 import { authFetch } from '@/lib/api';
 import { SiteHeader } from "@/components/login/site-header"
+import { SiteFooter } from "@/components/dash/site-footer"
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 export default function RootLayout({
@@ -39,11 +40,15 @@ export default function RootLayout({
     checkAuth();
   }, [router, t]);
 
-  return (<>
-    <SiteHeader />
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
-      {children}
-    </GoogleOAuthProvider>
-  </>
+  return (
+    <div className="flex flex-col min-h-screen">
+      <SiteHeader />
+      <main className="flex-1 flex flex-col">
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ""}>
+          {children}
+        </GoogleOAuthProvider>
+      </main>
+      <SiteFooter />
+    </div>
   );
 }
