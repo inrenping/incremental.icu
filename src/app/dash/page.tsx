@@ -66,8 +66,8 @@ export default function DashPage() {
 
   return (
     <div className={cn(
-      "flex flex-col gap-8 p-6 mx-auto bg-gray-50 flex-1 text-sm transition-all duration-300",
-      layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
+      "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
+      layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
       {/* 核心操作区 */}
       <section className="text-center space-y-6 py-8 bg-muted/30 rounded-3xl border border-dashed border-border">
@@ -86,7 +86,7 @@ export default function DashPage() {
         </div>
       </section>
 
-      <div className="text-left space-y-5 px-8 py-7 bg-muted/20 rounded-2xl border border-border/50 text-base text-foreground/90 leading-relaxed">
+      <div className="text-left space-y-5 px-8 py-7 bg-muted/20 dark:bg-muted/10 rounded-2xl border border-border/50 text-base text-foreground/90 leading-relaxed">
         <div className="space-y-4 text-foreground">
           <p>
             为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。
@@ -124,7 +124,7 @@ export default function DashPage() {
                       {app.status || '已连接'}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-amber-600 border-amber-200 gap-1">
+                    <Badge variant="outline" className="text-amber-600 border-amber-200 dark:text-amber-500 dark:border-amber-900/50 gap-1">
                       <IconAlertCircleFilled className="h-3 w-3" />
                       未连接
                     </Badge>
@@ -194,7 +194,7 @@ export default function DashPage() {
           <h2 className="font-semibold">近期同步记录</h2>
         </div>
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 overflow-hidden">
             <div className="divide-y divide-border">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
