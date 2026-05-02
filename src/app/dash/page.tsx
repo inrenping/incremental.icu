@@ -28,7 +28,7 @@ interface AppConfig {
   status?: string;
   region?: string;
   lastUpdate?: string;
-  count?: number;
+  total_count?: number;
 }
 
 export default function DashPage() {
@@ -103,10 +103,10 @@ export default function DashPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {apps.map((app) => (
             <Card key={app.id} className="relative">
-              {app.count !== undefined && app.count > 0 && (
+              {app.total_count !== undefined && app.total_count > 0 && (
                 <Link href="/dash/activies?platform=garmin" className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
                   <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground cursor-pointer">
-                    {app.count}
+                    {app.total_count}
                   </Badge>
                 </Link>
               )}
