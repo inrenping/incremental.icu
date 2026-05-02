@@ -1,71 +1,81 @@
 'use client';
 
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import dayjs from "dayjs";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
+import { authFetch } from "@/lib/api";
 import {
   IconRefresh,
   IconCircleCheckFilled,
   IconAlertCircleFilled,
-  IconClock,
   IconHistory,
   IconDeviceWatch
 } from "@tabler/icons-react";
+import { AppConnectionDialog } from "@/components/dash/connection-dialog";
+
+interface AppConfig {
+  id: string;
+  label: string;
+  description: string;
+  isConnected: boolean;
+  email?: string | null;
+  addedAt?: string;
+  status?: string;
+  region?: string;
+  lastUpdate?: string;
+  total_count?: number;
+}
 
 export default function DashPage() {
   const { layout } = useLayout();
-  // 模拟数据，实际开发时可从 API 获取
-  const apps = [
-    {
-      id: "garmin",
-      label: "Garmin Connect",
-      description: "连接您的 Garmin Connect 账号",
-      isConnected: true,
-      email: "inrenping@gmail.com",
-      addedAt: "2026-04-26 11:35:07",
-      status: "验证通过",
-      region: "国际区",
-      lastUpdate: "2026-04-29 11:51:20",
-      count: 156
-    },
-    {
-      id: "garmin_cn",
-      label: "Garmin Connect (CN)",
-      description: "连接您的 Garmin Connect (中国) 账号",
-      isConnected: true,
-      email: null,
-      addedAt: "2026-04-26 13:02:50",
-      status: "验证通过",
-      region: "中国区",
-      lastUpdate: "2026-04-27 08:14:25",
-      count: 89
-    },
-    {
-      id: "coros",
-      label: "Coros",
-      description: "连接您的 Coros 账号",
-      isConnected: false,
-      count: 0
+  const [apps, setApps] = useState<AppConfig[]>([]);
+  const [open, setOpen] = useState(false);
+  const [currentApp, setCurrentApp] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchAppsStatus();
+  }, []);
+
+  // 参考用户提供的请求模式：初始化获取应用连接状态
+  const fetchAppsStatus = async () => {
+    setLoading(true);
+    try {
+      const response = await authFetch('/api/v1/settings/getAppsConfigs');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch status');
+      }
+      const data = await response.json();
+      setApps(data);
+    } catch (err: any) {
+      console.error("Fetch status error:", err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const logs = [
     { id: 1, type: 'success', title: '同步 12 条新活动到佳明国际版', time: '今天 14:22' },
-    { id: 2, type: 'success', title: '同步 5 条新活动到佳明国际版', time: '今天 13:00' },
-    { id: 3, type: 'error', title: '高驰授权过期，请重新连接', time: '昨天 09:15' },
   ];
 
   return (
     <div className={cn(
-      "flex flex-col gap-8 p-6 mx-auto bg-gray-50 min-h-screen text-sm transition-all duration-300",
-      layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
+      "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
+      layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
       {/* 核心操作区 */}
       <section className="text-center space-y-6 py-8 bg-muted/30 rounded-3xl border border-dashed border-border">
         <div className="space-y-2">
-          <p className="text-muted-foreground">连接 2 个以上平台后，点击按钮即可一键同步</p>
+          <div className="flex items-center justify-center gap-1">
+            <p className="text-muted-foreground">连接两个以上平台，点击一键同步后，将自动同步上传最新的 10 条运动数据，会自动过滤掉时间和距离相同的重复记录。</p>
+
+          </div>
         </div>
 
         <div className="flex flex-col items-center gap-3">
@@ -76,17 +86,29 @@ export default function DashPage() {
         </div>
       </section>
 
+      <div className="text-left space-y-5 px-8 py-7 bg-muted/20 dark:bg-muted/10 rounded-2xl border border-border/50 text-base text-foreground/90 leading-relaxed">
+        <div className="space-y-4 text-foreground">
+          <p>
+            为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。
+          </p>
+          <p>请您知悉并同意以下事项：</p>
+          <p>继续使用本工具，即表示您已阅读并同意我们的「使用条款」。</p>
+          <p>受限于品牌登录机制，使用本工具期间，请勿在其他终端同时登录您的账号，以免导致授权凭证失效。</p>
+          <p>我们将严格加密存储您的信息，但无法完全排除网络环境中的潜在不确定性。继续使用即代表您已充分知悉并理解上述情况，授权我们为您进行数据的同步与管理。</p>
+        </div>
+      </div>
+
       {/* 平台卡片 */}
       <section>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {apps.map((app) => (
             <Card key={app.id} className="relative">
-              {app.count !== undefined && app.count > 0 && (
-                <div className="absolute -top-3 -right-3 z-20">
-                  <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground">
-                    {app.count}
+              {app.total_count !== undefined && app.total_count > 0 && (
+                <Link href="/dash/activies?platform=garmin" className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
+                  <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground cursor-pointer">
+                    {app.total_count}
                   </Badge>
-                </div>
+                </Link>
               )}
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
@@ -102,7 +124,7 @@ export default function DashPage() {
                       {app.status || '已连接'}
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="text-amber-600 border-amber-200 gap-1">
+                    <Badge variant="outline" className="text-amber-600 border-amber-200 dark:text-amber-500 dark:border-amber-900/50 gap-1">
                       <IconAlertCircleFilled className="h-3 w-3" />
                       未连接
                     </Badge>
@@ -131,22 +153,32 @@ export default function DashPage() {
                       {app.addedAt && (
                         <div className="flex justify-between text-[11px]">
                           <span className="text-muted-foreground">添加关联时间</span>
-                          <span className="font-medium font-mono">{app.addedAt}</span>
+                          <span className="font-medium font-mono">{dayjs(app.addedAt).format('YYYY-MM-DD HH:mm')}</span>
                         </div>
                       )}
                       {app.lastUpdate && (
                         <div className="flex justify-between text-[11px]">
                           <span className="text-muted-foreground">最后同步时间</span>
-                          <span className="font-medium font-mono">{app.lastUpdate}</span>
+                          <span className="font-medium font-mono">{dayjs(app.lastUpdate).format('YYYY-MM-DD HH:mm')}</span>
                         </div>
                       )}
                     </div>
-                    <Button variant="outline" size="sm" className="w-full text-muted-foreground">重新连接</Button>
+                    <Button variant="outline" size="sm" className="w-full text-muted-foreground"
+                      onClick={() => {
+                        setCurrentApp(app);
+                        setOpen(true);
+                      }}
+                    >重新连接</Button>
                   </>
                 ) : (
                   <>
                     <div className="h-8" />
-                    <Button size="sm" className="w-full">连接账户</Button>
+                    <Button size="sm" className="w-full"
+                      onClick={() => {
+                        setCurrentApp(app);
+                        setOpen(true);
+                      }}
+                    >连接账户</Button>
                   </>
                 )}
               </CardContent>
@@ -162,7 +194,7 @@ export default function DashPage() {
           <h2 className="font-semibold">近期同步记录</h2>
         </div>
         <Card>
-          <CardContent className="p-0">
+          <CardContent className="p-0 overflow-hidden">
             <div className="divide-y divide-border">
               {logs.map((log) => (
                 <div key={log.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
@@ -179,6 +211,13 @@ export default function DashPage() {
           </CardContent>
         </Card>
       </section>
+
+      <AppConnectionDialog
+        open={open}
+        onOpenChange={setOpen}
+        app={currentApp}
+        onSuccess={fetchAppsStatus}
+      />
     </div>
   );
 }

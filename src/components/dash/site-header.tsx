@@ -46,6 +46,8 @@ export function SiteHeader() {
   }, []);
 
   const router = useRouter();
+
+  const title = useTranslations("TabTitles");
   const t = useTranslations("LoginPage");
 
   const handleLogout = () => {
@@ -61,7 +63,12 @@ export function SiteHeader() {
         layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
       )}>
         <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4!">
-          <h1 className="text-base font-medium">Incremental</h1>
+          <h1
+            className="text-base font-medium cursor-pointer"
+            onClick={() => router.push('/dash')}
+          >
+            {title('title')}
+          </h1>
 
           <div className="ml-auto flex items-center gap-2">
             <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
