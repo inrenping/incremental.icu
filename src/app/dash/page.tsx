@@ -77,6 +77,18 @@ export default function DashPage() {
         </div>
       </section>
 
+      <div className="text-left space-y-5 px-8 py-7 bg-muted/20 rounded-2xl border border-border/50 text-base text-foreground/90 leading-relaxed">
+        <div className="space-y-4 text-foreground">
+          <p>
+            为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。
+          </p>
+          <p>请您知悉并同意以下事项：</p>
+          <p>继续使用本工具，即表示您已阅读并同意我们的「使用条款」。</p>
+          <p>受限于品牌登录机制，使用本工具期间，请勿在其他终端同时登录您的账号，以免导致授权凭证失效。</p>
+          <p>我们将严格加密存储您的信息，但无法完全排除网络环境中的潜在不确定性。继续使用即代表您已充分知悉并理解上述情况，授权我们为您进行数据的同步与管理。</p>
+        </div>
+      </div>
+
       {/* 平台卡片 */}
       <section>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
