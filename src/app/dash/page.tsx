@@ -1,5 +1,6 @@
 'use client';
 
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -82,11 +83,11 @@ export default function DashPage() {
           {apps.map((app) => (
             <Card key={app.id} className="relative">
               {app.count !== undefined && app.count > 0 && (
-                <div className="absolute -top-3 -right-3 z-20">
-                  <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground">
+                <Link href="/dash/activies?platform=garmin" className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
+                  <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground cursor-pointer">
                     {app.count}
                   </Badge>
-                </div>
+                </Link>
               )}
               <CardHeader className="pb-2">
                 <div className="flex items-center justify-between">
