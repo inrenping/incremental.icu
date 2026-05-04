@@ -104,7 +104,7 @@ export default function DashPage() {
           {apps.map((app) => (
             <Card key={app.id} className="relative">
               {app.total_count !== undefined && app.total_count > 0 && (
-                <Link href="/dash/activies?platform=garmin" className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
+                <Link href={`/dash/activies?platform=${app.id}`} className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
                   <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground cursor-pointer">
                     {app.total_count}
                   </Badge>
