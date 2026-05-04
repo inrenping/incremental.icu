@@ -5,11 +5,11 @@ import { Separator } from "@/components/ui/separator"
 import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
 import { SiteConfig } from "@/components/site-config";
-import { IconSettings } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import { storage } from "@/lib/storage";
 import { toast } from 'sonner';
+import { IconMenu2 } from "@tabler/icons-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,6 +22,11 @@ import { useTranslations } from "next-intl";
 import { GitHubLink } from '@/components/githubLink';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/ui/avatar";
 
 interface User {
   id: number;
@@ -71,22 +76,41 @@ export function SiteHeader() {
           </h1>
 
           <div className="ml-auto flex items-center gap-2">
-            <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
-            <ModeIntl />
-            <ModeToggle />
-            <SiteConfig />
-            <GitHubLink />
+            <div className="hidden md:flex items-center gap-2">
+              <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
+              <ModeIntl />
+              <ModeToggle />
+              <SiteConfig />
+              <GitHubLink />
+            </div>
             <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <IconSettings className="h-5 w-5" />
-                  <span className="sr-only">User menu</span>
+                <Button variant="ghost" className="h-9 px-2 flex items-center gap-2 rounded-full">
+                  <IconMenu2 className="h-5 w-5 md:hidden" />
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src="" alt={user?.username} />
+                    <AvatarFallback className="bg-primary/10 text-primary text-[10px] font-medium">
+                      {user?.username?.charAt(0).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  {user?.username && (
+                    <span className="text-sm font-medium text-muted-foreground mr-1 hidden md:inline-block">
+                      {user.username}
+                    </span>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-9 px-0">
-                <DropdownMenuLabel>{user?.username}</DropdownMenuLabel>
-                <DropdownMenuSeparator />
+              <DropdownMenuContent align="end" className="w-52">
+                <div className="md:hidden">
+                  <div className="flex items-center justify-around py-2 px-1">
+                    <ModeIntl />
+                    <ModeToggle />
+                    <SiteConfig />
+                    <GitHubLink />
+                  </div>
+                  <DropdownMenuSeparator />
+                </div>
                 <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="focus:bg-primary/50">
                   <span>{t("userSettings")}</span>
                 </DropdownMenuItem>

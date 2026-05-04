@@ -16,9 +16,9 @@ export default function RootLayout({
           } as React.CSSProperties
         }
       >
-        <div className="hidden md:block">
+        {/* <div className="hidden md:block">
           <UserSidebar />
-        </div>
+        </div> */}
         <div className="h-full w-full">{children}</div>
       </SidebarProvider>
     </div>
