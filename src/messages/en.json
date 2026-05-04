@@ -1,7 +1,7 @@
 {
   "TabTitles": {
     "title": "Incremental-Alpha",
-    "description": "A journey of a thousand miles begins with a single step"
+    "description": "Web app syncing Garmin (GLOBAL/CN) & Coros data: activities, health, sleep."
   },
   "LoginPage": {
     "login": "login",
