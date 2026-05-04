@@ -45,6 +45,7 @@ const ActivityListPage = () => {
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [total, setTotal] = useState(0);
 
   const platforms = [
@@ -116,6 +117,31 @@ const ActivityListPage = () => {
     router.push(`${pathname}?${params.toString()}`);
   };
 
+  const handleSync = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const queryParams = new URLSearchParams({
+        platform: platformSelected,
+        count: '10', // 默认同步 10 条
+      });
+
+      const response = await authFetch(
+        `/api/v1/settings/syncAllActivities?${queryParams.toString()}`,
+        { method: 'POST' }
+      );
+
+      const result = await response.json();
+      if (result.status === "success") {
+        await fetchActivities();
+      }
+    } catch (error) {
+      console.error("Failed to sync activities:", error);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   return (
     <div className={cn(
       "p-6 mx-auto bg-slate-50/50 dark:bg-background min-h-screen text-sm transition-all duration-300",
@@ -172,10 +198,12 @@ const ActivityListPage = () => {
         </div>
 
         <button
+          onClick={handleSync}
+          disabled={syncing}
           className="ml-auto px-4 py-1.5 border border-border rounded-md hover:bg-muted text-foreground font-medium flex items-center gap-2 transition-colors"
         >
-          <IconRefresh size={16} />
-          同步
+          <IconRefresh size={16} className={cn(syncing && "animate-spin")} />
+          {syncing ? '同步中...' : '同步'}
         </button>
 
         <button
