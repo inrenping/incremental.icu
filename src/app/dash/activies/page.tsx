@@ -222,11 +222,11 @@ const ActivityListPage = () => {
             <tr className="bg-muted/50 text-muted-foreground border-b border-border">
               <th className="px-4 py-3 font-medium w-24">类型</th>
               <th className="px-4 py-3 font-medium">名称</th>
-              <th className="px-4 py-3 font-medium">日期</th>
+              <th className="px-4 py-3 font-medium">开始时间</th>
               <th className="px-4 py-3 font-medium">运动时间</th>
               <th className="px-4 py-3 font-medium">总时间</th>
               <th className="px-4 py-3 font-medium">距离</th>
-              <th className="px-4 py-3 font-medium">海拔</th>
+              <th className="px-4 py-3 font-medium">爬升</th>
               <th className="px-4 py-3 font-medium">平台</th>
               <th className="px-4 py-3 font-medium">ID</th>
               <th className="px-4 py-3 font-medium">同步时间</th>
