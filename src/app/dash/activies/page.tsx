@@ -5,10 +5,6 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   IconSearch,
   IconChevronDown,
-  IconChevronLeft,
-  IconChevronRight,
-  IconChevronsLeft,
-  IconChevronsRight,
   IconRefresh,
 } from '@tabler/icons-react';
 import { useLayout } from "@/hooks/use-layout";
@@ -19,11 +15,11 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import { Pagination } from "@/components/dash/pagination";
 
 interface Activity {
   title: string;
-  date: string;
-  time: string;
+  startTime: string;
   type: string;
   workoutTime: string;
   totalTime: string;
@@ -44,11 +40,13 @@ const ActivityListPage = () => {
   const platformSelected = searchParams.get('platform') || "garmin";
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('pageSize') || '20');
+  const startDate = searchParams.get('startDate') || "";
+  const endDate = searchParams.get('endDate') || "";
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [total, setTotal] = useState(0);
-  const [jumpPageInput, setJumpPageInput] = useState('');
 
   const platforms = [
     { platform: "garmin", name: '佳明国际版' },
@@ -60,9 +58,17 @@ const ActivityListPage = () => {
   const fetchActivities = useCallback(async () => {
     setLoading(true);
     try {
+      const queryParams = new URLSearchParams({
+        platform: platformSelected,
+        pageSize: limit.toString(),
+        pageCount: page.toString(),
+      });
+      if (startDate) queryParams.set('startDate', startDate);
+      if (endDate) queryParams.set('endDate', endDate);
+
       // 根据后端定义的参数名对接：platform, pageSize, pageCount
       const response = await authFetch(
-        `/api/v1/settings/getActivitiesByPage?platform=${platformSelected}&pageSize=${limit}&pageCount=${page}`
+        `/api/v1/settings/getActivitiesWithPlatformByPage?${queryParams.toString()}`
       );
       const result = await response.json();
       if (result.status === "success") {
@@ -74,7 +80,7 @@ const ActivityListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [platformSelected, page, limit]);
+  }, [platformSelected, page, limit, startDate, endDate]);
 
   useEffect(() => {
     fetchActivities();
@@ -100,13 +106,39 @@ const ActivityListPage = () => {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / limit));
+  const handleDateChange = (key: string, value: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (value) {
+      params.set(key, value);
+    } else {
+      params.delete(key);
+    }
+    params.set('page', '1'); // 重置页码
+    router.push(`${pathname}?${params.toString()}`);
+  };
 
-  const handleJump = () => {
-    const p = parseInt(jumpPageInput);
-    if (!isNaN(p) && p > 0 && p <= totalPages) {
-      handlePageChange(p);
-      setJumpPageInput('');
+  const handleSync = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const queryParams = new URLSearchParams({
+        platform: platformSelected,
+        count: '10', // 默认同步 10 条
+      });
+
+      const response = await authFetch(
+        `/api/v1/settings/syncAllActivities?${queryParams.toString()}`,
+        { method: 'POST' }
+      );
+
+      const result = await response.json();
+      if (result.status === "success") {
+        await fetchActivities();
+      }
+    } catch (error) {
+      console.error("Failed to sync activities:", error);
+    } finally {
+      setSyncing(false);
     }
   };
 
@@ -135,6 +167,24 @@ const ActivityListPage = () => {
 
         <div className="w-px h-6 bg-border shrink-0 mx-1" />
 
+        <div className="flex items-center gap-2">
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => handleDateChange('startDate', e.target.value)}
+            className="px-2 py-1.5 border border-border bg-background rounded text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+          <span className="text-muted-foreground">-</span>
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => handleDateChange('endDate', e.target.value)}
+            className="px-2 py-1.5 border border-border bg-background rounded text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+          />
+        </div>
+
+        <div className="w-px h-6 bg-border shrink-0 mx-1" />
+
         <button className="flex items-center gap-1 px-3 py-1.5 border border-border rounded bg-background hover:bg-muted text-foreground transition-colors">
           全部运动 <IconChevronDown size={14} />
         </button>
@@ -148,10 +198,12 @@ const ActivityListPage = () => {
         </div>
 
         <button
+          onClick={handleSync}
+          disabled={syncing}
           className="ml-auto px-4 py-1.5 border border-border rounded-md hover:bg-muted text-foreground font-medium flex items-center gap-2 transition-colors"
         >
-          <IconRefresh size={16} />
-          同步
+          <IconRefresh size={16} className={cn(syncing && "animate-spin")} />
+          {syncing ? '同步中...' : '同步'}
         </button>
 
         <button
@@ -205,7 +257,7 @@ const ActivityListPage = () => {
                     <div className="font-medium text-foreground">{act.title}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    <div className="font-mono">{dayjs(act.date).format('YYYY-MM-DD HH:mm')}</div>
+                    <div className="font-mono">{dayjs(act.startTime).format('YYYY-MM-DD HH:mm')}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono">
                     {act.workoutTime}
@@ -237,70 +289,13 @@ const ActivityListPage = () => {
         </table>
 
         {/* 分页 */}
-        <div className="px-6 py-4 bg-card border-t border-border flex justify-between items-center text-muted-foreground">
-          {/* 左侧：统计与配置 */}
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-1">
-              共 <span className="font-medium text-foreground">{total}</span> 条
-            </div>
-            <select
-              value={limit}
-              onChange={(e) => handleLimitChange(e.target.value)}
-              className="flex items-center gap-1 px-2 py-1 border border-border rounded bg-background outline-none focus:ring-1 focus:ring-ring cursor-pointer text-sm"
-            >
-              <option value="20">20 条/页</option>
-              <option value="50">50 条/页</option>
-              <option value="100">100 条/页</option>
-            </select>
-            <div>
-              第 <span className="text-foreground font-medium">{page}</span> 页 / 共 {totalPages} 页
-            </div>
-          </div>
-
-          {/* 右侧：导航与跳转 */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(1)}
-              disabled={page === 1}
-              className="w-9 h-9 border border-border rounded hover:bg-muted flex items-center justify-center transition-colors disabled:opacity-50">
-              <IconChevronsLeft size={18} />
-            </button>
-            <button
-              onClick={() => handlePageChange(Math.max(1, page - 1))}
-              disabled={page === 1}
-              className="w-9 h-9 border border-border rounded hover:bg-muted flex items-center justify-center transition-colors disabled:opacity-50">
-              <IconChevronLeft size={18} />
-            </button>
-            <button
-              onClick={() => handlePageChange(page + 1)}
-              disabled={page >= totalPages}
-              className="w-9 h-9 border border-border rounded hover:bg-muted flex items-center justify-center transition-colors disabled:opacity-50">
-              <IconChevronRight size={18} />
-            </button>
-            <button
-              onClick={() => handlePageChange(totalPages)}
-              disabled={page >= totalPages}
-              className="w-9 h-9 border border-border rounded hover:bg-muted flex items-center justify-center transition-colors disabled:opacity-50">
-              <IconChevronsRight size={18} />
-            </button>
-            <div className="flex items-center h-9 border border-border rounded px-3 bg-muted/30 ml-1">
-              <span>跳转到 第</span>
-              <input
-                type="text"
-                className="w-10 mx-1 text-center border-b border-border bg-transparent outline-none focus:border-primary transition-colors font-medium text-foreground"
-                value={jumpPageInput}
-                onChange={(e) => setJumpPageInput(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleJump()}
-              />
-              <span>页</span>
-            </div>
-            <button
-              onClick={handleJump}
-              className="px-5 h-9 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors font-medium">
-              GO
-            </button>
-          </div>
-        </div>
+        <Pagination
+          total={total}
+          page={page}
+          limit={limit}
+          onPageChange={handlePageChange}
+          onLimitChange={handleLimitChange}
+        />
       </div>
     </div>
   );
