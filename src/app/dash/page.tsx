@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import dayjs from "dayjs";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +38,7 @@ export default function DashPage() {
   const [open, setOpen] = useState(false);
   const [currentApp, setCurrentApp] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     fetchAppsStatus();
@@ -60,6 +62,31 @@ export default function DashPage() {
     }
   };
 
+  // 一键同步处理函数
+  const handleGlobalSync = async () => {
+    if (isSyncing) return;
+    setIsSyncing(true);
+    try {
+      const response = await authFetch('/api/v1/settings/syncNewActivities', {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        toast.success("同步已完成");
+        fetchAppsStatus();
+      } else {
+        toast.error(result.message || "同步失败");
+      }
+    } catch (err) {
+      console.error("Global sync error:", err);
+      toast.error("请求同步失败，请稍后重试");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const logs = [
     { id: 1, type: 'success', title: '同步 12 条新活动到佳明国际版', time: '今天 14:22' },
   ];
@@ -79,9 +106,14 @@ export default function DashPage() {
         </div>
 
         <div className="flex flex-col items-center gap-3">
-          <Button size="lg" className="h-14 px-8 text-lg gap-2 rounded-full shadow-lg hover:shadow-xl transition-all">
-            <IconRefresh className="h-6 w-6" />
-            一键同步
+          <Button
+            size="lg"
+            className="h-14 px-8 text-lg gap-2 rounded-full shadow-lg hover:shadow-xl transition-all"
+            onClick={handleGlobalSync}
+            disabled={isSyncing}
+          >
+            <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
+            {isSyncing ? "同步中..." : "一键同步"}
           </Button>
         </div>
       </section>
@@ -213,8 +245,12 @@ export default function DashPage() {
       </section>
 
       <AppConnectionDialog
+        key={currentApp?.id}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={(val) => {
+          setOpen(val);
+          if (!val) setCurrentApp(null);
+        }}
         app={currentApp}
         onSuccess={fetchAppsStatus}
       />

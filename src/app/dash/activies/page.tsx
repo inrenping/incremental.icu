@@ -89,7 +89,7 @@ const ActivityListPage = () => {
   const handlePlatformChange = (platform: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('platform', platform);
-    params.set('page', '1'); // 切换平台时重置页码
+    params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -102,7 +102,7 @@ const ActivityListPage = () => {
   const handleLimitChange = (newLimit: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('pageSize', newLimit);
-    params.set('page', '1'); // 切换每页条数时重置页码
+    params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -113,7 +113,7 @@ const ActivityListPage = () => {
     } else {
       params.delete(key);
     }
-    params.set('page', '1'); // 重置页码
+    params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
 
@@ -123,7 +123,7 @@ const ActivityListPage = () => {
     try {
       const queryParams = new URLSearchParams({
         platform: platformSelected,
-        count: '10', // 默认同步 10 条
+        count: '10',
       });
 
       const response = await authFetch(
@@ -203,7 +203,7 @@ const ActivityListPage = () => {
           className="ml-auto px-4 py-1.5 border border-border rounded-md hover:bg-muted text-foreground font-medium flex items-center gap-2 transition-colors"
         >
           <IconRefresh size={16} className={cn(syncing && "animate-spin")} />
-          {syncing ? '同步中...' : '同步'}
+          {syncing ? '全量同步中...' : '全量同步'}
         </button>
 
         <button
@@ -223,10 +223,10 @@ const ActivityListPage = () => {
               <th className="px-4 py-3 font-medium w-24">类型</th>
               <th className="px-4 py-3 font-medium">名称</th>
               <th className="px-4 py-3 font-medium">开始时间</th>
-              <th className="px-4 py-3 font-medium">运动时间</th>
-              <th className="px-4 py-3 font-medium">总时间</th>
-              <th className="px-4 py-3 font-medium">距离</th>
-              <th className="px-4 py-3 font-medium">爬升</th>
+              <th className="px-4 py-3 font-medium text-right">运动时间</th>
+              <th className="px-4 py-3 font-medium text-right">总时间</th>
+              <th className="px-4 py-3 font-medium text-right">距离</th>
+              <th className="px-4 py-3 font-medium text-right">爬升</th>
               <th className="px-4 py-3 font-medium">平台</th>
               <th className="px-4 py-3 font-medium">ID</th>
               <th className="px-4 py-3 font-medium">同步时间</th>
@@ -259,16 +259,16 @@ const ActivityListPage = () => {
                   <td className="px-4 py-3 text-muted-foreground">
                     <div className="font-mono">{dayjs(act.startTime).format('YYYY-MM-DD HH:mm')}</div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
                     {act.workoutTime}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
                     {act.totalTime}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
                     {act.distance}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
                     {act.elevation}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
