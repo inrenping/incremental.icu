@@ -5,6 +5,17 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { storage } from '@/lib/storage';
 import { authFetch } from '@/lib/api';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface User {
   username?: string;
@@ -73,25 +84,42 @@ export default function ProfilePage() {
     console.log(`连接社交账号: ${provider}`);
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      const res = await authFetch('/api/v1/user', { method: 'DELETE' });
+      if (res.ok) {
+        // 清除本地存储并跳转
+        storage.remove('user');
+        storage.remove('token');
+        window.location.href = '/';
+      } else {
+        console.error('删除账号失败:', res.status);
+        // 这里可以添加一个 Toast 提示
+      }
+    } catch (error) {
+      console.error('删除账号出错:', error);
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6 max-w-2xl">
+    <div className="mx-auto w-full max-w-2xl px-4 flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="space-y-1 ">
         <h1 className="text-xl font-semibold">我的个人资料</h1>
       </div>
       <div className="rounded-xl bg-background p-6">
         <div className="grid gap-y-4 text-sm text-foreground">
-          <div className="grid grid-cols-[120px_1fr] items-center gap-4 border-b border-border pb-4">
+          <div className="grid items-center gap-4 border-b border-border pb-4">
             <span className="text-sm text-muted-foreground">用户名</span>
             <span className="font-semibold">{user?.username}</span>
           </div>
-          <div className="grid grid-cols-[120px_1fr] items-center gap-4 border-b border-border pb-4">
+          <div className="grid items-center gap-4 border-b border-border pb-4">
             <span className="text-sm text-muted-foreground">邮箱</span>
             <span className="font-semibold">{user?.email}</span>
           </div>
           {SOCIAL_PROVIDERS.map((item) => {
             const social = socials.find((entry) => entry.provider === item.provider);
             return (
-              <div key={item.provider} className="grid grid-cols-[120px_1fr] items-center gap-4 border-b border-border pb-4">
+              <div key={item.provider} className="grid items-center gap-4 border-b border-border pb-4">
                 <span className="text-sm text-muted-foreground">{item.label}</span>
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-semibold">
@@ -110,6 +138,33 @@ export default function ProfilePage() {
               </div>
             );
           })}
+          <div className="flex flex-col items-start gap-2">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="default">删除账号</Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>您确定要删除账号吗？</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    此操作将永久删除您的个人资料、设置以及所有相关数据。一旦确认，您将无法恢复这些内容。
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeleteAccount}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    确认删除
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <p className="text-xs text-muted-foreground">
+              一旦删除账号，您的所有数据将被永久移除，此操作不可撤销。
+            </p>
+          </div>
         </div>
       </div>
     </div>

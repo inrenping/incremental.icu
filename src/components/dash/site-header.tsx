@@ -65,7 +65,7 @@ export function SiteHeader() {
     <header className="sticky top-0 z-50 py-4 w-full bg-background">
       <div className={cn(
         "px-6 transition-all duration-300 mx-auto",
-        layout === "fixed" ? "max-w-6xl" : "max-w-none w-full"
+        layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
       )}>
         <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4!">
           <h1
