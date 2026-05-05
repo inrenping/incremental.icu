@@ -6,6 +6,7 @@ import {
   IconSearch,
   IconChevronDown,
   IconRefresh,
+  IconDownload,
 } from '@tabler/icons-react';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
@@ -18,6 +19,7 @@ import {
 import { Pagination } from "@/components/dash/pagination";
 
 interface Activity {
+  id: string,
   title: string;
   startTime: string;
   type: string;
@@ -142,6 +144,26 @@ const ActivityListPage = () => {
     }
   };
 
+  const handleDownload = async (id: string, platformId: string) => {
+    try {
+      const response = await authFetch(`/api/v1/garmin/downloadActivity/${id}`);
+      if (!response.ok) throw new Error('Download failed');
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.style.display = 'none';
+      a.href = url;
+      a.download = `${platformId}.fit`; // 默认使用 platformId 作为文件名
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Failed to download activity:", error);
+    }
+  };
+
   return (
     <div className={cn(
       "p-6 mx-auto bg-slate-50/50 dark:bg-background min-h-screen text-sm transition-all duration-300",
@@ -228,7 +250,7 @@ const ActivityListPage = () => {
               <th className="px-4 py-3 font-medium text-right">距离</th>
               <th className="px-4 py-3 font-medium text-right">爬升</th>
               <th className="px-4 py-3 font-medium">平台</th>
-              <th className="px-4 py-3 font-medium">ID</th>
+              <th className="px-4 py-3 font-medium text-center">ID</th>
               <th className="px-4 py-3 font-medium">同步时间</th>
             </tr>
           </thead>
@@ -256,7 +278,7 @@ const ActivityListPage = () => {
                   <td className="px-4 py-3">
                     <div className="font-medium text-foreground">{act.title}</div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-5 text-muted-foreground">
                     <div className="font-mono">{dayjs(act.startTime).format('YYYY-MM-DD HH:mm')}</div>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-right">
@@ -274,10 +296,14 @@ const ActivityListPage = () => {
                   <td className="px-4 py-3 text-muted-foreground">
                     {act.platform}
                   </td>
-                  <td className="px-4 py-3">
-                    <span className="bg-muted text-muted-foreground px-2 py-0.5 rounded font-mono text-xs">
+                  <td className="px-4 py-3 text-center">
+                    <button
+                      onClick={() => handleDownload(act.id, act.platformId)}
+                      className="inline-flex items-center gap-1 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary px-2 py-0.5 rounded font-mono text-xs transition-colors"
+                    >
+                      <IconDownload size={12} />
                       {act.platformId}
-                    </span>
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
                     {dayjs(act.syncTime).format('YYYY-MM-DD HH:mm')}

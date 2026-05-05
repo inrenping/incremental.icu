@@ -8,19 +8,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="container-wrapper flex flex-1 flex-col px-2">
-      <SidebarProvider
-        style={
-          {
-            "--sidebar-width": "calc(var(--spacing) * 72)",
-          } as React.CSSProperties
-        }
-      >
-        {/* <div className="hidden md:block">
-          <UserSidebar />
-        </div> */}
-        <div className="h-full w-full">{children}</div>
-      </SidebarProvider>
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1 flex flex-col">
+        {children}
+      </main>
     </div>
   )
 }
