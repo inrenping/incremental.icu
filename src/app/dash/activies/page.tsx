@@ -144,9 +144,9 @@ const ActivityListPage = () => {
     }
   };
 
-  const handleDownload = async (id: string, platformId: string) => {
+  const handleDownload = async (id: string, platform: string,platformId: string) => {
     try {
-      const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platformId=${platformId}`);
+      const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
 
       const blob = await response.blob();
@@ -298,7 +298,7 @@ const ActivityListPage = () => {
                   </td>
                   <td className="px-4 py-3 text-center">
                     <button
-                      onClick={() => handleDownload(act.id, act.platformId)}
+                      onClick={() => handleDownload(act.id, act.platform,act.platformId)}
                       className="inline-flex items-center gap-1 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary px-2 py-0.5 rounded font-mono text-xs transition-colors"
                     >
                       <IconDownload size={12} />
