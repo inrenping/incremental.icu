@@ -146,7 +146,7 @@ const ActivityListPage = () => {
 
   const handleDownload = async (id: string, platformId: string) => {
     try {
-      const response = await authFetch(`/api/v1/garmin/downloadActivity/${id}`);
+      const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platformId=${platformId}`);
       if (!response.ok) throw new Error('Download failed');
 
       const blob = await response.blob();
