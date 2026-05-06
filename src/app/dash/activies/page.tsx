@@ -7,6 +7,7 @@ import {
   IconChevronDown,
   IconRefresh,
   IconDownload,
+  IconSend
 } from '@tabler/icons-react';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
@@ -16,8 +17,15 @@ import {
   MenubarMenu,
   MenubarTrigger,
 } from "@/components/ui/menubar";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { Pagination } from "@/components/dash/pagination";
-
 interface Activity {
   id: string,
   title: string;
@@ -32,6 +40,11 @@ interface Activity {
   syncTime: string;
 }
 
+// Assuming CorosActivity and GarminActivity have similar structures but might differ in fields.
+// For now, let's use a generic object for detailed activity.
+interface DetailedActivity {
+  [key: string]: any;
+}
 const ActivityListPage = () => {
   const { layout } = useLayout();
   const router = useRouter();
@@ -49,6 +62,8 @@ const ActivityListPage = () => {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [total, setTotal] = useState(0);
+  const [selectedActivityDetail, setSelectedActivityDetail] = useState<DetailedActivity | null>(null);
+  const [loadingActivityDetail, setLoadingActivityDetail] = useState(false);
 
   const platforms = [
     { platform: "garmin", name: '佳明国际版' },
@@ -144,7 +159,7 @@ const ActivityListPage = () => {
     }
   };
 
-  const handleDownload = async (id: string, platform: string,platformId: string) => {
+  const handleDownload = async (id: string, platform: string, platformId: string) => {
     try {
       const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
@@ -154,7 +169,7 @@ const ActivityListPage = () => {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `${platformId}.fit`; // 默认使用 platformId 作为文件名
+      a.download = `${platformId}.fit`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
@@ -162,6 +177,44 @@ const ActivityListPage = () => {
     } catch (error) {
       console.error("Failed to download activity:", error);
     }
+  };
+
+  const fetchActivityDetails = useCallback(async (activityId: string, platform: string) => {
+    setLoadingActivityDetail(true);
+    setSelectedActivityDetail(null);
+    try {
+      const queryParams = new URLSearchParams({
+        id: activityId,
+        platform: platform,
+      });
+      const response = await authFetch(
+        `/api/v1/settings/getActivity?${queryParams.toString()}`
+      );
+      const result = await response.json();
+      if (result.status === "success") {
+        setSelectedActivityDetail(result.data);
+      } else {
+        console.error("Failed to fetch activity details:", result.detail || "Unknown error");
+      }
+    } catch (error) {
+      console.error("Failed to fetch activity details:", error);
+    } finally {
+      setLoadingActivityDetail(false);
+    }
+  }, []);
+
+  const handlePushToPlatform = (obj: object, platformSelected: string, target: object) => {
+    console.log("准备推送到平台：", obj, platformSelected, target);
+  };
+
+  const getPushTargets = (currentPlatform: string) => {
+    const allPlatforms = [
+      { id: "garmin", platform: "GLOBAL", name: '佳明国际版' },
+      { id: "garmin_cn", platform: "CN", name: '佳明中国版' },
+      { id: "coros", platform: "Coros", name: '高驰' },
+    ];
+    // 返回除当前平台外的其他平台
+    return allPlatforms.filter(p => p.platform !== currentPlatform);
   };
 
   return (
@@ -250,7 +303,7 @@ const ActivityListPage = () => {
               <th className="px-4 py-3 font-medium text-right">距离</th>
               <th className="px-4 py-3 font-medium text-right">爬升</th>
               <th className="px-4 py-3 font-medium">平台</th>
-              <th className="px-4 py-3 font-medium text-center">ID</th>
+              {/* <th className="px-4 py-3 font-medium text-center">ID</th> */}
               <th className="px-4 py-3 font-medium">同步时间</th>
             </tr>
           </thead>
@@ -270,40 +323,119 @@ const ActivityListPage = () => {
             ) : (
               activities.map((act, i) => (
                 <tr key={act.platformId || i} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2 text-foreground">
                       <span>{act.type}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-foreground">{act.title}</div>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex items-center gap-1.5">
+                      <Sheet onOpenChange={(open) => {
+                        if (open) {
+                          fetchActivityDetails(act.id, act.platform);
+                        } else {
+                          setSelectedActivityDetail(null); // Clear details when dialog closes
+                        }
+                      }}>
+                        <SheetTrigger asChild>
+                          <div className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-all" title="查看详情">
+                            {act.title}
+                          </div>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="sm:min-w-2xl h-full flex flex-col">
+                          <SheetHeader>
+                            <SheetTitle className="text-xl flex items-center gap-2">
+                              {platforms.find(p => p.platform === act.platform)?.name || act.platform}
+                            </SheetTitle>
+                            <SheetDescription className="sr-only">
+                              显示该活动的详细原始数据和平台指标。
+                            </SheetDescription>
+                          </SheetHeader>
+                          <div className="flex-1 overflow-y-auto py-4 min-h-0">
+                            {loadingActivityDetail ? (
+                              <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
+                                <IconRefresh className="animate-spin" />
+                                正在从云端获取详细数据...
+                              </div>
+                            ) : selectedActivityDetail ? (
+                              <div className="flex flex-col gap-4">
+                                <div className="bg-muted/10 rounded-xl overflow-hidden">
+                                  <div className="px-4 py-2">
+                                    {Object.entries(selectedActivityDetail)
+                                      .filter(([key]) => !['platform', 'id', 'user_id'].includes(key.toLowerCase()))
+                                      .map(([key, value]) => {
+                                        let formattedValue = String(value);
+                                        if (value === null || value === undefined) {
+                                          formattedValue = '--';
+                                        } else if (typeof value === 'object') {
+                                          formattedValue = JSON.stringify(value);
+                                        }
+
+                                        return (
+                                          <div key={key} className="flex justify-between items-center py-3 border-b border-border/40 last:border-0 hover:bg-muted/20 px-2 -mx-2 transition-colors">
+                                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
+                                            <span className="text-sm font-mono font-medium text-foreground text-right ml-6 break-all">
+                                              {formattedValue}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="py-12 text-center text-muted-foreground">
+                                未能成功加载活动详情，请稍后重试。
+                              </div>
+                            )}
+                          </div>
+
+                          {selectedActivityDetail && !loadingActivityDetail && (
+                            <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">
+                              <div className="flex flex-wrap items-center justify-between gap-4">
+                                <div className="flex items-center gap-2">
+                                  {getPushTargets(act.platform).map((target) => (
+                                    <button
+                                      key={target.id}
+                                      onClick={() => handlePushToPlatform({ selectedActivityDetail }, platformSelected, target)}
+                                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted transition-all text-sm font-medium shadow-sm h-10"
+                                    >
+                                      <IconSend size={16} className="text-blue-500" />
+                                      手动推送到 {target.name}
+                                    </button>
+                                  ))}
+                                </div>
+                                <button
+                                  onClick={() => handleDownload(act.id, act.platform, act.platformId)}
+                                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium text-sm shadow-sm h-10"
+                                >
+                                  <IconDownload size={16} />
+                                  下载 FIT 文件
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </SheetContent>
+                      </Sheet>
+                    </div>
                   </td>
-                  <td className="px-4 py-5 text-muted-foreground">
+                  <td className="px-4 py-5 text-muted-foreground whitespace-nowrap">
                     <div className="font-mono">{dayjs(act.startTime).format('YYYY-MM-DD HH:mm')}</div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                     {act.workoutTime}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                     {act.totalTime}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                     {act.distance}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right">
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                     {act.elevation}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                     {act.platform}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button
-                      onClick={() => handleDownload(act.id, act.platform,act.platformId)}
-                      className="inline-flex items-center gap-1 bg-muted text-muted-foreground hover:bg-primary/10 hover:text-primary px-2 py-0.5 rounded font-mono text-xs transition-colors"
-                    >
-                      <IconDownload size={12} />
-                      {act.platformId}
-                    </button>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
                     {dayjs(act.syncTime).format('YYYY-MM-DD HH:mm')}

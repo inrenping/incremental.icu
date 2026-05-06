@@ -67,8 +67,8 @@ export default function DashPage() {
     if (isSyncing) return;
     setIsSyncing(true);
     try {
-      const response = await authFetch('/api/v1/settings/syncNewActivities', {
-        method: 'POST',
+      const response = await authFetch('/api/v1/settings/syncNewActivities?total_count=10', {
+        method: 'POST'
       });
 
       const result = await response.json();
