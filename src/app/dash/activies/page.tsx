@@ -64,6 +64,8 @@ const ActivityListPage = () => {
   const [total, setTotal] = useState(0);
   const [selectedActivityDetail, setSelectedActivityDetail] = useState<DetailedActivity | null>(null);
   const [loadingActivityDetail, setLoadingActivityDetail] = useState(false);
+  const [pushing, setPushing] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const platforms = [
     { platform: "garmin", name: '佳明国际版' },
@@ -139,8 +141,7 @@ const ActivityListPage = () => {
     setSyncing(true);
     try {
       const queryParams = new URLSearchParams({
-        platform: platformSelected,
-        count: '10',
+        platform: platformSelected
       });
 
       const response = await authFetch(
@@ -160,6 +161,8 @@ const ActivityListPage = () => {
   };
 
   const handleDownload = async (id: string, platform: string, platformId: string) => {
+    if (downloading) return;
+    setDownloading(true);
     try {
       const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
@@ -169,13 +172,16 @@ const ActivityListPage = () => {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      a.download = `${platformId}.fit`;
+      const extension = platform.startsWith('garmin') ? 'zip' : 'fit';
+      a.download = `${platformId}.${extension}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
     } catch (error) {
       console.error("Failed to download activity:", error);
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -204,12 +210,14 @@ const ActivityListPage = () => {
   }, []);
 
   const handlePushToPlatform = async (obj: any, selectedPlatform: string, targetPlatform: string) => {
+    if (pushing) return;
     const id = obj?.selectedActivityDetail?.id;
     if (!id) {
       alert("未找到活动 ID，请稍后再试");
       return;
     }
 
+    setPushing(true);
     let pushUrl = "";
     // 根据源平台和目标平台选择对应的接口
     if (selectedPlatform.startsWith("garmin") && targetPlatform.startsWith("garmin")) {
@@ -225,6 +233,7 @@ const ActivityListPage = () => {
 
     if (!pushUrl) {
       console.error("未找到匹配的推送路径");
+      setPushing(false);
       return;
     }
 
@@ -239,6 +248,8 @@ const ActivityListPage = () => {
     } catch (error) {
       console.error("Push failed:", error);
       alert("请求过程中发生错误");
+    } finally {
+      setPushing(false);
     }
   };
 
@@ -318,10 +329,11 @@ const ActivityListPage = () => {
 
         <button
           onClick={fetchActivities}
-          className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium flex items-center gap-2"
+          disabled={loading}
+          className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
         >
-          <IconSearch size={16} />
-          查询
+          {loading ? <IconRefresh size={16} className="animate-spin" /> : <IconSearch size={16} />}
+          {loading ? '查询中...' : '查询'}
         </button>
       </div>
 
@@ -433,19 +445,21 @@ const ActivityListPage = () => {
                                     <button
                                       key={target.id}
                                       onClick={() => handlePushToPlatform({ selectedActivityDetail }, platformSelected, target.id)}
-                                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted transition-all text-sm font-medium shadow-sm h-10"
+                                      disabled={pushing}
+                                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
                                     >
-                                      <IconSend size={16} className="text-blue-500" />
-                                      手动推送到 {target.name}
+                                      {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
+                                      {pushing ? '推送中...' : `手动推送到 ${target.name}`}
                                     </button>
                                   ))}
                                 </div>
                                 <button
                                   onClick={() => handleDownload(act.id, act.platform, act.platformId)}
-                                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors font-medium text-sm shadow-sm h-10"
+                                  disabled={downloading}
+                                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm shadow-sm h-10"
                                 >
-                                  <IconDownload size={16} />
-                                  下载 FIT 文件
+                                  {downloading ? <IconRefresh size={16} className="animate-spin" /> : <IconDownload size={16} />}
+                                  {downloading ? '下载中...' : '下载 FIT 文件'}
                                 </button>
                               </div>
                             </div>
