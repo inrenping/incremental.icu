@@ -48,13 +48,15 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
     try {
       let response = null;
       if (app.id.startsWith('garmin')) {
+        const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
+        const decryptedPassword = CryptoJS.AES.decrypt(password, key).toString(CryptoJS.enc.Utf8);
         response = await fetch('/api/garmin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             domain: app.id === 'garmin_cn' ? 'cn' : null,
             username,
-            password
+            password: decryptedPassword
           }),
         });
       } else if (app.id.startsWith('coros')) {
@@ -76,13 +78,14 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
 
       if (response && app.id.startsWith('garmin')) {
         const verifyData = await response.json();
+        const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
         const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...verifyData,
             username,
-            password,
+            password: CryptoJS.AES.encrypt(password, key).toString()
           }),
         });
 
