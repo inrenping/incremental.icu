@@ -8,7 +8,6 @@ export async function POST(request: Request) {
     const usernameParam = body.username;
     const passwordParam = body.password;
 
-    // 警告：不要将这些凭据直接暴露给前端用户。
     if (!usernameParam || !passwordParam) {
       return NextResponse.json({ error: 'Username and password are required in the request body.' }, { status: 400 });
     }
