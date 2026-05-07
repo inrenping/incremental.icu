@@ -203,8 +203,43 @@ const ActivityListPage = () => {
     }
   }, []);
 
-  const handlePushToPlatform = (obj: object, platformSelected: string, target: object) => {
-    console.log("准备推送到平台：", obj, platformSelected, target);
+  const handlePushToPlatform = async (obj: any, selectedPlatform: string, targetPlatform: string) => {
+    const id = obj?.selectedActivityDetail?.id;
+    if (!id) {
+      alert("未找到活动 ID，请稍后再试");
+      return;
+    }
+
+    let pushUrl = "";
+    // 根据源平台和目标平台选择对应的接口
+    if (selectedPlatform.startsWith("garmin") && targetPlatform.startsWith("garmin")) {
+      // 佳明国际版与中国版互转
+      pushUrl = `/api/v1/garmin/uploadGarminActivity2Garmin/${id}`;
+    } else if (selectedPlatform === "coros" && targetPlatform.startsWith("garmin")) {
+      // 高驰推送到佳明
+      pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}`;
+    } else if (selectedPlatform.startsWith("garmin") && targetPlatform === "coros") {
+      // 佳明推送到高驰
+      pushUrl = `/api/v1/coros/uploadGarminActivity2Coros/${id}`;
+    }
+
+    if (!pushUrl) {
+      console.error("未找到匹配的推送路径");
+      return;
+    }
+
+    try {
+      const response = await authFetch(pushUrl, { method: 'POST' });
+      const result = await response.json();
+      if (result.status === "success") {
+        alert(`成功推送至 ${targetPlatform}`);
+      } else {
+        alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
+      }
+    } catch (error) {
+      console.error("Push failed:", error);
+      alert("请求过程中发生错误");
+    }
   };
 
   const getPushTargets = (currentPlatform: string) => {
@@ -397,7 +432,7 @@ const ActivityListPage = () => {
                                   {getPushTargets(act.platform).map((target) => (
                                     <button
                                       key={target.id}
-                                      onClick={() => handlePushToPlatform({ selectedActivityDetail }, platformSelected, target)}
+                                      onClick={() => handlePushToPlatform({ selectedActivityDetail }, platformSelected, target.id)}
                                       className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted transition-all text-sm font-medium shadow-sm h-10"
                                     >
                                       <IconSend size={16} className="text-blue-500" />
