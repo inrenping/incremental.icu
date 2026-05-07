@@ -77,7 +77,7 @@ export default function DashPage() {
         }
 
         // 匹配对应的平台配置
-        const targetRegion = platform === 'garmin_cn' ? 'cn' : 'global';
+        const targetRegion = platform === 'garmin_cn' ? 'CN' : 'GLOBAL';
         const config = loginData.data.find((c: any) => c.platform === targetRegion);
 
         if (!config) {
