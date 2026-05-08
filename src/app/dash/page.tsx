@@ -152,19 +152,6 @@ export default function DashPage() {
     }
   };
 
-  // 刷新佳明活动数量处理函数
-  const handleRefreshActivityCount = async () => {
-    try {
-      const response = await authFetch('/api/v1/garmin/refreshGarminActivityCount', {
-        method: 'GET'
-      });
-      const result = await response.json();
-      console.log(result);
-    } catch (err) {
-      console.error("Refresh count error:", err);
-    }
-  };
-
   // 一键同步处理函数
   const handleGlobalSync = async () => {
     if (isSyncing) return;
@@ -189,7 +176,6 @@ export default function DashPage() {
       toast.error("请求同步失败，请稍后重试");
     } finally {
       setIsSyncing(false);
-      await handleRefreshActivityCount()
     }
   };
 
