@@ -63,6 +63,18 @@ export default function DashPage() {
     }
   };
 
+  // 自动刷新认证
+  const autoRefreshAuth = async () => {
+    const platforms = ['garmin_cn', 'garmin', 'coros'];
+    for (const platform of platforms) {
+      const app = apps.find(a => a.id === platform);
+      if (app?.isConnected) {
+        // 依次执行每个平台的刷新逻辑，忽略单个执行错误以确保流程继续
+        await handleRefreshAuth(platform).catch(() => { });
+      }
+    }
+  };
+
   // 刷新认证处理函数
   const handleRefreshAuth = async (platform: string) => {
     setLoading(true);
@@ -119,7 +131,7 @@ export default function DashPage() {
           throw new Error("保存认证信息失败");
         }
 
-        toast.success("认证刷新成功");
+        toast.success("GARMIN 认证刷新成功");
         fetchAppsStatus();
       } else if (platform === "coros") {
         const response = await authFetch('/api/v1/coros/relogin', {
@@ -127,7 +139,7 @@ export default function DashPage() {
         });
         const result = await response.json();
         if (result.status === "success") {
-          toast.success("认证刷新成功");
+          toast.success("COROS 认证刷新成功");
           fetchAppsStatus();
         } else {
           toast.error(result.message || "刷新失败");
@@ -148,7 +160,9 @@ export default function DashPage() {
     if (isSyncing) return;
     setIsSyncing(true);
     try {
-      const response = await authFetch('/api/v1/settings/syncNewActivities?total_count=10', {
+      // 同步前先尝试刷新认证，确保凭据有效
+      await autoRefreshAuth();
+      const response = await authFetch('/api/v1/settings/syncNewActivities', {
         method: 'POST'
       });
 

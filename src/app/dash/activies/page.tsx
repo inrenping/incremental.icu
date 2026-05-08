@@ -136,7 +136,7 @@ const ActivityListPage = () => {
     router.push(`${pathname}?${params.toString()}`);
   };
 
-  const handleSync = async () => {
+  const handlePull = async () => {
     if (syncing) return;
     setSyncing(true);
     try {
@@ -145,7 +145,7 @@ const ActivityListPage = () => {
       });
 
       const response = await authFetch(
-        `/api/v1/settings/syncAllActivities?${queryParams.toString()}`,
+        `/api/v1/settings/pullActivities?${queryParams.toString()}`,
         { method: 'POST' }
       );
 
@@ -319,12 +319,12 @@ const ActivityListPage = () => {
         </div>
 
         <button
-          onClick={handleSync}
+          onClick={handlePull}
           disabled={syncing}
           className="ml-auto px-4 py-1.5 border border-border rounded-md hover:bg-muted text-foreground font-medium flex items-center gap-2 transition-colors"
         >
           <IconRefresh size={16} className={cn(syncing && "animate-spin")} />
-          {syncing ? '全量同步中...' : '全量同步'}
+          {syncing ? '同步中...' : '同步平台数据'}
         </button>
 
         <button
