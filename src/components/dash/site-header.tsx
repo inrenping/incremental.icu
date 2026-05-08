@@ -79,7 +79,7 @@ export function SiteHeader() {
         <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4!">
           <h1
             className="text-base font-medium cursor-pointer"
-            onClick={() => router.push('/dash')}
+            onClick={() => router.push('/')}
           >
             {title('title')}
           </h1>
@@ -135,6 +135,21 @@ export function SiteHeader() {
                     <SiteConfig />
                     <GitHubLink />
                   </div>
+                  <DropdownMenuSeparator />
+                  {navItems.map((item) => (
+                    <DropdownMenuItem
+                      key={item.href}
+                      onClick={() => router.push(item.href)}
+                      className={cn(
+                        "focus:bg-primary/50",
+                        pathname === item.href
+                          ? "text-primary"
+                          : ""
+                      )}
+                    >
+                      <span>{item.name}</span>
+                    </DropdownMenuItem>
+                  ))}
                   <DropdownMenuSeparator />
                 </div>
                 <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="focus:bg-primary/50">
