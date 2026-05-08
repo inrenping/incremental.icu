@@ -1,8 +1,8 @@
 {
   "TabTitles": {
     "title": "Incremental-Alpha",
-    "hello": "",
-    "description": "Web app syncing Garmin (GLOBAL/CN) & Coros data: activities, health, sleep."
+    "hello": "Keep your data in sync across all platforms.",
+    "description": "Keep Garmin (International & China) and Gaoche data platforms in sync."
   },
   "LoginPage": {
     "login": "login",
