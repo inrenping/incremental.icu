@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator";
 import { ModeToggle } from "@/components/mode-toggle";
 import { ModeIntl } from "@/components/mode-intl";
 import { SiteConfig } from "@/components/site-config";
@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { storage } from "@/lib/storage";
 import { toast } from 'sonner';
 import { IconMenu2 } from "@tabler/icons-react";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,6 +28,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@/components/ui/avatar";
+import { usePathname } from 'next/navigation';
 
 interface User {
   id: number;
@@ -37,6 +39,7 @@ interface User {
 export function SiteHeader() {
   const { layout } = useLayout();
   const [user, setUser] = useState<User | null>(null);
+  const pathname = usePathname();
 
   useEffect(() => {
     const userData = storage.get('user');
@@ -54,6 +57,12 @@ export function SiteHeader() {
 
   const title = useTranslations("TabTitles");
   const t = useTranslations("LoginPage");
+
+  const navItems = [
+    { name: '一键同步', href: '/dash' },
+    { name: '账号管理', href: '/dash/accounts' },
+    { name: '操作日志', href: '/dash/logs' },
+  ];
 
   const handleLogout = () => {
     storage.clearAuth();
@@ -74,6 +83,23 @@ export function SiteHeader() {
           >
             {title('title')}
           </h1>
+
+          <nav className="hidden md:flex items-center space-x-6 ml-6">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-primary",
+                  pathname === item.href
+                    ? "text-foreground"
+                    : "text-muted-foreground"
+                )}
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
 
           <div className="ml-auto flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
