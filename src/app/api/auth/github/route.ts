@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from 'next/server';
 const GITHUB_AUTH_ENDPOINT = 'https://github.com/login/oauth/authorize';
 
 export async function GET(req: NextRequest) {
-  const clientId = process.env.GITHUB_CLIENT_ID;
+  const clientId = process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID;
   if (!clientId) {
     return NextResponse.json({ error: 'Missing GITHUB_CLIENT_ID environment variable' }, { status: 500 });
   }
