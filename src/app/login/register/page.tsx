@@ -32,6 +32,8 @@ export default function RegisterPage() {
 
   // 发送验证码逻辑
   const handleSendCaptcha = async () => {
+    console.log(email);
+
     if (!email || !email.includes('@')) {
       toast.error(t("errorInvalidEmail") || "请输入正确的邮箱");
       return;
