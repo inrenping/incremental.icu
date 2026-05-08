@@ -87,15 +87,12 @@ export default function DashPage() {
         if (loginData.status !== "success") {
           throw new Error(loginData.message || "获取账号信息失败");
         }
-
         // 匹配对应的平台配置
         const targetRegion = platform === 'garmin_cn' ? 'CN' : 'GLOBAL';
         const config = loginData.data.find((c: any) => c.platform === targetRegion);
-
         if (!config) {
           throw new Error("未找到对应的佳明账号配置");
         }
-
         // 2. 调用前端登录校验流程
         const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
         const decryptedPassword = CryptoJS.AES.decrypt(config.password, key).toString(CryptoJS.enc.Utf8);
@@ -155,6 +152,19 @@ export default function DashPage() {
     }
   };
 
+  // 刷新佳明活动数量处理函数
+  const handleRefreshActivityCount = async () => {
+    try {
+      const response = await authFetch('/api/v1/garmin/refreshGarminActivityCount', {
+        method: 'GET'
+      });
+      const result = await response.json();
+      console.log(result);
+    } catch (err) {
+      console.error("Refresh count error:", err);
+    }
+  };
+
   // 一键同步处理函数
   const handleGlobalSync = async () => {
     if (isSyncing) return;
@@ -179,6 +189,7 @@ export default function DashPage() {
       toast.error("请求同步失败，请稍后重试");
     } finally {
       setIsSyncing(false);
+      await handleRefreshActivityCount()
     }
   };
 

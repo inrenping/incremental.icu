@@ -1,7 +1,8 @@
 {
   "TabTitles": {
     "title": "跬步-Alpha",
-    "description": "同步佳明（国际/中国版）与高驰数据的网页应用：运动、健康、睡眠一键整合。"
+    "hello": "保持你各个平台的数据同步",
+    "description": "同步佳明（国际版、中国版）与高驰数据平台的数据。"
   },
   "LoginPage": {
     "login": "登录",

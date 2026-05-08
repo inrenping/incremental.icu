@@ -154,7 +154,7 @@ export default function RegisterPage() {
           </Button>
 
           {/* ... 分隔线和社交登录保持不变 ... */}
-          <div className="relative py-2">
+          <div className="relative py-2" style={{ display: "none" }}>
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
             </div>
@@ -163,7 +163,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4" style={{ display: "none" }}>
             <Button
               variant="outline"
               type="button"
