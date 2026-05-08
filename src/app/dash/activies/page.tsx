@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
+import { toast } from "sonner";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   IconSearch,
@@ -105,6 +106,85 @@ const ActivityListPage = () => {
     fetchActivities();
   }, [fetchActivities]);
 
+
+  // 刷新认证处理函数
+  const handleRefreshAuth = async (platform: string) => {
+    setLoading(true);
+    try {
+      if (platform.startsWith("garmin")) {
+        // 1. 获取已保存的凭据
+        const loginRes = await authFetch('/api/v1/garmin/login', { method: 'POST' });
+        const loginData = await loginRes.json();
+
+        if (loginData.status !== "success") {
+          throw new Error(loginData.message || "获取账号信息失败");
+        }
+
+        // 匹配对应的平台配置
+        const targetRegion = platform === 'garmin_cn' ? 'CN' : 'GLOBAL';
+        const config = loginData.data.find((c: any) => c.platform === targetRegion);
+
+        if (!config) {
+          throw new Error("未找到对应的佳明账号配置");
+        }
+
+        // 2. 调用前端登录校验流程
+        const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
+        const decryptedPassword = CryptoJS.AES.decrypt(config.password, key).toString(CryptoJS.enc.Utf8);
+
+        const verifyRes = await fetch('/api/garmin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            domain: platform === 'garmin_cn' ? 'cn' : null,
+            username: config.username,
+            password: decryptedPassword
+          }),
+        });
+
+        if (!verifyRes.ok) {
+          const errorData = await verifyRes.json().catch(() => ({}));
+          throw new Error(errorData.error || "认证校验失败");
+        }
+
+        // 3. 保存验证后的配置（包含 Session 等信息）
+        const verifyData = await verifyRes.json();
+        const saveRes = await authFetch('/api/v1/garmin/saveConfig', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...verifyData,
+            username: config.username,
+            password: config.password
+          }),
+        });
+
+        if (!saveRes.ok) {
+          throw new Error("保存认证信息失败");
+        }
+
+        toast.success("GARMIN 认证刷新成功");
+      } else if (platform === "coros") {
+        const response = await authFetch('/api/v1/coros/relogin', {
+          method: 'POST'
+        });
+        const result = await response.json();
+        if (result.status === "success") {
+          toast.success("COROS 认证刷新成功");
+        } else {
+          toast.error(result.message || "刷新失败");
+        }
+      } else {
+        toast.error("该平台暂不支持刷新认证");
+      }
+    } catch (err: any) {
+      console.error("Refresh auth error:", err);
+      toast.error(err.message || "请求刷新失败，请稍后重试");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePlatformChange = (platform: string) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('platform', platform);
@@ -164,6 +244,7 @@ const ActivityListPage = () => {
     if (downloading) return;
     setDownloading(true);
     try {
+      await handleRefreshAuth(platformId);
       const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
 
