@@ -19,6 +19,7 @@ import {
   IconDeviceWatch
 } from "@tabler/icons-react";
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
+import { useTranslations } from "next-intl";
 
 interface AppConfig {
   id: string;
@@ -34,6 +35,7 @@ interface AppConfig {
 }
 
 export default function DashPage() {
+  const t = useTranslations('DashPage')
   const { layout } = useLayout();
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [open, setOpen] = useState(false);
@@ -192,7 +194,7 @@ export default function DashPage() {
       <section className="text-center space-y-6 py-8 bg-muted/30 rounded-3xl border border-dashed border-border">
         <div className="space-y-2">
           <div className="flex items-center justify-center gap-1">
-            <p className="text-muted-foreground">连接两个以上平台，点击一键同步后，将自动同步上传最新的 10 条运动数据，会自动过滤掉时间和距离相同的重复记录。</p>
+            <p className="text-muted-foreground">{t("oneclickSyncDesc")}</p>
 
           </div>
         </div>
@@ -205,10 +207,10 @@ export default function DashPage() {
             disabled={isSyncing}
           >
             <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
-            {isSyncing ? "同步中..." : "一键同步"}
+            {isSyncing ? "同步中..." : t("oneclickSync")}
           </Button>
           <Link href="/dash/activies" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-            更多查询
+            {t("fetchMore")}
           </Link>
         </div>
       </section>
@@ -248,12 +250,12 @@ export default function DashPage() {
                   {app.isConnected ? (
                     <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 gap-1 border-emerald-200">
                       <IconCircleCheckFilled className="h-3 w-3" />
-                      {app.status || '已连接'}
+                      {app.status || t("connected")}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-amber-600 border-amber-200 dark:text-amber-500 dark:border-amber-900/50 gap-1">
                       <IconAlertCircleFilled className="h-3 w-3" />
-                      未连接
+                      {t("notConnected")}
                     </Badge>
                   )}
                 </div>
@@ -267,25 +269,25 @@ export default function DashPage() {
                     <div className="space-y-1.5 border-t pt-3">
                       {app.email && (
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-muted-foreground">账号</span>
+                          <span className="text-muted-foreground">{t("account")}</span>
                           <span className="font-medium truncate">{app.email}</span>
                         </div>
                       )}
                       {app.region && (
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-muted-foreground">地区</span>
+                          <span className="text-muted-foreground">{t("region")}</span>
                           <span className="font-medium">{app.region}</span>
                         </div>
                       )}
                       {app.addedAt && (
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-muted-foreground">添加关联时间</span>
+                          <span className="text-muted-foreground">{t("addedAt")}</span>
                           <span className="font-medium font-mono">{dayjs(app.addedAt).format('YYYY-MM-DD HH:mm')}</span>
                         </div>
                       )}
                       {app.lastUpdate && (
                         <div className="flex justify-between text-[11px]">
-                          <span className="text-muted-foreground">最后同步时间</span>
+                          <span className="text-muted-foreground">{t("lastSyncedTime")}</span>
                           <span className="font-medium font-mono">{dayjs(app.lastUpdate).format('YYYY-MM-DD HH:mm')}</span>
                         </div>
                       )}
@@ -300,7 +302,7 @@ export default function DashPage() {
                           setOpen(true);
                         }}
                       >
-                        重新连接
+                        {t("reconnectAccount")}
                       </Button>
                       {(
                         <Button
@@ -308,7 +310,7 @@ export default function DashPage() {
                           size="sm"
                           className="flex-1 text-muted-foreground gap-1"
                           onClick={() => handleRefreshAuth(app.id)}
-                        >刷新认证</Button>
+                        >{t("refreshAuthentication")}</Button>
                       )}
                     </div>
                   </>
@@ -320,7 +322,7 @@ export default function DashPage() {
                         setCurrentApp(app);
                         setOpen(true);
                       }}
-                    >连接账户</Button>
+                    >{t("connectAccount")}</Button>
                   </>
                 )}
               </CardContent>
@@ -333,7 +335,7 @@ export default function DashPage() {
       <section className="space-y-4">
         <div className="flex items-center gap-2 px-2">
           <IconHistory className="h-5 w-5 text-muted-foreground" />
-          <h2 className="font-semibold">近期同步记录</h2>
+          <h2 className="font-semibold">{t("recentLogs")}</h2>
         </div>
         <Card>
           <CardContent className="p-0 overflow-hidden">

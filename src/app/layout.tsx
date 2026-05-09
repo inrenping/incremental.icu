@@ -11,8 +11,8 @@ import { Toaster } from "sonner";
 
 export async function generateMetadata(): Promise<Metadata> {
   const messages = await getMessages();
-  const title = messages.TabTitles?.title ?? "Incremental";
-  const description = messages.TabTitles?.description ?? "";
+  const title = messages.IndexPage?.title ?? "Incremental";
+  const description = messages.IndexPage?.description ?? "";
 
   return {
     title: `${title} | ${description}`,

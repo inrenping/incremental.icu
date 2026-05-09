@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
-import { link } from 'fs';
 export default function Home() {
-  const t = useTranslations('TabTitles')
+  const t = useTranslations('IndexPage')
   const router = useRouter()
 
   return (
@@ -38,10 +37,10 @@ export default function Home() {
         <section className="py-20 px-4 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "一键同步", desc: "点一下，就同步好了。", icon: <IconRepeat className="h-6 w-6" /> },
-              { title: "定时任务", desc: "自动更新记录，你偷懒的时候任务也还在跑。", icon: <IconStack className="h-6 w-6" /> },
-              { title: "免费使用", desc: "反正试试也不花钱，人品好没办法！", icon: <IconShield className="h-6 w-6" /> },
-              { title: "汇总查看", desc: "数据整整齐齐，感觉自己很有条理。", icon: <IconChartBar className="h-6 w-6" /> },
+              { title: t("card1Title"), desc: t("card1Desc"), icon: <IconRepeat className="h-6 w-6" /> },
+              { title: t("card2Title"), desc: t("card2Desc"), icon: <IconStack className="h-6 w-6" /> },
+              { title: t("card3Title"), desc: t("card3Desc"), icon: <IconShield className="h-6 w-6" /> },
+              { title: t("card4Title"), desc: t("card4Desc"), icon: <IconChartBar className="h-6 w-6" /> },
             ].map((feature) => (
               <FeatureCard key={feature.title} {...feature} />
             ))}
@@ -50,12 +49,12 @@ export default function Home() {
 
         <section className="py-20 px-4 bg-muted/70">
           <div className="max-w-6xl mx-auto text-center space-y-12">
-            <h2 className="text-lg font-black">支持平台</h2>
+            <h2 className="text-lg font-black">{t("supportPlatform")}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
               {[
-                { name: "Garmin", logo: "garmin", desc: "Garmin Connect", link: "https://connect.garmin.com" },
-                { name: "Garmin CN", logo: "garmin", desc: "Garmin Connect for China", link: "https://connect.garmin.cn/" },
-                { name: "Coros", logo: "coros", desc: "COROS Training Hub", link: "https://t.coros.com/" },
+                { name: t("garmin"), logo: "garmin", desc: "Garmin Connect", link: "https://connect.garmin.com" },
+                { name: t("garminCn"), logo: "garmin", desc: "Garmin Connect for China", link: "https://connect.garmin.cn/" },
+                { name: t("coros"), logo: "coros", desc: "COROS Training Hub", link: "https://t.coros.com/" },
               ].map((platform) => (
                 <PlatformCard key={platform.name} {...platform} />
               ))}

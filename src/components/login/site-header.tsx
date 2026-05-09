@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 export function SiteHeader() {
 
   const router = useRouter();
-  const title = useTranslations("TabTitles");
+  const title = useTranslations("IndexPage");
   return (
     <header className="sticky top-0 z-50 py-4 w-full bg-background">
       <div className="container-wrapper px-6 group-has-data-[slot=designer]/layout:max-w-none 3xl:fixed:px-0">
