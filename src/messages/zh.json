@@ -77,6 +77,18 @@
     "recentLogs": "最近操作记录"
   },
   "ListPage": {
+    "loadingActivity": "正在加载运动数据...",
+    "noActivityFound": "未找到相关运动记录",
+    "type": "类型",
+    "name": "名称",
+    "startTime": "开始时间",
+    "movingTime": "运动时间",
+    "totalTime": "总时间",
+    "distance": "距离",
+    "elevation": "爬升",
+    "platform": "平台",
+    "id": "ID",
+    "syncTime": "同步时间",
     "totalRecords": "共 {num} 条",
     "perPage": "{num} 条/页",
     "pageInfo": "第 {start} 页 / 共 {total} 页",

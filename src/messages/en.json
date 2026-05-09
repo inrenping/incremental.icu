@@ -77,6 +77,18 @@
     "recentLogs": "Recent Logs"
   },
   "ListPage": {
+    "loadingActivity": "Loading activity data...",
+    "noActivityFound": "No related activity records found",
+    "type": "Type",
+    "name": "Name",
+    "startTime": "Start Time",
+    "movingTime": "Moving Time",
+    "totalTime": "Total Time",
+    "distance": "Distance",
+    "elevation": "Elevation",
+    "platform": "Platform",
+    "id": "ID",
+    "syncTime": "Sync Time",
     "totalRecords": "Total: {num} items",
     "perPage": "{num} items/page",
     "pageInfo": "Page {start} of {total}",
