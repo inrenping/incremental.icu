@@ -306,10 +306,15 @@ const ActivityListPage = () => {
       pushUrl = `/api/v1/garmin/uploadGarminActivity2Garmin/${id}`;
     } else if (selectedPlatform === "coros" && targetPlatform.startsWith("garmin")) {
       // 高驰推送到佳明
-      pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}`;
+      if (targetPlatform === "garmin_cn") {
+        pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=cn`;
+      } else {
+        pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=global`;
+      }
     } else if (selectedPlatform.startsWith("garmin") && targetPlatform === "coros") {
       // 佳明推送到高驰
       pushUrl = `/api/v1/coros/uploadGarminActivity2Coros/${id}`;
+
     }
 
     if (!pushUrl) {
