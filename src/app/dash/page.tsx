@@ -207,6 +207,9 @@ export default function DashPage() {
             <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
             {isSyncing ? "同步中..." : "一键同步"}
           </Button>
+          <Link href="/dash/activies" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+            更多查询
+          </Link>
         </div>
       </section>
 

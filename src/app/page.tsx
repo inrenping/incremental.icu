@@ -38,10 +38,10 @@ export default function Home() {
         <section className="py-20 px-4 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { title: "一键同步", desc: "点击即可立即同步。", icon: <IconRepeat className="h-6 w-6" /> },
-              { title: "定时任务", desc: "让记录始终保持最新，无需手动操作。", icon: <IconStack className="h-6 w-6" /> },
-              { title: "集中管理", desc: "所有平台的数据统一管理，轻松掌握全部。", icon: <IconShield className="h-6 w-6" /> },
-              { title: "汇总查看", desc: "整合数据，清晰呈现。", icon: <IconChartBar className="h-6 w-6" /> },
+              { title: "一键同步", desc: "点一下，就同步好了。", icon: <IconRepeat className="h-6 w-6" /> },
+              { title: "定时任务", desc: "自动更新记录，你偷懒的时候任务也还在跑。", icon: <IconStack className="h-6 w-6" /> },
+              { title: "免费使用", desc: "反正试试也不花钱，人品好没办法！", icon: <IconShield className="h-6 w-6" /> },
+              { title: "汇总查看", desc: "数据整整齐齐，感觉自己很有条理。", icon: <IconChartBar className="h-6 w-6" /> },
             ].map((feature) => (
               <FeatureCard key={feature.title} {...feature} />
             ))}
