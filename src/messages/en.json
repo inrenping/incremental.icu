@@ -76,6 +76,13 @@
     "refreshAuthentication": "Refresh Authentication",
     "recentLogs": "Recent Logs"
   },
+  "ListPage": {
+    "totalRecords": "Total: {num} items",
+    "perPage": "{num} items/page",
+    "pageInfo": "Page {start} of {total}",
+    "jumpToPageStart": "Jump to",
+    "jumpToPageEnd": "page"
+  },
   "UserPage": {
     "myAccount": "My Account"
   },

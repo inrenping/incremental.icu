@@ -7,6 +7,7 @@ import { authFetch } from "@/lib/api";
 import CryptoJS from 'crypto-js';
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
+import { toast } from "sonner";
 
 interface AppConfig {
   id: string;

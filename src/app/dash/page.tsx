@@ -15,6 +15,8 @@ import {
 } from "@tabler/icons-react";
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
+import { SyncLogs } from "@/components/dash/sync-logs";
+
 import { useTranslations } from "next-intl";
 
 export interface AppConfig {
@@ -177,10 +179,6 @@ export default function DashPage() {
     }
   };
 
-  const logs = [
-    { id: 1, type: 'success', title: '同步 12 条新活动到佳明国际版', time: '今天 14:22' },
-  ];
-
   return (
     <div className={cn(
       "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
@@ -240,30 +238,7 @@ export default function DashPage() {
         </div>
       </section>
 
-      {/* 同步记录 */}
-      <section className="space-y-4">
-        <div className="flex items-center gap-2 px-2">
-          <IconHistory className="h-5 w-5 text-muted-foreground" />
-          <h2 className="font-semibold">{t("recentLogs")}</h2>
-        </div>
-        <Card>
-          <CardContent className="p-0 overflow-hidden">
-            <div className="divide-y divide-border">
-              {logs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`h-2 w-2 rounded-full ${log.type === 'success' ? 'bg-emerald-500' : 'bg-destructive ring-4 ring-destructive/10'}`} />
-                    <span className={`text-sm ${log.type === 'error' ? 'text-destructive font-medium' : 'text-foreground'}`}>
-                      {log.title}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground font-mono">{log.time}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </section>
+      <SyncLogs />
 
       <AppConnectionDialog
         key={currentApp?.id}

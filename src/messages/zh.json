@@ -76,6 +76,13 @@
     "refreshAuthentication": "刷新认证",
     "recentLogs": "最近操作记录"
   },
+  "ListPage": {
+    "totalRecords": "共 {num} 条",
+    "perPage": "{num} 条/页",
+    "pageInfo": "第 {start} 页 / 共 {total} 页",
+    "jumpToPageStart": "跳转到 第",
+    "jumpToPageEnd": "页"
+  },
   "UserPage": {
     "myAccount": "我的账号"
   },
