@@ -74,7 +74,8 @@
     "verified": "验证通过",
     "reconnectAccount": "重新关联账号",
     "refreshAuthentication": "刷新认证",
-    "recentLogs": "最近操作记录"
+    "recentLogs": "最近操作记录",
+    "noLogData": "未查询到相关日志"
   },
   "ListPage": {
     "loadingActivity": "正在加载运动数据...",
