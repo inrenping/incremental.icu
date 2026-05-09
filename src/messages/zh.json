@@ -71,6 +71,7 @@
     "connectAccount": "连接账户",
     "connected": "已连接",
     "notConnected": "未连接",
+    "verified": "验证通过",
     "reconnectAccount": "重新关联账号",
     "refreshAuthentication": "刷新认证",
     "recentLogs": "最近操作记录"

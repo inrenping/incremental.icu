@@ -71,6 +71,7 @@
     "connectAccount": "Connect Account",
     "notConnected": "Not Connected",
     "connected": "Connected",
+    "verified": "Verified",
     "reconnectAccount": "Reconnect Account",
     "refreshAuthentication": "Refresh Authentication",
     "recentLogs": "Recent Logs"
