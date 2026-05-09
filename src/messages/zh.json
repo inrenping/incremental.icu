@@ -1,8 +1,25 @@
 {
-  "TabTitles": {
+  "IndexPage": {
     "title": "跬步-Alpha",
     "hello": "保持你各个平台的数据同步",
-    "description": "同步佳明（国际版、中国版）与高驰数据平台的数据。"
+    "description": "同步佳明（国际版、中国版）与高驰数据平台的数据。",
+    "card1Title": "一键同步",
+    "card1Desc": "点一下，就同步好了。",
+    "card2Title": "定时任务",
+    "card2Desc": "自动更新记录，你偷懒的时候任务也还在跑。",
+    "card3Title": "免费使用",
+    "card3Desc": "反正试试也不花钱，人品好没办法！",
+    "card4Title": "汇总查看",
+    "card4Desc": "数据整整齐齐，感觉自己很有条理。",
+    "supportPlatform": "支持平台",
+    "garmin": "佳明",
+    "garminCn": "佳明中国版",
+    "coros": "高驰",
+    "accounts": "管理账号",
+    "logs": "操作日志",
+    "dash": "一键同步",
+    "userSettings": "用户设置",
+    "logout": "登出"
   },
   "LoginPage": {
     "login": "登录",
@@ -41,9 +58,22 @@
     "loginLabel": "登录",
     "loginFail": "登录失败",
     "registerSuccess": "注册成功！",
-    "errorRegister": "注册失败",
-    "userSettings": "用户设置",
-    "logout": "登出"
+    "errorRegister": "注册失败"
+  },
+  "DashPage": {
+    "oneclickSync": "一键同步",
+    "oneclickSyncDesc": "连接两个以上平台，点击一键同步后，将自动同步上传最新的 10 条运动数据，系统会自动过滤掉时间和距离相同的重复记录。",
+    "fetchMore": "查询更多",
+    "account": "账号",
+    "region": "地区",
+    "addedAt": "添加关联时间",
+    "lastSyncedTime": "最后同步时间",
+    "connectAccount": "连接账户",
+    "connected": "已连接",
+    "notConnected": "未连接",
+    "reconnectAccount": "重新关联账号",
+    "refreshAuthentication": "刷新认证",
+    "recentLogs": "最近操作记录"
   },
   "UserPage": {
     "myAccount": "我的账号"

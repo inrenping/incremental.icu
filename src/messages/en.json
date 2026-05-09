@@ -1,8 +1,25 @@
 {
-  "TabTitles": {
+  "IndexPage": {
     "title": "Incremental-Alpha",
-    "hello": "Keep your data in sync across all platforms.",
-    "description": "Keep Garmin (International & China) and Gaoche data platforms in sync."
+    "hello": "Keep Your Data In Sync Across All Platforms.",
+    "description": "Keep Garmin (Global & China) and Coros data platforms in sync.",
+    "card1Title": "One-Click Sync",
+    "card1Desc": "Sync your data in a single tap—easy and fast!",
+    "card2Title": "Automatic Updates",
+    "card2Desc": "Your records stay fresh, even when you take a break.",
+    "card3Title": "Free",
+    "card3Desc": "No cost, try it for free! You might even get lucky.",
+    "card4Title": "Organized View",
+    "card4Desc": "See everything clearly and feel in control.",
+    "supportPlatform": "Supported Platforms",
+    "garmin": "Garmin",
+    "garminCn": "Garmin CN",
+    "coros": "Coros",
+    "userSettings": "User Settings",
+    "logout": "Logout",
+    "dash": "Dashboard",
+    "accounts": "Accounts",
+    "logs": "Logs"
   },
   "LoginPage": {
     "login": "login",
@@ -41,9 +58,22 @@
     "resend": "Resend Code",
     "loginLabel": "Login",
     "registerSuccess": "Registration successful!",
-    "errorRegister": "Registration failed",
-    "userSettings": "User Settings",
-    "logout": "Logout"
+    "errorRegister": "Registration failed"
+  },
+  "DashPage": {
+    "oneclickSync": "One-Click Sync",
+    "oneclickSyncDesc": "Connect two or more platforms, click one-click sync, and automatically upload the latest 10 pieces of sports data, filtering out duplicate records with the same time and distance.",
+    "fetchMore": "Fetch More",
+    "account": "account",
+    "region": "region",
+    "addedAt": "add time",
+    "lastSyncedTime": "last synced time",
+    "connectAccount": "Connect Account",
+    "notConnected": "Not Connected",
+    "connected": "Connected",
+    "reconnectAccount": "Reconnect Account",
+    "refreshAuthentication": "Refresh Authentication",
+    "recentLogs": "Recent Logs"
   },
   "UserPage": {
     "myAccount": "My Account"

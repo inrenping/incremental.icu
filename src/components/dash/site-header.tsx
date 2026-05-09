@@ -55,13 +55,12 @@ export function SiteHeader() {
 
   const router = useRouter();
 
-  const title = useTranslations("TabTitles");
-  const t = useTranslations("LoginPage");
+  const t = useTranslations("IndexPage");
 
   const navItems = [
-    { name: '一键同步', href: '/dash' },
-    { name: '账号管理', href: '/dash/accounts' },
-    { name: '操作日志', href: '/dash/logs' },
+    { name: t("dash"), href: '/dash' },
+    { name: t("accounts"), href: '/dash/accounts' },
+    { name: t("logs"), href: '/dash/logs' },
   ];
 
   const handleLogout = () => {
@@ -81,7 +80,7 @@ export function SiteHeader() {
             className="text-base font-medium cursor-pointer"
             onClick={() => router.push('/')}
           >
-            {title('title')}
+            {t('title')}
           </h1>
 
           <nav className="hidden md:flex items-center space-x-6 ml-6">
