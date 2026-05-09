@@ -71,9 +71,29 @@
     "connectAccount": "连接账户",
     "connected": "已连接",
     "notConnected": "未连接",
+    "verified": "验证通过",
     "reconnectAccount": "重新关联账号",
     "refreshAuthentication": "刷新认证",
     "recentLogs": "最近操作记录"
+  },
+  "ListPage": {
+    "loadingActivity": "正在加载运动数据...",
+    "noActivityFound": "未找到相关运动记录",
+    "type": "类型",
+    "name": "名称",
+    "startTime": "开始时间",
+    "movingTime": "运动时间",
+    "totalTime": "总时间",
+    "distance": "距离",
+    "elevation": "爬升",
+    "platform": "平台",
+    "id": "ID",
+    "syncTime": "同步时间",
+    "totalRecords": "共 {num} 条",
+    "perPage": "{num} 条/页",
+    "pageInfo": "第 {start} 页 / 共 {total} 页",
+    "jumpToPageStart": "跳转到 第",
+    "jumpToPageEnd": "页"
   },
   "UserPage": {
     "myAccount": "我的账号"

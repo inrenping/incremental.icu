@@ -7,6 +7,7 @@ import {
   IconChevronsLeft,
   IconChevronsRight,
 } from '@tabler/icons-react';
+import { useTranslations } from "next-intl";
 
 interface PaginationProps {
   total: number;
@@ -23,6 +24,7 @@ export const Pagination = ({
   onPageChange,
   onLimitChange,
 }: PaginationProps) => {
+  const t = useTranslations('ListPage')
   const [jumpPageInput, setJumpPageInput] = useState('');
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -39,20 +41,20 @@ export const Pagination = ({
       {/* 左侧：统计与配置 */}
       <div className="flex items-center gap-8">
         <div className="flex items-center gap-1">
-          共 <span className="font-medium text-foreground">{total}</span> 条
+          {t('totalRecords', { num: total })}
         </div>
         <select
           value={limit}
           onChange={(e) => onLimitChange(e.target.value)}
           className="flex items-center gap-1 px-2 py-1 border border-border rounded bg-background outline-none focus:ring-1 focus:ring-ring cursor-pointer text-sm"
         >
-          <option value="10">10 条/页</option>
-          <option value="20">20 条/页</option>
-          <option value="50">50 条/页</option>
-          <option value="100">100 条/页</option>
+          <option value="10">{t('perPage', { num: 10 })}</option>
+          <option value="20">{t('perPage', { num: 20 })}</option>
+          <option value="50">{t('perPage', { num: 50 })}</option>
+          <option value="100">{t('perPage', { num: 100 })}</option>
         </select>
         <div>
-          第 <span className="text-foreground font-medium">{page}</span> 页 / 共 {totalPages} 页
+          {t('pageInfo', { start: page, total: totalPages })}
         </div>
       </div>
 
@@ -87,7 +89,7 @@ export const Pagination = ({
           <IconChevronsRight size={18} />
         </button>
         <div className="flex items-center h-9 border border-border rounded px-3 bg-muted/30 ml-1">
-          <span>跳转到 第</span>
+          <span>{t('jumpToPageStart')}</span>
           <input
             type="text"
             className="w-10 mx-1 text-center border-b border-border bg-transparent outline-none focus:border-primary transition-colors font-medium text-foreground"
@@ -95,7 +97,7 @@ export const Pagination = ({
             onChange={(e) => setJumpPageInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleJump()}
           />
-          <span>页</span>
+          <span>{t('jumpToPageEnd')}</span>
         </div>
         <button
           onClick={handleJump}

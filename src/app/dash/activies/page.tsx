@@ -27,6 +27,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Pagination } from "@/components/dash/pagination";
+import { useTranslations } from "next-intl";
 interface Activity {
   id: string,
   title: string;
@@ -47,6 +48,7 @@ interface DetailedActivity {
   [key: string]: any;
 }
 const ActivityListPage = () => {
+  const t = useTranslations('ListPage');
   const { layout } = useLayout();
   const router = useRouter();
   const pathname = usePathname();
@@ -428,29 +430,29 @@ const ActivityListPage = () => {
         <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="bg-muted/50 text-muted-foreground border-b border-border">
-              <th className="px-4 py-3 font-medium w-24">类型</th>
-              <th className="px-4 py-3 font-medium">名称</th>
-              <th className="px-4 py-3 font-medium">开始时间</th>
-              <th className="px-4 py-3 font-medium text-right">运动时间</th>
-              <th className="px-4 py-3 font-medium text-right">总时间</th>
-              <th className="px-4 py-3 font-medium text-right">距离</th>
-              <th className="px-4 py-3 font-medium text-right">爬升</th>
-              <th className="px-4 py-3 font-medium">平台</th>
-              {/* <th className="px-4 py-3 font-medium text-center">ID</th> */}
-              <th className="px-4 py-3 font-medium">同步时间</th>
+              <th className="px-4 py-3 font-medium w-24">{t("type")}</th>
+              <th className="px-4 py-3 font-medium">{t("name")}</th>
+              <th className="px-4 py-3 font-medium">{t("startTime")}</th>
+              <th className="px-4 py-3 font-medium text-right">{t("movingTime")}</th>
+              <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th>
+              <th className="px-4 py-3 font-medium text-right">{t("distance")}</th>
+              <th className="px-4 py-3 font-medium text-right">{t("elevation")}</th>
+              <th className="px-4 py-3 font-medium">{t("platform")}</th>
+              <th className="px-4 py-3 font-medium text-center">{t("id")}</th>
+              <th className="px-4 py-3 font-medium">{t("syncTime")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
                 <td colSpan={10} className="px-4 py-12 text-center text-muted-foreground">
-                  正在加载运动数据...
+                  {t("loadingActivity")}
                 </td>
               </tr>
             ) : activities.length === 0 ? (
               <tr>
                 <td colSpan={10} className="px-4 py-12 text-center text-muted-foreground">
-                  未找到相关运动记录
+                  {t("noActivityFound")}
                 </td>
               </tr>
             ) : (
