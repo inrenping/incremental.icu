@@ -5,6 +5,7 @@ import { format, isValid, parseISO } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { storage } from '@/lib/storage';
 import { authFetch } from '@/lib/api';
+import dayjs from 'dayjs';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,13 +35,6 @@ const SOCIAL_PROVIDERS = [
   { provider: 'google', label: 'Google' },
   { provider: 'github', label: 'Github' },
 ];
-
-function formatDate(dateString: string) {
-  const date = parseISO(dateString);
-  if (!isValid(date)) return dateString;
-
-  return format(date, 'yyyy-MM-dd HH:mm:ss');
-}
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -126,7 +120,7 @@ export default function ProfilePage() {
                     {loadingSocials
                       ? '加载中...'
                       : social
-                        ? `已连接，连接于 ${formatDate(social.created_at)}`
+                        ? `已连接，连接于 ${dayjs(social.created_at).format('YYYY-MM-DD HH:mm')}`
                         : '未连接'}
                   </span>
                   {!loadingSocials && !social ? (

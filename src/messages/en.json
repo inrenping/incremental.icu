@@ -74,7 +74,8 @@
     "verified": "Verified",
     "reconnectAccount": "Reconnect Account",
     "refreshAuthentication": "Refresh Authentication",
-    "recentLogs": "Recent Logs"
+    "recentLogs": "Recent Logs",
+    "noLogData": "No log data found"
   },
   "ListPage": {
     "loadingActivity": "Loading activity data...",

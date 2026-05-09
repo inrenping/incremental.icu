@@ -1,5 +1,5 @@
-
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { IconHistory } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
@@ -34,13 +34,7 @@ export function SyncLogs() {
         }
         const data = await response.json();
         if (data.status === 'success' && Array.isArray(data.data)) {
-          const formattedLogs: Log[] = data.data.map((log: any) => ({
-            id: log.id,
-            type: log.status === 'success' ? 'success' : 'error', // Map backend 'status' to 'success' or 'error'
-            title: log.action, // Assuming 'action' field for the log message/title
-            time: dayjs(log.created_at).format('YYYY-MM-DD HH:mm'), // Format timestamp
-          }));
-          setLogs(formattedLogs);
+          setLogs(data.data);
         } else {
           throw new Error("Invalid data format received from the server.");
         }
@@ -71,7 +65,13 @@ export function SyncLogs() {
             ) : logs.length > 0 ? (
               logs.map((log) => (
                 <div key={log.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-[10px] uppercase font-bold px-1.5 py-0 shrink-0">
+                      {log.module_name}
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] uppercase font-bold px-1.5 py-0 shrink-0">
+                      {log.log_type}
+                    </Badge>
                     <span className="text-sm text-foreground">
                       {log.op_desc}
                     </span>
