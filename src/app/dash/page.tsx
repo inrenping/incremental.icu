@@ -79,7 +79,7 @@ export default function DashPage() {
       const app = apps.find(a => a.id === platform);
       if (app?.isConnected) {
         // 依次执行每个平台的刷新逻辑，忽略单个执行错误以确保流程继续
-        await handleRefreshAuth(platform).catch(() => { });
+        // await handleRefreshAuth(platform).catch(() => { });
       }
     }
   };
