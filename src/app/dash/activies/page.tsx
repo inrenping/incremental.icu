@@ -13,6 +13,7 @@ import {
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from '@/lib/api';
+import { Button } from "@/components/ui/button";
 import {
   Menubar,
   MenubarMenu,
@@ -26,6 +27,17 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
 interface Activity {
@@ -242,6 +254,30 @@ const ActivityListPage = () => {
     }
   };
 
+  const handleFullPull = async () => {
+    if (syncing) return;
+    setSyncing(true);
+    try {
+      const queryParams = new URLSearchParams({
+        platform: platformSelected
+      });
+
+      const response = await authFetch(
+        `/api/v1/settings/pullFullActivities?${queryParams.toString()}`,
+        { method: 'POST' }
+      );
+
+      const result = await response.json();
+      if (result.status === "success") {
+        await fetchActivities();
+      }
+    } catch (error) {
+      console.error("Failed to sync activities:", error);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const handleDownload = async (id: string, platform: string, platformId: string) => {
     if (downloading) return;
     setDownloading(true);
@@ -406,23 +442,52 @@ const ActivityListPage = () => {
           />
         </div>
 
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           onClick={handlePull}
           disabled={syncing}
-          className="ml-auto px-4 py-1.5 border border-border rounded-md hover:bg-muted text-foreground font-medium flex items-center gap-2 transition-colors"
+          className="ml-auto gap-2"
         >
-          <IconRefresh size={16} className={cn(syncing && "animate-spin")} />
+          <IconRefresh className={cn(syncing && "animate-spin")} />
           {syncing ? '同步中...' : '同步平台数据'}
-        </button>
+        </Button>
 
-        <button
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={syncing}
+              className="gap-2"
+            >
+              <IconRefresh className={cn(syncing && "animate-spin")} />
+              {syncing ? '同步中...' : '全量同步'}
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>确认进行全量同步？</AlertDialogTitle>
+              <AlertDialogDescription>
+                全量同步将尝试获取该平台下的所有历史活动数据。由于数据量可能较大，同步过程可能会比较缓慢，且在网络不稳定的情况下存在失败风险。建议在网络环境良好时进行此操作。
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>取消</AlertDialogCancel>
+              <AlertDialogAction onClick={handleFullPull}>确认同步</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        <Button
+          size="sm"
           onClick={fetchActivities}
           disabled={loading}
-          className="px-4 py-1.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium flex items-center gap-2"
+          className="gap-2"
         >
-          {loading ? <IconRefresh size={16} className="animate-spin" /> : <IconSearch size={16} />}
+          {loading ? <IconRefresh className="animate-spin" /> : <IconSearch />}
           {loading ? '查询中...' : '查询'}
-        </button>
+        </Button>
       </div>
 
       {/* 活动列表表格 */}
