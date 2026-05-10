@@ -151,11 +151,11 @@ export default function DashPage() {
           toast.error(result.message || "刷新失败");
         }
       } else {
-        toast.error("该平台暂不支持刷新认证");
+        toast.error(t("refreshNotSupported"));
       }
     } catch (err: any) {
       console.error("Refresh auth error:", err);
-      toast.error(err.message || "请求刷新失败，请稍后重试");
+      toast.error(err.message || t("refreshFailedTryAgain"));
     } finally {
       setLoading(false);
     }
@@ -165,7 +165,7 @@ export default function DashPage() {
   const handleGlobalSync = async () => {
     if (isSyncing || !sourceId || !targetId) {
       if (!isSyncing && (!sourceId || !targetId)) {
-        toast.error("请先选择数据源和目标平台");
+        toast.error(t("selectSourceAndTarget"));
       }
       return;
     }
@@ -182,14 +182,14 @@ export default function DashPage() {
       const result = await response.json();
 
       if (result.status === "success") {
-        toast.success("同步已完成");
+        toast.success(t("syncCompleted"));
         fetchAppsStatus();
       } else {
-        toast.error(result.message || "同步失败");
+        toast.error(result.message || t("syncFailed"));
       }
     } catch (err) {
       console.error("Global sync error:", err);
-      toast.error("请求同步失败，请稍后重试");
+      toast.error(t("syncFailedTryAgain"));
     } finally {
       setIsSyncing(false);
     }
@@ -212,11 +212,11 @@ export default function DashPage() {
         <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-2 p-2 bg-background/50 backdrop-blur-sm rounded-[2.5rem] w-full md:w-fit">
             {/* 数据源选择 */}
-            <div className="flex items-center gap-2 bg-background rounded-[2rem] px-6 py-2 border border-border/50 shadow-sm  w-full text-left transition-all hover:border-primary/30">
+            <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm  w-full text-left transition-all hover:border-primary/30">
               <div className="flex flex-col flex-1">
                 <Select value={sourceId} onValueChange={setSourceId}>
-                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-base font-semibold">
-                    <SelectValue placeholder="选择平台" />
+                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-lg font-semibold">
+                    <SelectValue placeholder={t("selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
                     {apps.map(app => (
@@ -235,11 +235,11 @@ export default function DashPage() {
             </div>
 
             {/* 目标平台选择 */}
-            <div className="flex items-center gap-2 bg-background rounded-[2rem] px-6 py-2 border border-border/50 shadow-sm w-full text-left transition-all hover:border-primary/30">
+            <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm w-full text-left transition-all hover:border-primary/30">
               <div className="flex flex-col flex-1">
                 <Select value={targetId} onValueChange={setTargetId}>
-                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-base font-semibold">
-                    <SelectValue placeholder="选择平台" />
+                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-lg font-semibold">
+                    <SelectValue placeholder={t("selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
                     {apps.map(app => (
@@ -254,12 +254,12 @@ export default function DashPage() {
 
             <Button
               size="lg"
-              className="h-14 px-8 text-lg gap-2 rounded-[2rem] shadow-lg hover:shadow-xl transition-all w-full md:w-auto shrink-0"
+              className="h-14 px-8 text-lg gap-2 rounded-4xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto shrink-0"
               onClick={handleGlobalSync}
               disabled={isSyncing || !sourceId || !targetId}
             >
               <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
-              {isSyncing ? "同步中..." : t("oneclickSync")}
+              {isSyncing ? t("syncing") : t("oneclickSync")}
             </Button>
           </div>
 

@@ -75,7 +75,15 @@
     "reconnectAccount": "重新关联账号",
     "refreshAuthentication": "刷新认证",
     "recentLogs": "最近操作记录",
-    "noLogData": "未查询到相关日志"
+    "noLogData": "未查询到相关日志",
+    "selectPlatform": "选择平台",
+    "syncing": "同步中...",
+    "syncFailed": "同步失败",
+    "selectSourceAndTarget": "请先选择数据源和目标平台",
+    "syncFailedTryAgain": "请求同步失败，请稍后重试",
+    "syncCompleted": "同步已完成",
+    "refreshFailedTryAgain": "请求刷新失败，请稍后重试",
+    "refreshNotSupported": "该平台暂不支持刷新认证"
   },
   "ListPage": {
     "loadingActivity": "正在加载运动数据...",

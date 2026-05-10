@@ -75,7 +75,15 @@
     "reconnectAccount": "Reconnect Account",
     "refreshAuthentication": "Refresh Authentication",
     "recentLogs": "Recent Logs",
-    "noLogData": "No log data found"
+    "noLogData": "No log data found",
+    "selectPlatform": "Select Platform",
+    "syncing": "Syncing...",
+    "syncFailed": "Sync Failed",
+    "selectSourceAndTarget": "Please select a source and target platform first",
+    "syncFailedTryAgain": "Sync request failed, please try again later",
+    "syncCompleted": "Sync Completed",
+    "refreshFailedTryAgain": "Refresh request failed, please try again later",
+    "refreshNotSupported": "This platform does not support refreshing authentication"
   },
   "ListPage": {
     "loadingActivity": "Loading activity data...",
