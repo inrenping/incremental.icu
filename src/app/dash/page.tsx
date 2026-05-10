@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
@@ -12,7 +11,15 @@ import CryptoJS from 'crypto-js';
 import {
   IconRefresh,
   IconHistory,
+  IconArrowsLeftRight,
 } from "@tabler/icons-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
 import { SyncLogs } from "@/components/dash/sync-logs";
@@ -40,6 +47,8 @@ export default function DashPage() {
   const [currentApp, setCurrentApp] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [sourceId, setSourceId] = useState<string>("");
+  const [targetId, setTargetId] = useState<string>("");
 
   useEffect(() => {
     fetchAppsStatus();
@@ -142,11 +151,11 @@ export default function DashPage() {
           toast.error(result.message || "刷新失败");
         }
       } else {
-        toast.error("该平台暂不支持刷新认证");
+        toast.error(t("refreshNotSupported"));
       }
     } catch (err: any) {
       console.error("Refresh auth error:", err);
-      toast.error(err.message || "请求刷新失败，请稍后重试");
+      toast.error(err.message || t("refreshFailedTryAgain"));
     } finally {
       setLoading(false);
     }
@@ -154,26 +163,33 @@ export default function DashPage() {
 
   // 一键同步处理函数
   const handleGlobalSync = async () => {
-    if (isSyncing) return;
+    if (isSyncing || !sourceId || !targetId) {
+      if (!isSyncing && (!sourceId || !targetId)) {
+        toast.error(t("selectSourceAndTarget"));
+      }
+      return;
+    }
     setIsSyncing(true);
     try {
       // 同步前先尝试刷新认证，确保凭据有效
       await autoRefreshAuth();
-      const response = await authFetch('/api/v1/settings/syncNewActivities', {
-        method: 'POST'
+      const response = await authFetch('/api/v1/settings/oneclickSyncActivities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ source: sourceId, target: targetId })
       });
 
       const result = await response.json();
 
       if (result.status === "success") {
-        toast.success("同步已完成");
+        toast.success(t("syncCompleted"));
         fetchAppsStatus();
       } else {
-        toast.error(result.message || "同步失败");
+        toast.error(result.message || t("syncFailed"));
       }
     } catch (err) {
       console.error("Global sync error:", err);
-      toast.error("请求同步失败，请稍后重试");
+      toast.error(t("syncFailedTryAgain"));
     } finally {
       setIsSyncing(false);
     }
@@ -193,16 +209,60 @@ export default function DashPage() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center gap-3">
-          <Button
-            size="lg"
-            className="h-14 px-8 text-lg gap-2 rounded-full shadow-lg hover:shadow-xl transition-all"
-            onClick={handleGlobalSync}
-            disabled={isSyncing}
-          >
-            <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
-            {isSyncing ? "同步中..." : t("oneclickSync")}
-          </Button>
+        <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto px-4">
+          <div className="flex flex-col md:flex-row items-center gap-2 p-2 bg-background/50 backdrop-blur-sm rounded-[2.5rem] w-full md:w-fit">
+            {/* 数据源选择 */}
+            <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm  w-full text-left transition-all hover:border-primary/30">
+              <div className="flex flex-col flex-1">
+                <Select value={sourceId} onValueChange={setSourceId}>
+                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-lg font-semibold">
+                    <SelectValue placeholder={t("selectPlatform")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {apps.map(app => (
+                      <SelectItem key={app.id} value={app.id} disabled={!app.isConnected}>
+                        {app.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* 连接图标 */}
+            <div className="bg-primary/5 p-2 rounded-full hidden md:block shrink-0">
+              <IconArrowsLeftRight className="h-5 w-5 text-primary/60" />
+            </div>
+
+            {/* 目标平台选择 */}
+            <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm w-full text-left transition-all hover:border-primary/30">
+              <div className="flex flex-col flex-1">
+                <Select value={targetId} onValueChange={setTargetId}>
+                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-lg font-semibold">
+                    <SelectValue placeholder={t("selectPlatform")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {apps.map(app => (
+                      <SelectItem key={app.id} value={app.id} disabled={!app.isConnected || app.id === sourceId}>
+                        {app.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button
+              size="lg"
+              className="h-14 px-8 text-lg gap-2 rounded-4xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto shrink-0"
+              onClick={handleGlobalSync}
+              disabled={isSyncing || !sourceId || !targetId}
+            >
+              <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
+              {isSyncing ? t("syncing") : t("oneclickSync")}
+            </Button>
+          </div>
+
           <Link href="/dash/activies" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
             {t("fetchMore")}
           </Link>
@@ -215,7 +275,8 @@ export default function DashPage() {
             为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。
           </p>
           <p>请您知悉并同意以下事项：</p>
-          <p>继续使用本工具，即表示您已阅读并同意我们的「使用条款」。</p>
+          <p>继续使用本工具，即表示您已阅读并同意我们的<a href="#" target="_blank" rel="noopener noreferrer">「使用条款」</a>。</p>
+          <p>相关服务依赖第三方，我们尽力保障可用性，但不承诺持续可用或可访问。</p>
           <p>受限于品牌登录机制，使用本工具期间，请勿在其他终端同时登录您的账号，以免导致授权凭证失效。</p>
           <p>我们将严格加密存储您的信息，但无法完全排除网络环境中的潜在不确定性。继续使用即代表您已充分知悉并理解上述情况，授权我们为您进行数据的同步与管理。</p>
         </div>
