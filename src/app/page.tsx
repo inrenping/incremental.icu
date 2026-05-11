@@ -14,7 +14,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
-        <section className="py-24 px-4 text-center bg-cover bg-center bg-no-repeat bg-[url('/bg.webp')] dark:bg-[url('/bg-dark.webp')]">
+        <section className="py-24 px-4 text-center bg-cover bg-center bg-no-repeat">
           <div className="max-w-3xl mx-auto space-y-6">
             <p className="text-6xl text-foreground font-bold tracking-tight">{t('hello')}</p>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">{t('description')}</p>
