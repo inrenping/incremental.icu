@@ -12,6 +12,8 @@
 
 ![activities](/doc/activities_page.png)
 
+![activity](/doc/activity_page.png)
+
 ## 主要功能
 
 - 实时同步并查看运动记录
