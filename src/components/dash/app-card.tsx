@@ -26,7 +26,7 @@ export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
   return (
     <Card className="relative">
       {app.total_count !== undefined && app.total_count > 0 && (
-        <Link href={`/dash/activies?platform=${app.id}`} className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
+        <Link href={`/dash/activities?platform=${app.id}`} className="absolute -top-3 -right-3 z-20 hover:scale-110 transition-transform">
           <Badge className="rounded-full px-2.5 py-0 h-7 min-w-7 flex items-center justify-center text-sm font-bold border-2 border-background shadow-lg bg-primary text-primary-foreground cursor-pointer">
             {app.total_count}
           </Badge>

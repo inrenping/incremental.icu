@@ -263,7 +263,7 @@ export default function DashPage() {
             </Button>
           </div>
 
-          <Link href="/dash/activies" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+          <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
             {t("fetchMore")}
           </Link>
         </div>
