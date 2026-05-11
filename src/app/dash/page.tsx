@@ -263,7 +263,7 @@ export default function DashPage() {
             </Button>
           </div>
 
-          <Link href="/dash/activies" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+          <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
             {t("fetchMore")}
           </Link>
         </div>
@@ -275,7 +275,8 @@ export default function DashPage() {
             为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。
           </p>
           <p>请您知悉并同意以下事项：</p>
-          <p>继续使用本工具，即表示您已阅读并同意我们的<a href="#" target="_blank" rel="noopener noreferrer">「使用条款」</a>。</p>
+          <p>继续使用本工具，即表示您已阅读并同意我们的<a href="/dash/tos" target="_self" rel="noopener noreferrer"
+            className="underline">「使用条款」</a>。</p>
           <p>相关服务依赖第三方，我们尽力保障可用性，但不承诺持续可用或可访问。</p>
           <p>受限于品牌登录机制，使用本工具期间，请勿在其他终端同时登录您的账号，以免导致授权凭证失效。</p>
           <p>我们将严格加密存储您的信息，但无法完全排除网络环境中的潜在不确定性。继续使用即代表您已充分知悉并理解上述情况，授权我们为您进行数据的同步与管理。</p>
