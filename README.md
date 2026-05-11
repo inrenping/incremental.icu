@@ -8,6 +8,10 @@
 
 [incremental.icu](https://incremental.icu)一个用于佳明、高驰运动数据同步的网页工具,可以协助你更好地a管理佳明和高驰平台上的运动数据，适合有拥有两块手表的用户。
 
+![dash](/doc/dash_page.png)
+
+![activities](/doc/activities_page.png)
+
 ## 主要功能
 
 - 实时同步并查看运动记录
