@@ -40,6 +40,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
+import CryptoJS from 'crypto-js';
 interface Activity {
   id: string,
   title: string;
@@ -125,7 +126,7 @@ const ActivityListPage = () => {
   const handleRefreshAuth = async (platform: string) => {
     setLoading(true);
     try {
-      if (platform.startsWith("garmin")) {
+      if (platform.startsWith("garmin") || platform === "CN") {
         // 1. 获取已保存的凭据
         const loginRes = await authFetch('/api/v1/garmin/login', { method: 'POST' });
         const loginData = await loginRes.json();
@@ -150,7 +151,7 @@ const ActivityListPage = () => {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            domain: platform === 'garmin_cn' ? 'cn' : null,
+            domain: platform === 'garmin_cn' ? 'cn' : platform,
             username: config.username,
             password: decryptedPassword
           }),
@@ -282,7 +283,8 @@ const ActivityListPage = () => {
     if (downloading) return;
     setDownloading(true);
     try {
-      await handleRefreshAuth(platformId);
+      console.log(platform);
+      await handleRefreshAuth(platform);
       const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
 
@@ -291,7 +293,7 @@ const ActivityListPage = () => {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      const extension = platform.startsWith('garmin') ? 'zip' : 'fit';
+      const extension = (platform.startsWith('garmin') || platform === 'CN') ? 'zip' : 'fit';
       a.download = `${platformId}.${extension}`;
       document.body.appendChild(a);
       a.click();
@@ -638,6 +640,9 @@ const ActivityListPage = () => {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
                     {act.platform}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                    {act.platformId}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
                     {dayjs(act.syncTime).format('YYYY-MM-DD HH:mm')}
