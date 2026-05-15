@@ -1,69 +1,77 @@
-# incremental.icu
+# Incremental.icu
 
-<p align="left">
+<p align="center">
   <a href="https://github.com/inrenping/incremental.icu/stargazers"><img src="https://img.shields.io/github/stars/inrenping/incremental.icu?style=flat&label=Stars&labelColor=1F2937&color=2563EB" alt="Stargazers"></a>
   <a href="https://github.com/inrenping/incremental.icu/network/members"><img src="https://img.shields.io/github/forks/inrenping/incremental.icu?style=flat&label=Forks&labelColor=1F2937&color=7C3AED" alt="Forks"></a>
   <a href="https://github.com/inrenping/incremental.icu/issues"><img src="https://img.shields.io/github/issues/inrenping/incremental.icu?style=flat&label=Issues&labelColor=1F2937&color=D97706" alt="Issues"></a>
 </p>
 
-[incremental.icu](https://incremental.icu)一个用于佳明、高驰运动数据同步的网页工具,可以协助你更好地a管理佳明和高驰平台上的运动数据，适合有拥有两块手表的用户。
+**[incremental.icu](https://incremental.icu)** 是一款专为运动爱好者打造的跨平台数据同步工具。它能够无缝连接佳明（Garmin）与高驰（Coros）平台，协助用户高效管理运动记录，特别适合同时拥有两个品牌设备的多表用户。
 
-![dash](/doc/dash_page.png)
+---
 
-![activities](/doc/activities_page.png)
+## 📸 界面预览
 
-![activity](/doc/activity_page.png)
+| 数据看板 | 活动列表 | 详情查看 |
+| :---: | :---: | :---: |
+| ![dash](/doc/dash_page.png) | ![activities](/doc/activities_page.png) | ![activity](/doc/activity_page.png) |
 
-## 主要功能
+## ✨ 主要功能
 
-- 实时同步并查看运动记录
-- 运动记录的单条手动推送到其他平台
-- 一键同步近期运动数据
+- **实时查看**：跨平台聚合展示最新的运动记录。
+- **手动推送**：支持将特定运动记录单条手动同步至其他平台。
+- **批量同步**：提供一键同步功能，快速补全近期的运动数据缺失。
 
-## 目前已经对接的平台
+## 🌐 支持平台
 
-| 平台 | 是否支持 | 下载/上传文件格式 |
-|------|----------|--------|
-| 佳明国内版 | 是 | `.zip` |
-| 佳明国际版 | 是 | `.zip` |
-| 高驰 | 是 |  `.fit` |
+| 平台 | 支持状态 | 交互格式 |
+| :--- | :---: | :--- |
+| 佳明 (Garmin) 国内版 | ✅ 已支持 | `.zip` |
+| 佳明 (Garmin) 国际版 | ✅ 已支持 | `.zip` |
+| 高驰 (Coros) | ✅ 已支持 | `.fit` |
 
-## 快速开始
+## 🚀 快速开始
 
-若你只想使用成品版本，可前往 [incremental.icu](https://incremental.icu) 直接注册使用。
+访问 **[incremental.icu](https://incremental.icu)** 即可直接注册并开始管理您的运动数据。
 
-## 相关服务（面向开发者）
+---
 
-> 前端部署之前记得先跑一下 `npm run lint`/
+## 🛠 开发者指南
 
-- [对应后端服务 python fastapi 提供接口](https://github.com/inrenping/incremental-serve.git)
+如果您希望参与开发或自行部署本项目，请参考以下技术细节。
 
-- 前端部署平台： [vercel](https://vercel.com)
+### 技术栈
 
-> 部署注意：后端接口地址需要写在 `/vercel.json`
+- **前端框架**: [Next.js (App Router)](https://nextjs.org/)
+- **后端服务**: [FastAPI (Python)](https://fastapi.tiangolo.com/) 提供接口
+- **UI 组件库**: [shadcn/ui](https://ui.shadcn.com/) & [Alpine.js](https://alpinejs.dev/)
+- **数据库**: [Neon (Serverless Postgres)](https://neon.tech/)
+- **邮件服务**: [Resend](https://resend.com/)
+- **图标库**: [Tabler Icons](https://tabler-icons.io/)
 
-- [邮件发送服务基于 Resend](resend.com)
+### 部署与 CI/CD
 
-- [前端佳明高驰登录参考](https://github.com/XiaoSiHwang/garmin-sync-coros)
+1. **代码规范**: 前端部署之前记得先跑一下 `npm run lint`。
+2. **前端部署**: 托管于 [Vercel](https://vercel.com/)。
+    - *注意*: 后端接口地址需要配置在 `/vercel.json` 中。
+3. **自动化工作流**:
+    - **CI/CD**: 前端通过 Vercel 自动部署，后端通过 [GitHub Actions](https://github.com/features/actions)。
+    - **定时任务**: 使用 GitHub Actions 处理定时同步任务。
 
-- 支持 Google 和 Github 原生的单点登录。
+### 监控与分析
 
-- [neon 数据库](https://console.neon.tech)
+- **网站状态监测**: [Better Stack](https://betterstack.com/)
+- **网站流量分析**: [Google Analytics](https://analytics.google.com/)
 
-- 网站状态监测[betterstack](https://betterstack.com)
+### 参考资源与授权
 
-- [网站流量分析 google analytics](https://analytics.google.com/analytics/web/)
+- **登录逻辑参考**: [garmin-sync-coros](https://github.com/yihong0618/running_page) (前端佳明高驰登录逻辑参考)
+- **身份验证**: 支持 Google 和 GitHub 原生的 OAuth 单点登录。
 
-- 定时任务 github Actions
+## 📈 项目管理
 
-- Ci/CD 自动化部署 前端 vercel  后端 Gtihub Actions
+本项目使用 [GitHub Projects](https://github.com/features/issues) 进行进度管理与任务追踪。
 
-- 项目管理 github projects
+---
 
-- [React App 参考文档](https://nextjs.org/docs/app/api-reference/cli/create-next-app)
-
-- [shadcn](https://ui.shadcn.com/examples/dashboard)
-
-- [alpine](https://alpine-registry.vercel.app/)
-
-- 图标包： [tabler icons](https://tabler.io/icons)
+Proudly powered by the open-source community.
