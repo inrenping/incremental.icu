@@ -452,7 +452,7 @@ const ActivityListPage = () => {
           className="ml-auto gap-2"
         >
           <IconRefresh className={cn(syncing && "animate-spin")} />
-          {syncing ? '同步中...' : '同步平台数据'}
+          {syncing ? '同步中...' : '增量同步'}
         </Button>
 
         <AlertDialog>

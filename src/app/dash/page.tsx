@@ -220,7 +220,7 @@ export default function DashPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {apps.map(app => (
-                      <SelectItem key={app.id} value={app.id} disabled={!app.isConnected}>
+                      <SelectItem key={app.id} value={app.id} disabled={!app.isConnected || app.id === targetId}>
                         {app.label}
                       </SelectItem>
                     ))}
