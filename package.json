@@ -1,6 +1,6 @@
 {
   "name": "incremental",
-  "version": "0.1.20260505",
+  "version": "0.2.20260515",
   "private": true,
   "scripts": {
     "dev": "next dev",
