@@ -20,7 +20,7 @@ import CryptoJS from 'crypto-js';
 interface ConnectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  app: { id: string; label: string } | null;
+  app: { id?: string; platform: string; label: string } | null;
   onSuccess?: () => void;
 }
 
@@ -47,17 +47,18 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
 
     try {
       let response = null;
-      if (app.id.startsWith('garmin')) {
+      const platform = app.platform;
+      if (platform.startsWith('garmin')) {
         response = await fetch('/api/garmin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            domain: app.id === 'garmin_cn' ? 'cn' : null,
+            domain: platform === 'garmin_cn' ? 'cn' : null,
             username,
             password
           }),
         });
-      } else if (app.id.startsWith('coros')) {
+      } else if (platform.startsWith('coros')) {
         const encryptedPassword = CryptoJS.MD5(password).toString();
         response = await authFetch('/api/v1/coros/login', {
           method: 'POST',
@@ -74,7 +75,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
         throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
       }
 
-      if (response && app.id.startsWith('garmin')) {
+      if (response && platform.startsWith('garmin')) {
         const verifyData = await response.json();
         const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
         const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
@@ -82,6 +83,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...verifyData,
+            id: app.id, // 传递已有的 id 以支持更新，不传则为新增
             username,
             password: CryptoJS.AES.encrypt(password, key).toString()
           }),

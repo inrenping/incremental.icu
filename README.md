@@ -70,8 +70,4 @@
 
 ## 📈 项目管理
 
-本项目使用 [GitHub Projects](https://github.com/features/issues) 进行进度管理与任务追踪。
-
----
-
-Proudly powered by the open-source community.
+本项目使用 [GitHub Projects](https://github.com/users/inrenping/projects/1) 进行进度管理与任务追踪。

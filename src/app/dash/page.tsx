@@ -28,6 +28,7 @@ import { useTranslations } from "next-intl";
 
 export interface AppConfig {
   id: string;
+  platform: string;
   label: string;
   description: string;
   isConnected: boolean;
@@ -38,6 +39,12 @@ export interface AppConfig {
   lastUpdate?: string;
   total_count?: number;
 }
+
+const SUPPORTED_PLATFORMS = [
+  { id: 'garmin_cn', label: 'Garmin CN', platform: 'garmin_cn', description: '佳明中国区账号' },
+  { id: 'garmin', label: 'Garmin Global', platform: 'garmin', description: '佳明国际区账号' },
+  { id: 'coros', label: 'Coros', platform: 'coros', description: '高驰账号' },
+];
 
 export default function DashPage() {
   const t = useTranslations('DashPage')
@@ -63,8 +70,13 @@ export default function DashPage() {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch status');
       }
-      const data = await response.json();
-      setApps(data);
+      const data: AppConfig[] = await response.json();
+      // 确保每个配置都有 platform 属性（如果后端没给，根据 id 前缀补全）
+      const formatted = data.map(item => ({
+        ...item,
+        platform: item.platform || (item.id.includes('garmin') ? (item.id.includes('cn') ? 'garmin_cn' : 'garmin') : 'coros')
+      }));
+      setApps(formatted);
     } catch (err: any) {
       console.error("Fetch status error:", err);
     } finally {
@@ -76,29 +88,28 @@ export default function DashPage() {
   const autoRefreshAuth = async () => {
     const platforms = ['garmin_cn', 'garmin', 'coros'];
     for (const platform of platforms) {
-      const app = apps.find(a => a.id === platform);
-      if (app?.isConnected) {
-        // 依次执行每个平台的刷新逻辑，忽略单个执行错误以确保流程继续
-        // await handleRefreshAuth(platform).catch(() => { });
+      const connectedApps = apps.filter(a => a.platform === platform && a.isConnected);
+      for (const app of connectedApps) {
+        // await handleRefreshAuth(app.id, app.platform).catch(() => { });
       }
     }
   };
 
   // 刷新认证处理函数
-  const handleRefreshAuth = async (platform: string) => {
+  const handleRefreshAuth = async (id: string, platform: string) => {
     setLoading(true);
     try {
       if (platform.startsWith("garmin")) {
-        // 1. 获取已保存的凭据
-        const loginRes = await authFetch('/api/v1/garmin/login', { method: 'POST' });
+        // 1. 获取对应 ID 的凭据
+        const loginRes = await authFetch(`/api/v1/garmin/login?id=${id}`, { method: 'POST' });
         const loginData = await loginRes.json();
 
         if (loginData.status !== "success") {
           throw new Error(loginData.message || "获取账号信息失败");
         }
         // 匹配对应的平台配置
-        const targetRegion = platform === 'garmin_cn' ? 'CN' : 'GLOBAL';
-        const config = loginData.data.find((c: any) => c.platform === targetRegion);
+        // 如果后端支持多账号，此处应通过 id 精确匹配
+        const config = loginData.data.find((c: any) => c.id === id);
         if (!config) {
           throw new Error("未找到对应的佳明账号配置");
         }
@@ -128,6 +139,7 @@ export default function DashPage() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...verifyData,
+            id,
             username: config.username,
             password: config.password
           }),
@@ -139,8 +151,8 @@ export default function DashPage() {
 
         toast.success("GARMIN 认证刷新成功");
         fetchAppsStatus();
-      } else if (platform === "coros") {
-        const response = await authFetch('/api/v1/coros/relogin', {
+      } else if (platform.startsWith("coros")) {
+        const response = await authFetch(`/api/v1/coros/relogin?id=${id}`, {
           method: 'POST'
         });
         const result = await response.json();
@@ -219,9 +231,10 @@ export default function DashPage() {
                     <SelectValue placeholder={t("selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {apps.map(app => (
-                      <SelectItem key={app.id} value={app.id} disabled={!app.isConnected || app.id === targetId}>
-                        {app.label}
+                    {/* 仅显示已连接的账号作为源/目标 */}
+                    {apps.filter(a => a.isConnected).map(app => (
+                      <SelectItem key={app.id} value={app.id} disabled={app.id === targetId}>
+                        {app.label} {app.email ? `(${app.email})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -242,9 +255,9 @@ export default function DashPage() {
                     <SelectValue placeholder={t("selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {apps.map(app => (
-                      <SelectItem key={app.id} value={app.id} disabled={!app.isConnected || app.id === sourceId}>
-                        {app.label}
+                    {apps.filter(a => a.isConnected).map(app => (
+                      <SelectItem key={app.id} value={app.id} disabled={app.id === sourceId}>
+                        {app.label} {app.email ? `(${app.email})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -283,8 +296,21 @@ export default function DashPage() {
         </div>
       </div>
 
-      {/* 平台卡片 */}
+      {/* 活跃连接与添加管理 */}
       <section>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-bold">连接管理</h2>
+          <div className="flex gap-2">
+            {SUPPORTED_PLATFORMS.map(p => (
+              <Button key={p.id} variant="outline" size="sm" onClick={() => {
+                setCurrentApp({ platform: p.platform, label: p.label });
+                setOpen(true);
+              }}>
+                添加 {p.label}
+              </Button>
+            ))}
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {apps.map((app) => (
             <AppCard
@@ -294,7 +320,7 @@ export default function DashPage() {
                 setCurrentApp(selectedApp);
                 setOpen(true);
               }}
-              onRefresh={handleRefreshAuth}
+              onRefresh={(id) => handleRefreshAuth(id, app.platform)}
             />
           ))}
         </div>
@@ -303,7 +329,7 @@ export default function DashPage() {
       <SyncLogs />
 
       <AppConnectionDialog
-        key={currentApp?.id}
+        key={currentApp?.id || currentApp?.platform}
         open={open}
         onOpenChange={(val) => {
           setOpen(val);
