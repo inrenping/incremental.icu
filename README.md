@@ -30,7 +30,7 @@
 | 佳明 (Garmin) 国际版 | ✅ 已支持 | `.zip` |
 | 高驰 (Coros) | ✅ 已支持 | `.fit` |
 
-## 🚀 快速开始
+## 🚀 线上版本
 
 访问 **[incremental.icu](https://incremental.icu)** 即可直接注册并开始管理您的运动数据。
 
@@ -48,6 +48,7 @@
 - **数据库**: [Neon (Serverless Postgres)](https://neon.tech/)
 - **邮件服务**: [Resend](https://resend.com/)
 - **图标库**: [Tabler Icons](https://tabler-icons.io/)
+- **garth**: 一个模拟佳明客户端的 python 包，目前版本 0.5.17 更高版本支持佳明国内版有问题。
 
 ### 部署与 CI/CD
 

@@ -58,7 +58,7 @@ export function SiteHeader() {
 
   const navItems = [
     { name: t("dash"), href: '/dash' },
-    { name: "定时任务", href: '/dash/guide' },
+    // { name: "定时任务", href: '/dash/guide' },
     { name: t("accounts"), href: '/dash/accounts' },
     { name: t("logs"), href: '/dash/logs' },
     { name: "使用说明", href: '/dash/guide' },

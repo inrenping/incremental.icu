@@ -36,7 +36,7 @@ export default function AccountsPage() {
   const fetchAppsStatus = async () => {
     setLoading(true);
     try {
-      const response = await authFetch('/api/v1/settings/getAppsConfigs');
+      const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch status');
@@ -133,19 +133,21 @@ export default function AccountsPage() {
     )}>
 
       <section>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {apps.map((app) => (
-            <AppCard
-              key={app.id}
-              app={app}
-              onConnect={(selectedApp) => {
-                setCurrentApp(selectedApp);
-                setOpen(true);
-              }}
-              onRefresh={handleRefreshAuth}
-            />
-          ))}
-        </div>
+        {apps.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {apps.map((app) => (
+              <AppCard
+                key={app.id}
+                app={app}
+                onConnect={(selectedApp) => {
+                  setCurrentApp(selectedApp);
+                  setOpen(true);
+                }}
+                onRefresh={handleRefreshAuth}
+              />
+            ))}
+          </div>
+        ) : null}
       </section>
 
       <AppConnectionDialog

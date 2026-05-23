@@ -12,6 +12,7 @@ import {
   IconRefresh,
   IconHistory,
   IconArrowsLeftRight,
+  IconPlus,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -23,6 +24,7 @@ import {
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
 import { SyncLogs } from "@/components/dash/sync-logs";
+import { Card } from "@/components/ui/card";
 
 import { useTranslations } from "next-intl";
 
@@ -65,18 +67,18 @@ export default function DashPage() {
   const fetchAppsStatus = async () => {
     setLoading(true);
     try {
-      const response = await authFetch('/api/v1/settings/getAppsConfigs');
+      const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch status');
       }
       const data: AppConfig[] = await response.json();
-      // 确保每个配置都有 platform 属性（如果后端没给，根据 id 前缀补全）
-      const formatted = data.map(item => ({
-        ...item,
-        platform: item.platform || (item.id.includes('garmin') ? (item.id.includes('cn') ? 'garmin_cn' : 'garmin') : 'coros')
-      }));
-      setApps(formatted);
+      // // 确保每个配置都有 platform 属性（如果后端没给，根据 id 前缀补全）
+      // const formatted = data.map(item => ({
+      //   ...item,
+      //   platform: item.platform || (item.id.includes('garmin') ? (item.id.includes('cn') ? 'garmin_cn' : 'garmin') : 'coros')
+      // }));
+      // setApps(formatted);
     } catch (err: any) {
       console.error("Fetch status error:", err);
     } finally {
@@ -300,16 +302,6 @@ export default function DashPage() {
       <section>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold">连接管理</h2>
-          <div className="flex gap-2">
-            {SUPPORTED_PLATFORMS.map(p => (
-              <Button key={p.id} variant="outline" size="sm" onClick={() => {
-                setCurrentApp({ platform: p.platform, label: p.label });
-                setOpen(true);
-              }}>
-                添加 {p.label}
-              </Button>
-            ))}
-          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {apps.map((app) => (
@@ -323,6 +315,20 @@ export default function DashPage() {
               onRefresh={(id) => handleRefreshAuth(id, app.platform)}
             />
           ))}
+          <Card
+            className="flex flex-col items-center justify-cente cursor-pointer hover:bg-muted/30 transition-all border-dashed border-2 group"
+            onClick={() => {
+              setCurrentApp({ platform: 'garmin_cn' });
+              setOpen(true);
+            }}
+          >
+            <div className="p-4 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors">
+              <IconPlus className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+            <span className="mt-2 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+              {t("connectAccount")}
+            </span>
+          </Card>
         </div>
       </section>
 

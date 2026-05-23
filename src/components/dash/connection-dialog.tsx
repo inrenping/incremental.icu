@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -13,42 +13,63 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { IconAlertCircleFilled, IconCircleCheckFilled } from "@tabler/icons-react";
 import { authFetch } from '@/lib/api';
 import CryptoJS from 'crypto-js';
 
+const SUPPORTED_PLATFORMS = [
+  { id: 'garmin_cn', label: 'Garmin CN', platform: 'garmin_cn', description: '佳明中国区账号' },
+  { id: 'garmin', label: 'Garmin Global', platform: 'garmin', description: '佳明国际区账号' },
+  { id: 'coros', label: 'Coros', platform: 'coros', description: '高驰账号' },
+];
+
 interface ConnectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  app: { id?: string; platform: string; label: string } | null;
+  app: { id?: string; platform?: string; label?: string } | null;
   onSuccess?: () => void;
 }
 
 export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: ConnectionDialogProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedPlatform, setSelectedPlatform] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  useEffect(() => {
+    if (open && app) {
+      setSelectedPlatform(app.platform || '');
+    }
+  }, [open, app]);
+
   const resetState = () => {
     setError(null);
     setUsername('');
     setPassword('');
+    setSelectedPlatform('');
     setAgreed(false);
     setSuccess(false);
   };
 
   const handleVerifyAndSave = async () => {
-    if (!app) return;
+    if (!selectedPlatform) return;
     setLoading(true);
     setError(null);
 
     try {
       let response = null;
-      const platform = app.platform;
-      if (platform.startsWith('garmin')) {
+      const platform = selectedPlatform;
+      if (platform?.startsWith('garmin')) {
         response = await fetch('/api/garmin', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -58,9 +79,9 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
             password
           }),
         });
-      } else if (platform.startsWith('coros')) {
+      } else if (platform?.startsWith('coros')) {
         const encryptedPassword = CryptoJS.MD5(password).toString();
-        response = await authFetch('/api/v1/coros/login', {
+        response = await authFetch('/api/v1/base/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -75,7 +96,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
         throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
       }
 
-      if (response && platform.startsWith('garmin')) {
+      if (response && platform?.startsWith('garmin')) {
         const verifyData = await response.json();
         const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
         const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
@@ -83,7 +104,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ...verifyData,
-            id: app.id, // 传递已有的 id 以支持更新，不传则为新增
+            id: app?.id, // 传递已有的 id 以支持更新，不传则为新增
             username,
             password: CryptoJS.AES.encrypt(password, key).toString()
           }),
@@ -114,12 +135,31 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>连接 {app?.label}</DialogTitle>
+          <DialogTitle>连接 {app?.label || SUPPORTED_PLATFORMS.find(p => p.platform === selectedPlatform)?.label || '账号'}</DialogTitle>
           <DialogDescription>
-            请输入您的账号凭据以授权数据同步（应用 ID: <span className="font-mono text-xs">{app?.id}</span>）
+            请输入您的账号凭据以授权数据同步
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label>选择平台</Label>
+            <Select
+              value={selectedPlatform}
+              onValueChange={setSelectedPlatform}
+              disabled={!!app?.label || loading || success}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="请选择平台" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUPPORTED_PLATFORMS.map((p) => (
+                  <SelectItem key={p.id} value={p.platform}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid gap-2">
             <Label htmlFor="username">用户名 / 邮箱</Label>
             <Input
@@ -171,7 +211,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
           {error && <p className="text-sm text-destructive font-medium">{error}</p>}
         </div>
         <DialogFooter>
-          <Button onClick={handleVerifyAndSave} disabled={loading || !username || !password || !agreed || success} className="w-full sm:w-auto">
+          <Button onClick={handleVerifyAndSave} disabled={loading || !selectedPlatform || !username || !password || !agreed || success} className="w-full sm:w-auto">
             {loading ? '验证中...' : '验证'}
           </Button>
           {success && (
