@@ -67,36 +67,30 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
     setError(null);
 
     try {
-      let response = null;
-      const platform = selectedPlatform;
-      if (platform?.startsWith('garmin')) {
-        response = await fetch('/api/garmin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            domain: platform === 'garmin_cn' ? 'cn' : null,
-            username,
-            password
-          }),
-        });
-      } else if (platform?.startsWith('coros')) {
-        const encryptedPassword = CryptoJS.MD5(password).toString();
-        response = await authFetch('/api/v1/base/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: username,
-            password: encryptedPassword
-          }),
-        });
-      }
+      const isGarmin = selectedPlatform.startsWith('garmin');
+      const loginPayload = isGarmin
+        ? {
+          region: selectedPlatform === 'garmin_cn' ? 'cn' : null,
+          username,
+          password,
+        }
+        : {
+          email: username,
+          password: CryptoJS.MD5(password).toString(),
+        };
 
-      if (response && !response.ok) {
+      const response = await authFetch('/api/v1/base/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(loginPayload),
+      });
+
+      if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
       }
 
-      if (response && platform?.startsWith('garmin')) {
+      if (isGarmin) {
         const verifyData = await response.json();
         const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
         const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {

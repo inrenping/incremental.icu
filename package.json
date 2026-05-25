@@ -18,6 +18,7 @@
     "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "dayjs": "^1.11.20",
+    "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.38.0",
     "fs": "^0.0.1-security",
     "garmin-connect": "^1.6.2",

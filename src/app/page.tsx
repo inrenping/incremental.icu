@@ -6,6 +6,14 @@ import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel"
+
 export default function Home() {
   const t = useTranslations('IndexPage')
   const router = useRouter()
@@ -21,10 +29,11 @@ export default function Home() {
             <div className="pt-8 space-y-4">
               <Button
                 onClick={() => router.push('/login')}
-                size="icon"
-                className="h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all"
+                size="lg"
+                className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
               >
-                <IconArrowRight className="h-6 w-6" />
+                {t('getStarted')}
+                <IconArrowRight className="h-5 w-5" />
               </Button>
               {/* <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                 <IconLock className="h-4 w-4" />Your data is encrypted
@@ -46,6 +55,28 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        {/* <section className="py-20 px-4 max-w-5xl mx-auto">
+          <div className="relative px-12">
+            <Carousel className="w-full">
+              <CarouselContent>
+                {['demo1.png', 'demo2.png'].map((src, index) => (
+                  <CarouselItem key={index}>
+                    <div className="overflow-hidden rounded-2xl border bg-background shadow-2xl">
+                      <img
+                        src={`/${src}`}
+                        alt={`App Screenshot ${index + 1}`}
+                        className="w-full h-auto object-cover"
+                      />
+                    </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="-left-4 lg:-left-12" />
+              <CarouselNext className="-right-4 lg:-right-12" />
+            </Carousel>
+          </div>
+        </section> */}
 
         <section className="py-20 px-4 bg-muted/70">
           <div className="max-w-6xl mx-auto text-center space-y-12">
