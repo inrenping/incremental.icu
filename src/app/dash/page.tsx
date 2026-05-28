@@ -7,10 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
-import CryptoJS from 'crypto-js';
 import {
   IconRefresh,
-  IconHistory,
   IconArrowsLeftRight,
   IconPlus,
 } from "@tabler/icons-react";
@@ -50,12 +48,6 @@ export interface AppConfig {
   last_synced_at: string | null;
 }
 
-const SUPPORTED_PLATFORMS = [
-  { id: 'garmin_cn', label: 'Garmin CN', platform: 'garmin_cn', description: '佳明中国区账号' },
-  { id: 'garmin', label: 'Garmin Global', platform: 'garmin', description: '佳明国际区账号' },
-  { id: 'coros', label: 'Coros', platform: 'coros', description: '高驰账号' },
-];
-
 export default function DashPage() {
   const t = useTranslations('DashPage')
   const { layout } = useLayout();
@@ -64,8 +56,8 @@ export default function DashPage() {
   const [currentApp, setCurrentApp] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [sourceId, setSourceId] = useState<string>("");
-  const [targetId, setTargetId] = useState<string>("");
+  const [sourceId, setSourceId] = useState<string>();
+  const [targetId, setTargetId] = useState<string>();
 
   useEffect(() => {
     fetchAppsStatus();
@@ -90,75 +82,20 @@ export default function DashPage() {
   };
 
   // 刷新认证处理函数
-  const handleRefreshAuth = async (id: number, platform: string) => {
+  const handleRefreshAuth = async (id: number) => {
     setLoading(true);
     try {
-      if (platform.startsWith("garmin")) {
-        // 1. 获取对应 ID 的凭据
-        const loginRes = await authFetch(`/api/v1/garmin/login?id=${id}`, { method: 'POST' });
-        const loginData = await loginRes.json();
-
-        if (loginData.status !== "success") {
-          throw new Error(loginData.message || "获取账号信息失败");
-        }
-        // 匹配对应的平台配置
-        // 如果后端支持多账号，此处应通过 id 精确匹配
-        const config = loginData.data.find((c: any) => c.id === id);
-        if (!config) {
-          throw new Error("未找到对应的佳明账号配置");
-        }
-        // 2. 调用前端登录校验流程
-        const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
-        const decryptedPassword = CryptoJS.AES.decrypt(config.password, key).toString(CryptoJS.enc.Utf8);
-
-        const verifyRes = await fetch('/api/garmin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            domain: platform === 'garmin_cn' ? 'cn' : null,
-            username: config.username,
-            password: decryptedPassword
-          }),
-        });
-
-        if (!verifyRes.ok) {
-          const errorData = await verifyRes.json().catch(() => ({}));
-          throw new Error(errorData.error || "认证校验失败");
-        }
-
-        // 3. 保存验证后的配置（包含 Session 等信息）
-        const verifyData = await verifyRes.json();
-        const saveRes = await authFetch('/api/v1/garmin/saveConfig', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...verifyData,
-            id,
-            username: config.username,
-            password: config.password
-          }),
-        });
-
-        if (!saveRes.ok) {
-          throw new Error("保存认证信息失败");
-        }
-
-        toast.success("GARMIN 认证刷新成功");
+      const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
+        method: 'POST'
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        toast.success("认证刷新成功");
         fetchAppsStatus();
-      } else if (platform.startsWith("coros")) {
-        const response = await authFetch(`/api/v1/coros/relogin?id=${id}`, {
-          method: 'POST'
-        });
-        const result = await response.json();
-        if (result.status === "success") {
-          toast.success("COROS 认证刷新成功");
-          fetchAppsStatus();
-        } else {
-          toast.error(result.message || "刷新失败");
-        }
       } else {
-        toast.error(t("refreshNotSupported"));
+        toast.error(result.message || "刷新失败");
       }
+
     } catch (err: any) {
       console.error("Refresh auth error:", err);
       toast.error(err.message || t("refreshFailedTryAgain"));
@@ -225,8 +162,8 @@ export default function DashPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
-                      <SelectItem key={app.id} value={`$(app.id)`}>
-                        {app.source_type} {app.account ? `(${app.account})` : ''}
+                      <SelectItem key={app.id} value={(app.id)}>
+                        {app.source_type}  ({app.account})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -248,8 +185,8 @@ export default function DashPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
-                      <SelectItem key={app.id} value={`$(app.id)`}>
-                        {app.source_type} {app.account ? `(${app.account})` : ''}
+                      <SelectItem key={app.id} value={app.id}>
+                        {app.source_type}  ({app.account})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -302,7 +239,7 @@ export default function DashPage() {
                 setCurrentApp(selectedApp);
                 setOpen(true);
               }}
-              onRefresh={(id) => handleRefreshAuth(id, app.source_type)}
+              onRefresh={(id) => handleRefreshAuth(id)}
             />
           ))}
           <Card

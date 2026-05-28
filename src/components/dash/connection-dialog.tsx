@@ -33,7 +33,27 @@ const SUPPORTED_PLATFORMS = [
 interface ConnectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  app: { id?: string; platform?: string; label?: string } | null;
+  app: {
+    id: number;
+    user_id: number;
+    guid: string | null;
+    account: string;
+    encrypted_password?: string;
+    source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
+    region: string;
+    is_active: boolean;
+    access_token: string | null;
+    access_token_expires_at: string | null;
+    refresh_token: string | null;
+    refresh_token_expires_at: string | null;
+    oauth_token: string | null;
+    oauth_token_secret: string | null;
+    secret_string: string | null;
+    total_count: number;
+    created_at: string;
+    updated_at: string;
+    last_synced_at: string | null;
+  };
   onSuccess?: () => void;
 }
 
@@ -47,8 +67,10 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log(app);
+
     if (open && app) {
-      setSelectedPlatform(app.platform || '');
+      setSelectedPlatform(app.source_type || '');
     }
   }, [open, app]);
 
@@ -112,7 +134,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>连接 {app?.label || SUPPORTED_PLATFORMS.find(p => p.platform === selectedPlatform)?.label || '账号'}</DialogTitle>
+          <DialogTitle>连接 {app?.source_type || SUPPORTED_PLATFORMS.find(p => p.platform === selectedPlatform)?.label || '账号'}</DialogTitle>
           <DialogDescription>
             请输入您的账号凭据以授权数据同步
           </DialogDescription>
@@ -123,7 +145,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
             <Select
               value={selectedPlatform}
               onValueChange={setSelectedPlatform}
-              disabled={!!app?.label || loading || success}
+              disabled={!!app?.source_type || loading || success}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="请选择平台" />

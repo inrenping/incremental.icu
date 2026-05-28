@@ -40,78 +40,60 @@ export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
             </div>
             <CardTitle className="text-base">{app.source_type}</CardTitle>
           </div>
-          {app.is_active ? (
-            <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 gap-1 border-emerald-200">
-              <IconCircleCheckFilled className="h-3 w-3" />
-              {app.is_active || t("connected")}
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="text-amber-600 border-amber-200 dark:text-amber-500 dark:border-amber-900/50 gap-1">
-              <IconAlertCircleFilled className="h-3 w-3" />
-              {t("notConnected")}
-            </Badge>
-          )}
+          <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 gap-1 border-emerald-200">
+            <IconCircleCheckFilled className="h-3 w-3" />
+            {t("connected")}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <p className="text-muted-foreground text-xs leading-relaxed">
+        {/* <p className="text-muted-foreground text-xs leading-relaxed">
           {app.guid}
-        </p>
-        {app.is_active ? (
-          <>
-            <div className="space-y-1.5 border-t pt-3">
-              {app.account && (
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-muted-foreground">{t("account")}</span>
-                  <span className="font-medium truncate">{app.account}</span>
-                </div>
-              )}
-              {app.region && (
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-muted-foreground">{t("region")}</span>
-                  <span className="font-medium">{app.region}</span>
-                </div>
-              )}
-              {app.created_at && (
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-muted-foreground">{t("addedAt")}</span>
-                  <span className="font-medium font-mono">{dayjs(app.created_at).format('YYYY-MM-DD HH:mm')}</span>
-                </div>
-              )}
-              {app.last_synced_at && (
-                <div className="flex justify-between text-[11px]">
-                  <span className="text-muted-foreground">{t("lastSyncedTime")}</span>
-                  <span className="font-medium font-mono">{dayjs(app.last_synced_at).format('YYYY-MM-DD HH:mm')}</span>
-                </div>
-              )}
+        </p> */}
+        <div className="space-y-1.5 border-t pt-3">
+          {app.account && (
+            <div className="flex justify-between text-[11px]">
+              <span className="text-muted-foreground">{t("account")}</span>
+              <span className="font-medium truncate">{app.account}</span>
             </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn("text-muted-foreground", "flex-1")}
-                onClick={() => onConnect(app)}
-              >
-                {t("reconnectAccount")}
-              </Button>
-              <Button
-                variant="secondary"
-                size="sm"
-                className="flex-1 text-muted-foreground gap-1"
-                onClick={() => onRefresh(app.id)}
-              >
-                {t("refreshAuthentication")}
-              </Button>
+          )}
+          {app.region && (
+            <div className="flex justify-between text-[11px]">
+              <span className="text-muted-foreground">{t("region")}</span>
+              <span className="font-medium">{app.region}</span>
             </div>
-          </>
-        ) : (
-          <>
-            <div className="h-8" />
-            <Button size="sm" className="w-full" onClick={() => onConnect(app)}>
-              {t("connectAccount")}
-            </Button>
-          </>
-        )}
+          )}
+          {app.updated_at && (
+            <div className="flex justify-between text-[11px]">
+              <span className="text-muted-foreground">{t("addedAt")}</span>
+              <span className="font-medium font-mono">{dayjs(app.updated_at).format('YYYY-MM-DD HH:mm')}</span>
+            </div>
+          )}
+          {app.last_synced_at && (
+            <div className="flex justify-between text-[11px]">
+              <span className="text-muted-foreground">{t("lastSyncedTime")}</span>
+              <span className="font-medium font-mono">{dayjs(app.last_synced_at).format('YYYY-MM-DD HH:mm')}</span>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn("text-muted-foreground", "flex-1")}
+            onClick={() => onConnect(app)}
+          >
+            {t("reconnectAccount")}
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            className="flex-1 text-muted-foreground gap-1"
+            onClick={() => onRefresh(app.id)}
+          >
+            {t("refreshAuthentication")}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
