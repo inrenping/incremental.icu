@@ -15,10 +15,12 @@ import { cn } from "@/lib/utils";
 import { authFetch } from '@/lib/api';
 import { Button } from "@/components/ui/button";
 import {
-  Menubar,
-  MenubarMenu,
-  MenubarTrigger,
-} from "@/components/ui/menubar";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -40,7 +42,29 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
-import CryptoJS from 'crypto-js';
+
+interface AppConfig {
+  id: number;
+  user_id: number;
+  guid?: string | null;
+  account: string;
+  encrypted_password?: string;
+  source_type: string;
+  region: string;
+  is_active: boolean;
+  access_token?: string | null;
+  access_token_expires_at?: string | null;
+  refresh_token?: string | null;
+  refresh_token_expires_at?: string | null;
+  oauth_token?: string | null;
+  oauth_token_secret?: string | null;
+  secret_string?: string | null;
+  total_count?: number;
+  created_at: string;
+  updated_at: string;
+  last_synced_at: string | null;
+}
+
 interface Activity {
   id: string,
   title: string;
@@ -68,7 +92,7 @@ const ActivityListPage = () => {
   const searchParams = useSearchParams();
 
   // 从 URL 获取分页和平台参数
-  const platformSelected = searchParams.get('platform') || "garmin";
+  const appSelected = searchParams.get('id');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('pageSize') || '20');
   const startDate = searchParams.get('startDate') || "";
@@ -82,19 +106,44 @@ const ActivityListPage = () => {
   const [loadingActivityDetail, setLoadingActivityDetail] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [downloading, setDownloading] = useState(false);
+  const [apps, setApps] = useState<AppConfig[]>([]);
 
-  const platforms = [
-    { platform: "garmin", name: '佳明国际版' },
-    { platform: "garmin_cn", name: '佳明中国版', },
-    { platform: "coros", name: '高驰' },
-  ].map(p => ({ ...p, active: p.platform === platformSelected }));
+  const fetchAppsStatus = useCallback(async (showLoading = false) => {
+    if (showLoading) setLoading(true);
+    try {
+      const response = await authFetch('/api/v1/base/getConnectConfigs');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch status');
+      }
+      const data: AppConfig[] = await response.json();
+      setApps(data);
+
+      // Auto-select the first active platform if none is selected
+      if (!appSelected && data.length > 0) {
+        const firstActive = data.find(a => a.is_active) || data[0];
+        handlePlatformChange(firstActive.id.toString());
+      }
+    } catch (err: any) {
+      console.error("Fetch status error:", err);
+      toast.error("获取连接配置失败");
+    } finally {
+      if (showLoading) setLoading(false);
+    }
+  }, [appSelected]);
+
+  useEffect(() => {
+    fetchAppsStatus();
+  }, [fetchAppsStatus]);
 
   // 对接后端分页接口
   const fetchActivities = useCallback(async () => {
+    if (!appSelected) return;
+
     setLoading(true);
     try {
       const queryParams = new URLSearchParams({
-        platform: platformSelected,
+        connect_id: appSelected,
         pageSize: limit.toString(),
         pageCount: page.toString(),
       });
@@ -103,7 +152,7 @@ const ActivityListPage = () => {
 
       // 根据后端定义的参数名对接：platform, pageSize, pageCount
       const response = await authFetch(
-        `/api/v1/settings/getActivitiesWithPlatformByPage?${queryParams.toString()}`
+        `/api/v1/base/getActivitiesByPage?${queryParams.toString()}`
       );
       const result = await response.json();
       if (result.status === "success") {
@@ -115,7 +164,7 @@ const ActivityListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [platformSelected, page, limit, startDate, endDate]);
+  }, [appSelected, page, limit, startDate, endDate]);
 
   useEffect(() => {
     fetchActivities();
@@ -123,13 +172,27 @@ const ActivityListPage = () => {
 
 
   // 刷新认证处理函数
-  const handleRefreshAuth = async (platform: string) => {
-
+  const handleRefreshAuth = async (id: string) => {
+    try {
+      const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
+        method: 'POST'
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        return true;
+      } else {
+        toast.error(result.message || "身份验证已过期，请重新连接");
+        return false;
+      }
+    } catch (err) {
+      console.error("Refresh auth error:", err);
+      return false;
+    }
   };
 
-  const handlePlatformChange = (platform: string) => {
+  const handlePlatformChange = (id: string) => {
     const params = new URLSearchParams(searchParams.toString());
-    params.set('platform', platform);
+    params.set('id', id);
     params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
@@ -159,15 +222,16 @@ const ActivityListPage = () => {
   };
 
   const handlePull = async () => {
-    if (syncing) return;
+    if (syncing || !appSelected) return;
     setSyncing(true);
     try {
       const queryParams = new URLSearchParams({
-        platform: platformSelected
+        connect_id: appSelected,
+        incremental: 'false'
       });
 
       const response = await authFetch(
-        `/api/v1/settings/pullActivities?${queryParams.toString()}`,
+        `/api/v1/base/pullNewActivities?${queryParams.toString()}`,
         { method: 'POST' }
       );
 
@@ -183,15 +247,16 @@ const ActivityListPage = () => {
   };
 
   const handleFullPull = async () => {
-    if (syncing) return;
+    if (syncing || !appSelected) return;
     setSyncing(true);
     try {
       const queryParams = new URLSearchParams({
-        platform: platformSelected
+        connect_id: appSelected,
+        incremental: 'true'
       });
 
       const response = await authFetch(
-        `/api/v1/settings/pullFullActivities?${queryParams.toString()}`,
+        `/api/v1/base/pullFullActivities?${queryParams.toString()}`,
         { method: 'POST' }
       );
 
@@ -210,8 +275,9 @@ const ActivityListPage = () => {
     if (downloading) return;
     setDownloading(true);
     try {
-      console.log(platform);
-      await handleRefreshAuth(platform);
+      if (appSelected) {
+        await handleRefreshAuth(appSelected);
+      }
       const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
 
@@ -307,13 +373,30 @@ const ActivityListPage = () => {
   };
 
   const getPushTargets = (currentPlatform: string) => {
-    const allPlatforms = [
-      { id: "garmin", platform: "GLOBAL", name: '佳明国际版' },
-      { id: "garmin_cn", platform: "CN", name: '佳明中国版' },
-      { id: "coros", platform: "Coros", name: '高驰' },
-    ];
+    const pushTargets = apps
+      .filter(app => app.is_active)
+      .map(app => {
+        let internalPlatform = "";
+        let name = "";
+        if (app.source_type === 'garmin') {
+          internalPlatform = "GLOBAL"; name = "佳明国际版";
+        } else if (app.source_type === 'garmin_cn') {
+          internalPlatform = "CN"; name = "佳明中国版";
+        } else if (app.source_type === 'coros') {
+          internalPlatform = "Coros"; name = "高驰";
+        }
+        return { id: app.source_type, platform: internalPlatform, name };
+      })
+      .filter(p => p.platform !== "" && p.platform !== currentPlatform);
+
+    // Deduplicate by id (source_type) to avoid showing multiple buttons for the same platform type
+    const seen = new Set();
     // 返回除当前平台外的其他平台
-    return allPlatforms.filter(p => p.platform !== currentPlatform);
+    return pushTargets.filter(p => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
   };
 
   return (
@@ -323,21 +406,22 @@ const ActivityListPage = () => {
     )}>
       {/* 平台选择器 & 过滤栏 */}
       <div className="bg-card dark:bg-muted/20 p-2 rounded-lg border border-border shadow-sm mb-4 flex items-center gap-3">
-        <Menubar className="border-none shadow-none bg-transparent h-auto p-0">
-          {platforms.map((p) => (
-            <MenubarMenu key={p.platform}>
-              <MenubarTrigger
-                onClick={() => handlePlatformChange(p.platform)}
-                className={cn(
-                  "cursor-pointer px-3 py-1.5 transition-all rounded-md",
-                  p.active && "bg-muted text-foreground font-semibold"
-                )}
-              >
-                {p.name}
-              </MenubarTrigger>
-            </MenubarMenu>
-          ))}
-        </Menubar>
+        <Select
+          value={appSelected || ""}
+          onValueChange={handlePlatformChange}
+        >
+          <SelectTrigger className="w-[300px] bg-background">
+            <SelectValue placeholder="选择平台账号" />
+          </SelectTrigger>
+          <SelectContent>
+            {apps.filter(app => app.is_active).map((app) => (
+              <SelectItem key={app.id} value={app.id.toString()}>
+                <span className="font-semibold uppercase">{app.source_type}</span>
+                <span className="ml-2 text-muted-foreground text-xs">({app.account})</span>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
         <div className="w-px h-6 bg-border shrink-0 mx-1" />
 
@@ -474,7 +558,7 @@ const ActivityListPage = () => {
                         <SheetContent side="right" className="sm:min-w-2xl h-full flex flex-col">
                           <SheetHeader>
                             <SheetTitle className="text-xl flex items-center gap-2">
-                              {platforms.find(p => p.platform === act.platform)?.name || act.platform}
+                              {act.platform} - {act.title}
                             </SheetTitle>
                             <SheetDescription className="sr-only">
                               显示该活动的详细原始数据和平台指标。
@@ -526,7 +610,7 @@ const ActivityListPage = () => {
                                   {getPushTargets(act.platform).map((target) => (
                                     <button
                                       key={target.id}
-                                      onClick={() => handlePushToPlatform({ selectedActivityDetail }, platformSelected, target.id)}
+                                      onClick={() => handlePushToPlatform({ selectedActivityDetail }, appSelected, target.id)}
                                       disabled={pushing}
                                       className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
                                     >
