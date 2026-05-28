@@ -29,17 +29,25 @@ import { Card } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
 
 export interface AppConfig {
-  id: string;
-  platform: string;
-  label: string;
-  description: string;
-  isConnected: boolean;
-  email?: string | null;
-  addedAt?: string;
-  status?: string;
-  region?: string;
-  lastUpdate?: string;
-  total_count?: number;
+  id: number;
+  user_id: number;
+  guid: string | null;
+  account: string;
+  encrypted_password?: string;
+  source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
+  region: string;
+  is_active: boolean;
+  access_token: string | null;
+  access_token_expires_at: string | null;
+  refresh_token: string | null;
+  refresh_token_expires_at: string | null;
+  oauth_token: string | null;
+  oauth_token_secret: string | null;
+  secret_string: string | null;
+  total_count: number;
+  created_at: string;
+  updated_at: string;
+  last_synced_at: string | null;
 }
 
 const SUPPORTED_PLATFORMS = [
@@ -73,12 +81,7 @@ export default function DashPage() {
         throw new Error(errorData.error || 'Failed to fetch status');
       }
       const data: AppConfig[] = await response.json();
-      // // 确保每个配置都有 platform 属性（如果后端没给，根据 id 前缀补全）
-      // const formatted = data.map(item => ({
-      //   ...item,
-      //   platform: item.platform || (item.id.includes('garmin') ? (item.id.includes('cn') ? 'garmin_cn' : 'garmin') : 'coros')
-      // }));
-      // setApps(formatted);
+      setApps(data);
     } catch (err: any) {
       console.error("Fetch status error:", err);
     } finally {
@@ -86,19 +89,8 @@ export default function DashPage() {
     }
   };
 
-  // 自动刷新认证
-  const autoRefreshAuth = async () => {
-    const platforms = ['garmin_cn', 'garmin', 'coros'];
-    for (const platform of platforms) {
-      const connectedApps = apps.filter(a => a.platform === platform && a.isConnected);
-      for (const app of connectedApps) {
-        // await handleRefreshAuth(app.id, app.platform).catch(() => { });
-      }
-    }
-  };
-
   // 刷新认证处理函数
-  const handleRefreshAuth = async (id: string, platform: string) => {
+  const handleRefreshAuth = async (id: number, platform: string) => {
     setLoading(true);
     try {
       if (platform.startsWith("garmin")) {
@@ -186,7 +178,6 @@ export default function DashPage() {
     setIsSyncing(true);
     try {
       // 同步前先尝试刷新认证，确保凭据有效
-      await autoRefreshAuth();
       const response = await authFetch('/api/v1/settings/oneclickSyncActivities', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -233,10 +224,9 @@ export default function DashPage() {
                     <SelectValue placeholder={t("selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {/* 仅显示已连接的账号作为源/目标 */}
-                    {apps.filter(a => a.isConnected).map(app => (
-                      <SelectItem key={app.id} value={app.id} disabled={app.id === targetId}>
-                        {app.label} {app.email ? `(${app.email})` : ''}
+                    {apps.filter(a => a.is_active).map(app => (
+                      <SelectItem key={app.id} value={`$(app.id)`}>
+                        {app.source_type} {app.account ? `(${app.account})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -257,9 +247,9 @@ export default function DashPage() {
                     <SelectValue placeholder={t("selectPlatform")} />
                   </SelectTrigger>
                   <SelectContent>
-                    {apps.filter(a => a.isConnected).map(app => (
-                      <SelectItem key={app.id} value={app.id} disabled={app.id === sourceId}>
-                        {app.label} {app.email ? `(${app.email})` : ''}
+                    {apps.filter(a => a.is_active).map(app => (
+                      <SelectItem key={app.id} value={`$(app.id)`}>
+                        {app.source_type} {app.account ? `(${app.account})` : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -312,7 +302,7 @@ export default function DashPage() {
                 setCurrentApp(selectedApp);
                 setOpen(true);
               }}
-              onRefresh={(id) => handleRefreshAuth(id, app.platform)}
+              onRefresh={(id) => handleRefreshAuth(id, app.source_type)}
             />
           ))}
           <Card

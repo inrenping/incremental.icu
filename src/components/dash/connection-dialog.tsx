@@ -71,13 +71,13 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
       const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
       const loginPayload = isGarmin
         ? {
-          region: selectedPlatform === 'garmin_cn' ? 'cn' : null,
+          region: selectedPlatform === 'garmin_cn' ? 'cn' : selectedPlatform,
           email: username,
           // password,
           password: CryptoJS.AES.encrypt(password, key).toString()
         }
         : {
-          region: 8,
+          region: 'coros',
           email: username,
           password: CryptoJS.MD5(password).toString(),
         };
@@ -92,26 +92,6 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
       }
-
-      // if (isGarmin) {
-      //   const verifyData = await response.json();
-      //   const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
-      //   const saveResponse = await authFetch('/api/v1/garmin/saveConfig', {
-      //     method: 'POST',
-      //     headers: { 'Content-Type': 'application/json' },
-      //     body: JSON.stringify({
-      //       ...verifyData,
-      //       id: app?.id, // 传递已有的 id 以支持更新，不传则为新增
-      //       username,
-      //       password: CryptoJS.AES.encrypt(password, key).toString()
-      //     }),
-      //   });
-
-      //   if (!saveResponse.ok) {
-      //     const errorData = await saveResponse.json().catch(() => ({}));
-      //     throw new Error(errorData.message || `连接服务失败 (HTTP ${saveResponse.status})`);
-      //   }
-      // }
 
       setSuccess(true);
       onSuccess?.();
