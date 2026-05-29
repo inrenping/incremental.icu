@@ -66,17 +66,17 @@ interface AppConfig {
 }
 
 interface Activity {
-  id: string,
-  title: string;
-  startTime: string;
-  type: string;
-  workoutTime: string;
-  totalTime: string;
-  distance: string;
-  elevation: string;
-  platform: string;
-  platformId: string;
-  syncTime: string;
+  id: number;
+  activity_id: string;
+  activity_name: string;
+  start_time_local: string;
+  sport_type_raw: string;
+  moving_duration_seconds: number;
+  duration_seconds: number;
+  distance_meters: number;
+  elevation_gain: number;
+  source_type: string;
+  created_at: string;
 }
 
 // Assuming CorosActivity and GarminActivity have similar structures but might differ in fields.
@@ -299,16 +299,15 @@ const ActivityListPage = () => {
     }
   };
 
-  const fetchActivityDetails = useCallback(async (activityId: string, platform: string) => {
+  const fetchActivityDetails = useCallback(async (activityId: string | number) => {
     setLoadingActivityDetail(true);
     setSelectedActivityDetail(null);
     try {
       const queryParams = new URLSearchParams({
-        id: activityId,
-        platform: platform,
+        id: activityId.toString()
       });
       const response = await authFetch(
-        `/api/v1/settings/getActivity?${queryParams.toString()}`
+        `/api/v1/base/getActivity?${queryParams.toString()}`
       );
       const result = await response.json();
       if (result.status === "success") {
@@ -322,6 +321,16 @@ const ActivityListPage = () => {
       setLoadingActivityDetail(false);
     }
   }, []);
+
+  const formatDuration = (seconds: number) => {
+    if (seconds === null || seconds === undefined) return '--';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const parts = [m.toString().padStart(2, '0'), s.toString().padStart(2, '0')];
+    if (h > 0) parts.unshift(h.toString().padStart(2, '0'));
+    return parts.join(':');
+  };
 
   const handlePushToPlatform = async (obj: any, selectedPlatform: string, targetPlatform: string) => {
     if (pushing) return;
@@ -387,7 +396,7 @@ const ActivityListPage = () => {
         }
         return { id: app.source_type, platform: internalPlatform, name };
       })
-      .filter(p => p.platform !== "" && p.platform !== currentPlatform);
+      .filter(p => p.id !== currentPlatform);
 
     // Deduplicate by id (source_type) to avoid showing multiple buttons for the same platform type
     const seen = new Set();
@@ -535,130 +544,130 @@ const ActivityListPage = () => {
               </tr>
             ) : (
               activities.map((act, i) => (
-                <tr key={act.platformId || i} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-2 text-foreground">
-                      <span>{act.type}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    <div className="flex items-center gap-1.5">
-                      <Sheet onOpenChange={(open) => {
-                        if (open) {
-                          fetchActivityDetails(act.id, act.platform);
-                        } else {
-                          setSelectedActivityDetail(null); // Clear details when dialog closes
-                        }
-                      }}>
-                        <SheetTrigger asChild>
-                          <div className="font-medium text-foreground cursor-pointer hover:text-primary hover:underline transition-all" title="查看详情">
-                            {act.title}
+                <Sheet key={act.activity_id || i} onOpenChange={(open) => {
+                  if (open) {
+                    fetchActivityDetails(act.id);
+                  } else {
+                    setSelectedActivityDetail(null); // Clear details when dialog closes
+                  }
+                }}>
+                  <SheetTrigger asChild>
+                    <tr className="hover:bg-muted/30 even:bg-muted/20 transition-colors cursor-pointer group">
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-2 text-foreground">
+                          <span className="capitalize">{act.sport_type_raw}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5">
+                          <div className="font-medium text-foreground group-hover:text-primary group-hover:underline transition-all" title="查看详情">
+                            {act.activity_name}
                           </div>
-                        </SheetTrigger>
-                        <SheetContent side="right" className="sm:min-w-2xl h-full flex flex-col">
-                          <SheetHeader>
-                            <SheetTitle className="text-xl flex items-center gap-2">
-                              {act.platform} - {act.title}
-                            </SheetTitle>
-                            <SheetDescription className="sr-only">
-                              显示该活动的详细原始数据和平台指标。
-                            </SheetDescription>
-                          </SheetHeader>
-                          <div className="flex-1 overflow-y-auto py-4 min-h-0">
-                            {loadingActivityDetail ? (
-                              <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
-                                <IconRefresh className="animate-spin" />
-                                正在从云端获取详细数据...
-                              </div>
-                            ) : selectedActivityDetail ? (
-                              <div className="flex flex-col gap-4">
-                                <div className="bg-muted/10 rounded-xl overflow-hidden">
-                                  <div className="px-4 py-2">
-                                    {Object.entries(selectedActivityDetail)
-                                      .filter(([key]) => !['platform', 'id', 'user_id'].includes(key.toLowerCase()))
-                                      .map(([key, value]) => {
-                                        let formattedValue = String(value);
-                                        if (value === null || value === undefined) {
-                                          formattedValue = '--';
-                                        } else if (typeof value === 'object') {
-                                          formattedValue = JSON.stringify(value);
-                                        }
+                        </div>
+                      </td>
+                      <td className="px-4 py-5 text-muted-foreground whitespace-nowrap">
+                        <div className="font-mono">{dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}</div>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                        {formatDuration(act.moving_duration_seconds)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                        {formatDuration(act.duration_seconds)}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                        {(act.distance_meters / 1000).toFixed(2)} km
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                        {act.elevation_gain} m
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {act.source_type}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                        {act.activity_id}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
+                        {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}
+                      </td>
+                    </tr>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="sm:min-w-2xl h-full flex flex-col">
+                    <SheetHeader>
+                      <SheetTitle className="text-xl flex items-center gap-2">
+                        {act.source_type} - {act.activity_name}
+                      </SheetTitle>
+                      <SheetDescription className="sr-only">
+                        显示该活动的详细原始数据和平台指标。
+                      </SheetDescription>
+                    </SheetHeader>
+                    <div className="flex-1 overflow-y-auto py-4 min-h-0">
+                      {loadingActivityDetail ? (
+                        <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
+                          <IconRefresh className="animate-spin" />
+                          正在从云端获取详细数据...
+                        </div>
+                      ) : selectedActivityDetail ? (
+                        <div className="flex flex-col gap-4">
+                          <div className="bg-muted/10 rounded-xl overflow-hidden">
+                            <div className="px-4 py-2">
+                              {Object.entries(selectedActivityDetail)
+                                .filter(([key]) => !['platform', 'id', 'user_id'].includes(key.toLowerCase()))
+                                .map(([key, value]) => {
+                                  let formattedValue = String(value);
+                                  if (value === null || value === undefined) {
+                                    formattedValue = '--';
+                                  } else if (typeof value === 'object') {
+                                    formattedValue = JSON.stringify(value);
+                                  }
 
-                                        return (
-                                          <div key={key} className="flex justify-between items-center py-3 border-b border-border/40 last:border-0 hover:bg-muted/20 px-2 -mx-2 transition-colors">
-                                            <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
-                                            <span className="text-sm font-mono font-medium text-foreground text-right ml-6 break-all">
-                                              {formattedValue}
-                                            </span>
-                                          </div>
-                                        );
-                                      })}
-                                  </div>
-                                </div>
-                              </div>
-                            ) : (
-                              <div className="py-12 text-center text-muted-foreground">
-                                未能成功加载活动详情，请稍后重试。
-                              </div>
-                            )}
-                          </div>
-
-                          {selectedActivityDetail && !loadingActivityDetail && (
-                            <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">
-                              <div className="flex flex-wrap items-center justify-between gap-4">
-                                <div className="flex items-center gap-2">
-                                  {getPushTargets(act.platform).map((target) => (
-                                    <button
-                                      key={target.id}
-                                      onClick={() => handlePushToPlatform({ selectedActivityDetail }, appSelected, target.id)}
-                                      disabled={pushing}
-                                      className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
-                                    >
-                                      {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
-                                      {pushing ? '推送中...' : `手动推送到 ${target.name}`}
-                                    </button>
-                                  ))}
-                                </div>
-                                <button
-                                  onClick={() => handleDownload(act.id, act.platform, act.platformId)}
-                                  disabled={downloading}
-                                  className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm shadow-sm h-10"
-                                >
-                                  {downloading ? <IconRefresh size={16} className="animate-spin" /> : <IconDownload size={16} />}
-                                  {downloading ? '下载中...' : '下载 FIT 文件'}
-                                </button>
-                              </div>
+                                  return (
+                                    <div key={key} className="flex justify-between items-center py-3 border-b border-border/40 last:border-0 hover:bg-muted/20 px-2 -mx-2 transition-colors">
+                                      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
+                                      <span className="text-sm font-mono font-medium text-foreground text-right ml-6 break-all">
+                                        {formattedValue}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                             </div>
-                          )}
-                        </SheetContent>
-                      </Sheet>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="py-12 text-center text-muted-foreground">
+                          未能成功加载活动详情，请稍后重试。
+                        </div>
+                      )}
                     </div>
-                  </td>
-                  <td className="px-4 py-5 text-muted-foreground whitespace-nowrap">
-                    <div className="font-mono">{dayjs(act.startTime).format('YYYY-MM-DD HH:mm')}</div>
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
-                    {act.workoutTime}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
-                    {act.totalTime}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
-                    {act.distance}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
-                    {act.elevation}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {act.platform}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
-                    {act.platformId}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
-                    {dayjs(act.syncTime).format('YYYY-MM-DD HH:mm')}
-                  </td>
-                </tr>
+
+                    {selectedActivityDetail && !loadingActivityDetail && (
+                      <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">
+                        <div className="flex flex-wrap items-center justify-between gap-4">
+                          <div className="flex items-center gap-2">
+                            {getPushTargets(act.source_type).map((target) => (
+                              <button
+                                key={target.id}
+                                onClick={() => handlePushToPlatform({ selectedActivityDetail }, act.source_type, target.id)}
+                                disabled={pushing}
+                                className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
+                              >
+                                {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
+                                {pushing ? '推送中...' : `手动推送到 ${target.name}`}
+                              </button>
+                            ))}
+                          </div>
+                          <button
+                            onClick={() => handleDownload(act.id.toString(), act.source_type, act.activity_id)}
+                            disabled={downloading}
+                            className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium text-sm shadow-sm h-10"
+                          >
+                            {downloading ? <IconRefresh size={16} className="animate-spin" /> : <IconDownload size={16} />}
+                            {downloading ? '下载中...' : '下载 FIT 文件'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </SheetContent>
+                </Sheet>
               ))
             )}
           </tbody>
