@@ -416,7 +416,7 @@ const ActivityListPage = () => {
           <SelectContent>
             {apps.filter(app => app.is_active).map((app) => (
               <SelectItem key={app.id} value={app.id.toString()}>
-                <span className="font-semibold uppercase">{app.source_type}</span>
+                <span className="font-semibold uppercase">{app.source_type}_{app.region}</span>
                 <span className="ml-2 text-muted-foreground text-xs">({app.account})</span>
               </SelectItem>
             ))}

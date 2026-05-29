@@ -81,6 +81,24 @@ export default function DashPage() {
     }
   };
 
+  // 测试 token 有效性
+  const handleTestAuth = async (id: number) => {
+    try {
+      const response = await authFetch(`/api/v1/base/testConnect?id=${id}`, {
+        method: 'GET'
+      });
+      const result = await response.json();
+      if (result.access_token) {
+        toast.success("测试通过");
+      } else {
+        toast.error(result.message || "测试失败");
+      }
+    } catch (err: any) {
+      console.error("Refresh auth error:", err);
+      toast.error(err.message);
+    }
+  }
+
   // 刷新认证处理函数
   const handleRefreshAuth = async (id: number) => {
     setLoading(true);
@@ -240,6 +258,7 @@ export default function DashPage() {
                 setOpen(true);
               }}
               onRefresh={(id) => handleRefreshAuth(id)}
+              onTest={(id) => handleTestAuth(id)}
             />
           ))}
           <Card

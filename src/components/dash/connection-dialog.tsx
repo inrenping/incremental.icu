@@ -70,7 +70,10 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
     console.log(app);
 
     if (open && app) {
-      setSelectedPlatform(app.source_type || '');
+      setSelectedPlatform(app.source_type);
+      if (app.region === 'cn') {
+        setSelectedPlatform('garmin_cn');
+      }
     }
   }, [open, app]);
 
@@ -93,12 +96,14 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
       const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
       const loginPayload = isGarmin
         ? {
+          id: app.id ? app.id : 0,
           region: selectedPlatform === 'garmin_cn' ? 'cn' : selectedPlatform,
           email: username,
           // password,
           password: CryptoJS.AES.encrypt(password, key).toString()
         }
         : {
+          id: app.id ? app.id : 0,
           region: 'coros',
           email: username,
           password: CryptoJS.MD5(password).toString(),

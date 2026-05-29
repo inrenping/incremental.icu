@@ -64,6 +64,10 @@ export default function AccountsPage() {
     }
   };
 
+  // 测试 token 有效性
+  const handleTestAuth = async (id: number) => {
+    toast.success("测试 Token 有效性" + id);
+  }
   // 刷新认证处理函数
   const handleRefreshAuth = async (id: number) => {
     setLoading(true);
@@ -104,6 +108,7 @@ export default function AccountsPage() {
                 setOpen(true);
               }}
               onRefresh={(id) => handleRefreshAuth(id)}
+              onTest={(id) => handleTestAuth(id)}
             />
           ))}
           <Card

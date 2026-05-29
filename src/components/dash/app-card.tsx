@@ -18,9 +18,10 @@ interface AppCardProps {
   app: AppConfig;
   onConnect: (app: AppConfig) => void;
   onRefresh: (id: number) => void;
+  onTest: (id: number) => void;
 }
 
-export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
+export function AppCard({ app, onConnect, onRefresh, onTest }: AppCardProps) {
   const t = useTranslations('DashPage');
 
   return (
@@ -76,7 +77,15 @@ export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn("text-muted-foreground", "flex-1")}
+            onClick={() => onTest(app.id)}
+          >
+            测试
+          </Button>
           <Button
             variant="outline"
             size="sm"
