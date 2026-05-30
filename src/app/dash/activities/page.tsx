@@ -92,7 +92,7 @@ const ActivityListPage = () => {
   const searchParams = useSearchParams();
 
   // 从 URL 获取分页和平台参数
-  const appSelected = searchParams.get('id');
+  const appSelected = searchParams.get('connect_id');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('pageSize') || '20');
   const startDate = searchParams.get('startDate') || "";
@@ -299,7 +299,7 @@ const ActivityListPage = () => {
     }
   };
 
-  const fetchActivityDetails = useCallback(async (activityId: string | number) => {
+  const fetchActivityDetails = useCallback(async (activityId: number) => {
     setLoadingActivityDetail(true);
     setSelectedActivityDetail(null);
     try {
@@ -332,71 +332,68 @@ const ActivityListPage = () => {
     return parts.join(':');
   };
 
-  const handlePushToPlatform = async (obj: any, selectedPlatform: string, targetPlatform: string) => {
+  /**
+   * 把指定活动数据推送到目标账号
+   * @param selectedActivityId 运动数据 ID
+   * @param targetConnectId 目标账号 ID
+   * @returns 
+   */
+  const handlePushToPlatform = async (selectedActivityId: number, targetConnectId: number) => {
     if (pushing) return;
-    const id = obj?.selectedActivityDetail?.id;
-    if (!id) {
+    if (!selectedActivityId) {
       alert("未找到活动 ID，请稍后再试");
       return;
     }
-
     setPushing(true);
     let pushUrl = "";
     // 根据源平台和目标平台选择对应的接口
-    if (selectedPlatform.startsWith("garmin") && targetPlatform.startsWith("garmin")) {
-      // 佳明国际版与中国版互转
-      pushUrl = `/api/v1/garmin/uploadGarminActivity2Garmin/${id}`;
-    } else if (selectedPlatform === "coros" && targetPlatform.startsWith("garmin")) {
-      // 高驰推送到佳明
-      if (targetPlatform === "garmin_cn") {
-        pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=cn`;
-      } else {
-        pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=global`;
-      }
-    } else if (selectedPlatform.startsWith("garmin") && targetPlatform === "coros") {
-      // 佳明推送到高驰
-      pushUrl = `/api/v1/coros/uploadGarminActivity2Coros/${id}`;
+    // if (selectedPlatform.startsWith("garmin") && targetPlatform.startsWith("garmin")) {
+    //   // 佳明国际版与中国版互转
+    //   pushUrl = `/api/v1/garmin/uploadGarminActivity2Garmin/${id}`;
+    // } else if (selectedPlatform === "coros" && targetPlatform.startsWith("garmin")) {
+    //   // 高驰推送到佳明
+    //   if (targetPlatform === "garmin_cn") {
+    //     pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=cn`;
+    //   } else {
+    //     pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=global`;
+    //   }
+    // } else if (selectedPlatform.startsWith("garmin") && targetPlatform === "coros") {
+    //   // 佳明推送到高驰
+    //   pushUrl = `/api/v1/coros/uploadGarminActivity2Coros/${id}`;
 
-    }
+    // }
 
-    if (!pushUrl) {
-      console.error("未找到匹配的推送路径");
-      setPushing(false);
-      return;
-    }
+    // if (!pushUrl) {
+    //   console.error("未找到匹配的推送路径");
+    //   setPushing(false);
+    //   return;
+    // }
 
-    try {
-      const response = await authFetch(pushUrl, { method: 'POST' });
-      const result = await response.json();
-      if (result.status === "success") {
-        alert(`成功推送至 ${targetPlatform}`);
-      } else {
-        alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
-      }
-    } catch (error) {
-      console.error("Push failed:", error);
-      alert("请求过程中发生错误");
-    } finally {
-      setPushing(false);
-    }
+    // try {
+    //   const response = await authFetch(pushUrl, { method: 'POST' });
+    //   const result = await response.json();
+    //   if (result.status === "success") {
+    //     alert(`成功推送至 ${targetPlatform}`);
+    //   } else {
+    //     alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
+    //   }
+    // } catch (error) {
+    //   console.error("Push failed:", error);
+    //   alert("请求过程中发生错误");
+    // } finally {
+    //   setPushing(false);
+    // }
   };
 
-  const getPushTargets = (currentPlatform: string) => {
+  const getPushTargets = (currentConnectId: number) => {
     const pushTargets = apps
       .filter(app => app.is_active)
       .map(app => {
-        let internalPlatform = "";
-        let name = "";
-        if (app.source_type === 'garmin') {
-          internalPlatform = "GLOBAL"; name = "佳明国际版";
-        } else if (app.source_type === 'garmin_cn') {
-          internalPlatform = "CN"; name = "佳明中国版";
-        } else if (app.source_type === 'coros') {
-          internalPlatform = "Coros"; name = "高驰";
-        }
-        return { id: app.source_type, platform: internalPlatform, name };
+        let name = app.source_type + "_" + app.region + "(" + app.account + ")";
+        let internalPlatform = name;
+        return { id: app.id, platform: internalPlatform, name };
       })
-      .filter(p => p.id !== currentPlatform);
+      .filter(p => p.id !== currentConnectId);
 
     // Deduplicate by id (source_type) to avoid showing multiple buttons for the same platform type
     const seen = new Set();
@@ -643,15 +640,15 @@ const ActivityListPage = () => {
                       <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
-                            {getPushTargets(act.source_type).map((target) => (
+                            {getPushTargets(act.id).map((target) => (
                               <button
                                 key={target.id}
-                                onClick={() => handlePushToPlatform({ selectedActivityDetail }, act.source_type, target.id)}
+                                // onClick={() => handlePushToPlatform(selectedActivityDetail?.id, act.source_type, target.id)}
                                 disabled={pushing}
                                 className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
                               >
                                 {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
-                                {pushing ? '推送中...' : `手动推送到 ${target.name}`}
+                                {pushing ? '推送中...' : `推送 ${target.name}`}
                               </button>
                             ))}
                           </div>

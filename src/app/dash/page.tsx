@@ -124,35 +124,35 @@ export default function DashPage() {
 
   // 一键同步处理函数
   const handleGlobalSync = async () => {
-    if (isSyncing || !sourceId || !targetId) {
-      if (!isSyncing && (!sourceId || !targetId)) {
-        toast.error(t("selectSourceAndTarget"));
-      }
-      return;
-    }
-    setIsSyncing(true);
-    try {
-      // 同步前先尝试刷新认证，确保凭据有效
-      const response = await authFetch('/api/v1/settings/oneclickSyncActivities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ source: sourceId, target: targetId })
-      });
+    // if (isSyncing || !sourceId || !targetId) {
+    //   if (!isSyncing && (!sourceId || !targetId)) {
+    //     toast.error(t("selectSourceAndTarget"));
+    //   }
+    //   return;
+    // }
+    // setIsSyncing(true);
+    // try {
+    //   // 同步前先尝试刷新认证，确保凭据有效
+    //   const response = await authFetch('/api/v1/settings/oneclickSyncActivities', {
+    //     method: 'POST',
+    //     headers: { 'Content-Type': 'application/json' },
+    //     body: JSON.stringify({ source: sourceId, target: targetId })
+    //   });
 
-      const result = await response.json();
+    //   const result = await response.json();
 
-      if (result.status === "success") {
-        toast.success(t("syncCompleted"));
-        fetchAppsStatus();
-      } else {
-        toast.error(result.message || t("syncFailed"));
-      }
-    } catch (err) {
-      console.error("Global sync error:", err);
-      toast.error(t("syncFailedTryAgain"));
-    } finally {
-      setIsSyncing(false);
-    }
+    //   if (result.status === "success") {
+    //     toast.success(t("syncCompleted"));
+    //     fetchAppsStatus();
+    //   } else {
+    //     toast.error(result.message || t("syncFailed"));
+    //   }
+    // } catch (err) {
+    //   console.error("Global sync error:", err);
+    //   toast.error(t("syncFailedTryAgain"));
+    // } finally {
+    //   setIsSyncing(false);
+    // }
   };
 
   return (
