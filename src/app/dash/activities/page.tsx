@@ -108,6 +108,16 @@ const ActivityListPage = () => {
   const [downloading, setDownloading] = useState(false);
   const [apps, setApps] = useState<AppConfig[]>([]);
 
+  // 处理平台切换逻辑：统一使用 connect_id 并重置页码和列表
+  const handlePlatformChange = useCallback((id: string) => {
+    setActivities([]);
+    setTotal(0);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('connect_id', id);
+    params.set('page', '1');
+    router.push(`${pathname}?${params.toString()}`);
+  }, [searchParams, pathname, router]);
+
   const fetchAppsStatus = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
@@ -124,13 +134,13 @@ const ActivityListPage = () => {
         const firstActive = data.find(a => a.is_active) || data[0];
         handlePlatformChange(firstActive.id.toString());
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Fetch status error:", err);
       toast.error("获取连接配置失败");
     } finally {
       if (showLoading) setLoading(false);
     }
-  }, [appSelected]);
+  }, [appSelected, handlePlatformChange]);
 
   useEffect(() => {
     fetchAppsStatus();
@@ -188,13 +198,6 @@ const ActivityListPage = () => {
       console.error("Refresh auth error:", err);
       return false;
     }
-  };
-
-  const handlePlatformChange = (id: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('id', id);
-    params.set('page', '1');
-    router.push(`${pathname}?${params.toString()}`);
   };
 
   const handlePageChange = (newPage: number) => {
@@ -278,7 +281,7 @@ const ActivityListPage = () => {
       if (appSelected) {
         await handleRefreshAuth(appSelected);
       }
-      const response = await authFetch(`/api/v1/settings/downloadActivity?id=${id}&platform=${platform}`);
+      const response = await authFetch(`/api/v1/base/downloadActivity?id=${id}&platform=${platform}`);
       if (!response.ok) throw new Error('Download failed');
 
       const blob = await response.blob();
