@@ -22,13 +22,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -180,26 +180,6 @@ const ActivityListPage = () => {
     fetchActivities();
   }, [fetchActivities]);
 
-
-  // 刷新认证处理函数
-  const handleRefreshAuth = async (id: string) => {
-    try {
-      const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
-        method: 'POST'
-      });
-      const result = await response.json();
-      if (result.status === "success") {
-        return true;
-      } else {
-        toast.error(result.message || "身份验证已过期，请重新连接");
-        return false;
-      }
-    } catch (err) {
-      console.error("Refresh auth error:", err);
-      return false;
-    }
-  };
-
   const handlePageChange = (newPage: number) => {
     const params = new URLSearchParams(searchParams.toString());
     params.set('page', newPage.toString());
@@ -278,10 +258,7 @@ const ActivityListPage = () => {
     if (downloading) return;
     setDownloading(true);
     try {
-      if (appSelected) {
-        await handleRefreshAuth(appSelected);
-      }
-      const response = await authFetch(`/api/v1/base/downloadActivity?id=${id}&platform=${platform}`);
+      const response = await authFetch(`/api/v1/base/downloadActivity/${id}`);
       if (!response.ok) throw new Error('Download failed');
 
       const blob = await response.blob();
@@ -289,7 +266,7 @@ const ActivityListPage = () => {
       const a = document.createElement('a');
       a.style.display = 'none';
       a.href = url;
-      const extension = (platform.startsWith('garmin') || platform === 'CN') ? 'zip' : 'fit';
+      const extension = 'fit';
       a.download = `${platformId}.${extension}`;
       document.body.appendChild(a);
       a.click();
@@ -348,44 +325,21 @@ const ActivityListPage = () => {
       return;
     }
     setPushing(true);
-    let pushUrl = "";
-    // 根据源平台和目标平台选择对应的接口
-    // if (selectedPlatform.startsWith("garmin") && targetPlatform.startsWith("garmin")) {
-    //   // 佳明国际版与中国版互转
-    //   pushUrl = `/api/v1/garmin/uploadGarminActivity2Garmin/${id}`;
-    // } else if (selectedPlatform === "coros" && targetPlatform.startsWith("garmin")) {
-    //   // 高驰推送到佳明
-    //   if (targetPlatform === "garmin_cn") {
-    //     pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=cn`;
-    //   } else {
-    //     pushUrl = `/api/v1/garmin/uploadCorosActivity2Garmin/${id}?region=global`;
-    //   }
-    // } else if (selectedPlatform.startsWith("garmin") && targetPlatform === "coros") {
-    //   // 佳明推送到高驰
-    //   pushUrl = `/api/v1/coros/uploadGarminActivity2Coros/${id}`;
-
-    // }
-
-    // if (!pushUrl) {
-    //   console.error("未找到匹配的推送路径");
-    //   setPushing(false);
-    //   return;
-    // }
-
-    // try {
-    //   const response = await authFetch(pushUrl, { method: 'POST' });
-    //   const result = await response.json();
-    //   if (result.status === "success") {
-    //     alert(`成功推送至 ${targetPlatform}`);
-    //   } else {
-    //     alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
-    //   }
-    // } catch (error) {
-    //   console.error("Push failed:", error);
-    //   alert("请求过程中发生错误");
-    // } finally {
-    //   setPushing(false);
-    // }
+    let pushUrl = `/api/v1/base/uploadActivity2Target/${selectedActivityId}/${targetConnectId}`;
+    try {
+      const response = await authFetch(pushUrl, { method: 'POST' });
+      const result = await response.json();
+      if (result) {
+        alert(result.message || `推送完成`);
+      } else {
+        alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
+      }
+    } catch (error) {
+      console.error("Push failed:", error);
+      alert("请求过程中发生错误");
+    } finally {
+      setPushing(false);
+    }
   };
 
   const getPushTargets = (currentConnectId: number) => {
@@ -544,14 +498,14 @@ const ActivityListPage = () => {
               </tr>
             ) : (
               activities.map((act, i) => (
-                <Sheet key={act.activity_id || i} onOpenChange={(open) => {
+                <Dialog key={act.activity_id || i} onOpenChange={(open) => {
                   if (open) {
                     fetchActivityDetails(act.id);
                   } else {
                     setSelectedActivityDetail(null); // Clear details when dialog closes
                   }
                 }}>
-                  <SheetTrigger asChild>
+                  <DialogTrigger asChild>
                     <tr className="hover:bg-muted/30 even:bg-muted/20 transition-colors cursor-pointer group">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-foreground">
@@ -590,16 +544,16 @@ const ActivityListPage = () => {
                         {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}
                       </td>
                     </tr>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="sm:min-w-2xl h-full flex flex-col">
-                    <SheetHeader>
-                      <SheetTitle className="text-xl flex items-center gap-2">
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+                    <DialogHeader>
+                      <DialogTitle className="text-xl flex items-center gap-2">
                         {act.source_type} - {act.activity_name}
-                      </SheetTitle>
-                      <SheetDescription className="sr-only">
+                      </DialogTitle>
+                      <DialogDescription className="sr-only">
                         显示该活动的详细原始数据和平台指标。
-                      </SheetDescription>
-                    </SheetHeader>
+                      </DialogDescription>
+                    </DialogHeader>
                     <div className="flex-1 overflow-y-auto py-4 min-h-0">
                       {loadingActivityDetail ? (
                         <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
@@ -643,10 +597,10 @@ const ActivityListPage = () => {
                       <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                           <div className="flex items-center gap-2">
-                            {getPushTargets(act.id).map((target) => (
+                            {getPushTargets(Number(appSelected)).map((target) => (
                               <button
                                 key={target.id}
-                                // onClick={() => handlePushToPlatform(selectedActivityDetail?.id, act.source_type, target.id)}
+                                onClick={() => handlePushToPlatform(selectedActivityDetail?.id, target.id)}
                                 disabled={pushing}
                                 className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
                               >
@@ -666,8 +620,8 @@ const ActivityListPage = () => {
                         </div>
                       </div>
                     )}
-                  </SheetContent>
-                </Sheet>
+                  </DialogContent>
+                </Dialog>
               ))
             )}
           </tbody>
