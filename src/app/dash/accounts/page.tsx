@@ -4,25 +4,37 @@ import { useState, useEffect } from "react";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
-import CryptoJS from 'crypto-js';
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
 import { toast } from "sonner";
+import { Card } from "@/components/ui/card";
+import { IconPlus } from "@tabler/icons-react";
+import { useTranslations } from "next-intl";
 
 interface AppConfig {
-  id: string;
-  label: string;
-  description: string;
-  isConnected: boolean;
-  email?: string | null;
-  addedAt?: string;
-  status?: string;
-  region?: string;
-  lastUpdate?: string;
-  total_count?: number;
+  id: number;
+  user_id: number;
+  guid: string | null;
+  account: string;
+  encrypted_password?: string;
+  source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
+  region: string;
+  is_active: boolean;
+  access_token: string | null;
+  access_token_expires_at: string | null;
+  refresh_token: string | null;
+  refresh_token_expires_at: string | null;
+  oauth_token: string | null;
+  oauth_token_secret: string | null;
+  secret_string: string | null;
+  total_count: number;
+  created_at: string;
+  updated_at: string;
+  last_synced_at: string | null;
 }
 
 export default function AccountsPage() {
+  const t = useTranslations('DashPage')
   const { layout } = useLayout();
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [open, setOpen] = useState(false);
@@ -36,7 +48,7 @@ export default function AccountsPage() {
   const fetchAppsStatus = async () => {
     setLoading(true);
     try {
-      const response = await authFetch('/api/v1/settings/getAppsConfigs');
+      const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to fetch status');
@@ -51,76 +63,28 @@ export default function AccountsPage() {
     }
   };
 
-  const handleRefreshAuth = async (platform: string) => {
+  // 测试 token 有效性
+  const handleTestAuth = async (id: number) => {
+    toast.success("测试 Token 有效性" + id);
+  }
+  // 刷新认证处理函数
+  const handleRefreshAuth = async (id: number) => {
     setLoading(true);
     try {
-      if (platform.startsWith("garmin")) {
-        const loginRes = await authFetch('/api/v1/garmin/login', { method: 'POST' });
-        const loginData = await loginRes.json();
-
-        if (loginData.status !== "success") {
-          throw new Error(loginData.message || "获取账号信息失败");
-        }
-
-        const targetRegion = platform === 'garmin_cn' ? 'CN' : 'GLOBAL';
-        const config = loginData.data.find((c: any) => c.platform === targetRegion);
-
-        if (!config) {
-          throw new Error("未找到对应的佳明账号配置");
-        }
-
-        const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
-        const decryptedPassword = CryptoJS.AES.decrypt(config.password, key).toString(CryptoJS.enc.Utf8);
-
-        const verifyRes = await fetch('/api/garmin', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            domain: platform === 'garmin_cn' ? 'cn' : null,
-            username: config.username,
-            password: decryptedPassword
-          }),
-        });
-
-        if (!verifyRes.ok) {
-          const errorData = await verifyRes.json().catch(() => ({}));
-          throw new Error(errorData.error || "认证校验失败");
-        }
-
-        const verifyData = await verifyRes.json();
-        const saveRes = await authFetch('/api/v1/garmin/saveConfig', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...verifyData,
-            username: config.username,
-            password: config.password
-          }),
-        });
-
-        if (!saveRes.ok) {
-          throw new Error("保存认证信息失败");
-        }
-
+      const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
+        method: 'POST'
+      });
+      const result = await response.json();
+      if (result.status === "success") {
         toast.success("认证刷新成功");
         fetchAppsStatus();
-      } else if (platform === "coros") {
-        const response = await authFetch('/api/v1/coros/relogin', {
-          method: 'POST'
-        });
-        const result = await response.json();
-        if (result.status === "success") {
-          toast.success("认证刷新成功");
-          fetchAppsStatus();
-        } else {
-          toast.error(result.message || "刷新失败");
-        }
       } else {
-        toast.error("该平台暂不支持刷新认证");
+        toast.error(result.message || "刷新失败");
       }
+
     } catch (err: any) {
       console.error("Refresh auth error:", err);
-      toast.error(err.message || "请求刷新失败，请稍后重试");
+      toast.error(err.message || t("refreshFailedTryAgain"));
     } finally {
       setLoading(false);
     }
@@ -142,9 +106,24 @@ export default function AccountsPage() {
                 setCurrentApp(selectedApp);
                 setOpen(true);
               }}
-              onRefresh={handleRefreshAuth}
+              onRefresh={(id) => handleRefreshAuth(id)}
+              onTest={(id) => handleTestAuth(id)}
             />
           ))}
+          <Card
+            className="flex flex-col items-center justify-cente cursor-pointer hover:bg-muted/30 transition-all border-dashed border-2 group"
+            onClick={() => {
+              setCurrentApp({ platform: 'garmin_cn' });
+              setOpen(true);
+            }}
+          >
+            <div className="p-4 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors">
+              <IconPlus className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+            <span className="mt-2 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
+              {t("connectAccount")}
+            </span>
+          </Card>
         </div>
       </section>
 
