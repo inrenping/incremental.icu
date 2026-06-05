@@ -113,7 +113,7 @@ export default function AccountsPage() {
           <Card
             className="flex flex-col items-center justify-cente cursor-pointer hover:bg-muted/30 transition-all border-dashed border-2 group"
             onClick={() => {
-              setCurrentApp({ platform: 'garmin_cn' });
+              setCurrentApp({ source_type: 'garmin_cn' });
               setOpen(true);
             }}
           >

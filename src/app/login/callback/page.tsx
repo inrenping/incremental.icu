@@ -34,6 +34,8 @@ export default function GitHubCallbackPage() {
           router.push('/login');
         }
       } catch (err) {
+        console.log(err);
+
         toast.error("网络错误");
         router.push('/login');
       }

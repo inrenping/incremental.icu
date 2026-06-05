@@ -180,7 +180,7 @@ export default function DashPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
-                      <SelectItem key={app.id} value={(app.id)}>
+                      <SelectItem key={app.id} value={app.id.toString()}>
                         {app.source_type}  ({app.account})
                       </SelectItem>
                     ))}
@@ -203,7 +203,7 @@ export default function DashPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
-                      <SelectItem key={app.id} value={app.id}>
+                      <SelectItem key={app.id} value={app.id.toString()}>
                         {app.source_type}  ({app.account})
                       </SelectItem>
                     ))}
@@ -264,7 +264,7 @@ export default function DashPage() {
           <Card
             className="flex flex-col items-center justify-cente cursor-pointer hover:bg-muted/30 transition-all border-dashed border-2 group"
             onClick={() => {
-              setCurrentApp({ platform: 'garmin_cn' });
+              setCurrentApp({ source_type: 'garmin_cn' });
               setOpen(true);
             }}
           >

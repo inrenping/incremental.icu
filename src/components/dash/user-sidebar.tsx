@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { IconUser, IconSettings, IconShieldLock } from "@tabler/icons-react"
+import { IconUser } from "@tabler/icons-react"
 
 import {
   Sidebar,
