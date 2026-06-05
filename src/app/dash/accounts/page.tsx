@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
-import CryptoJS from 'crypto-js';
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
 import { toast } from "sonner";

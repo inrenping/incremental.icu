@@ -330,7 +330,7 @@ const ActivityListPage = () => {
       const response = await authFetch(pushUrl, { method: 'POST' });
       const result = await response.json();
       if (result) {
-        alert(result.message || `推送完成`);
+        alert(result.message);
       } else {
         alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
       }

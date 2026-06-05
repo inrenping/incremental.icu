@@ -97,7 +97,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
       const loginPayload = isGarmin
         ? {
           id: app.id ? app.id : 0,
-          region: selectedPlatform === 'garmin_cn' ? 'cn' : selectedPlatform,
+          region: selectedPlatform === 'garmin_cn' ? 'cn' : 'global',
           email: username,
           // password,
           password: CryptoJS.AES.encrypt(password, key).toString()
