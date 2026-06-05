@@ -325,7 +325,7 @@ const ActivityListPage = () => {
       return;
     }
     setPushing(true);
-    let pushUrl = `/api/v1/base/uploadActivity2Target/${selectedActivityId}/${targetConnectId}`;
+    const pushUrl = `/api/v1/base/uploadActivity2Target/${selectedActivityId}/${targetConnectId}`;
     try {
       const response = await authFetch(pushUrl, { method: 'POST' });
       const result = await response.json();
