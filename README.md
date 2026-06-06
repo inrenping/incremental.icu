@@ -6,7 +6,7 @@
   <a href="https://github.com/inrenping/incremental.icu/issues"><img src="https://img.shields.io/github/issues/inrenping/incremental.icu?style=flat&label=Issues&labelColor=1F2937&color=D97706" alt="Issues"></a>
 </p>
 
-**[incremental.icu](https://incremental.icu)** 是一款专为运动爱好者打造的跨平台数据同步工具。它能够无缝连接佳明（Garmin）与高驰（Coros）平台，协助用户高效管理运动记录，特别适合同时拥有两个品牌设备的多表用户。
+**[incremental.icu](https://incremental.icu)** 是一款专为运动爱好者打造的跨平台数据同步工具。它能够连接佳明（Garmin）与高驰（Coros）平台，协助用户高效管理运动记录，特别适合同时拥有两个品牌设备的多表用户。
 
 ---
 
@@ -21,13 +21,14 @@
 - **实时查看**：跨平台聚合展示最新的运动记录。
 - **手动推送**：支持将特定运动记录单条手动同步至其他平台。
 - **批量同步**：提供一键同步功能，快速补全近期的运动数据缺失。
+- **定时同步**：支持设置定时任务，自动保持数据更新随送。
 
 ## 🌐 支持平台
 
 | 平台 | 支持状态 | 交互格式 |
 | :--- | :---: | :--- |
-| 佳明 (Garmin) 国内版 | ✅ 已支持 | `.zip` |
-| 佳明 (Garmin) 国际版 | ✅ 已支持 | `.zip` |
+| 佳明 (Garmin) 国内版 | ✅ 已支持 | `.fit` |
+| 佳明 (Garmin) 国际版 | ✅ 已支持 | `.fit` |
 | 高驰 (Coros) | ✅ 已支持 | `.fit` |
 
 ## 🚀 线上版本
@@ -66,7 +67,8 @@
 
 ### 参考资源与授权
 
-- **登录逻辑参考**: [garmin-sync-coros](https://github.com/yihong0618/running_page) (前端佳明高驰登录逻辑参考)
+- **登录逻辑参考**:  [running_page](https://github.com/yihong0618/running_page) (前端佳明高驰登录逻辑参考，但因为前端登录的有效性会掉，目前已经不采用前端登录的方式)
+- **佳明高驰数据同步参考**: [garmin-sync-coros](https://github.com/XiaoSiHwang/garmin-sync-coros)
 - **身份验证**: 支持 Google 和 GitHub 原生的 OAuth 单点登录。
 
 ## 📈 项目管理
