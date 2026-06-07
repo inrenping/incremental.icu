@@ -62,7 +62,7 @@ export function SiteHeader() {
     { name: t("accounts"), href: '/dash/accounts' },
     { name: t("logs"), href: '/dash/logs' },
     { name: "使用说明", href: '/dash/guide' },
-
+    { name: "网站状态", href: 'https://status.incremental.icu' }
   ];
 
   const handleLogout = () => {

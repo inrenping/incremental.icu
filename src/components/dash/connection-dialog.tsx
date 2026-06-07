@@ -150,7 +150,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
             <Select
               value={selectedPlatform}
               onValueChange={setSelectedPlatform}
-              disabled={!!app?.source_type || loading || success}
+              disabled={!!app?.id || loading || success}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="请选择平台" />

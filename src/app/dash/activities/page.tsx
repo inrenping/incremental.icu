@@ -475,12 +475,12 @@ const ActivityListPage = () => {
               <th className="px-4 py-3 font-medium">{t("name")}</th>
               <th className="px-4 py-3 font-medium">{t("startTime")}</th>
               <th className="px-4 py-3 font-medium text-right">{t("movingTime")}</th>
-              <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th>
+              {/* <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th> */}
               <th className="px-4 py-3 font-medium text-right">{t("distance")}</th>
               <th className="px-4 py-3 font-medium text-right">{t("elevation")}</th>
-              <th className="px-4 py-3 font-medium">{t("platform")}</th>
+              <th className="px-4 py-3 font-medium text-center">{t("platform")}</th>
               <th className="px-4 py-3 font-medium text-center">{t("id")}</th>
-              <th className="px-4 py-3 font-medium">{t("syncTime")}</th>
+              <th className="px-4 py-3 font-medium text-center">{t("syncTime")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -525,22 +525,22 @@ const ActivityListPage = () => {
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                         {formatDuration(act.moving_duration_seconds)}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                      {/* <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                         {formatDuration(act.duration_seconds)}
-                      </td>
+                      </td> */}
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                         {(act.distance_meters / 1000).toFixed(2)} km
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                         {act.elevation_gain} m
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
                         {act.source_type}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
                         {act.activity_id}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-center text-xs whitespace-nowrap">
                         {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}
                       </td>
                     </tr>
