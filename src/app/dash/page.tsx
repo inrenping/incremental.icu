@@ -19,10 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { AppConnectionDialog } from "@/components/dash/connection-dialog";
-import { AppCard } from "@/components/dash/app-card";
 import { SyncLogs } from "@/components/dash/sync-logs";
-import { Card } from "@/components/ui/card";
 
 import { useTranslations } from "next-intl";
 
@@ -52,8 +49,6 @@ export default function DashPage() {
   const t = useTranslations('DashPage')
   const { layout } = useLayout();
   const [apps, setApps] = useState<AppConfig[]>([]);
-  const [open, setOpen] = useState(false);
-  const [currentApp, setCurrentApp] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [sourceId, setSourceId] = useState<string>();
@@ -81,78 +76,14 @@ export default function DashPage() {
     }
   };
 
-  // 测试 token 有效性
-  const handleTestAuth = async (id: number) => {
-    try {
-      const response = await authFetch(`/api/v1/base/testConnect?id=${id}`, {
-        method: 'GET'
-      });
-      const result = await response.json();
-      if (result.access_token) {
-        toast.success("测试通过");
-      } else {
-        toast.error(result.message || "测试失败");
-      }
-    } catch (err: any) {
-      console.error("Refresh auth error:", err);
-      toast.error(err.message);
-    }
-  }
-
-  // 刷新认证处理函数
-  const handleRefreshAuth = async (id: number) => {
-    setLoading(true);
-    try {
-      const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
-        method: 'POST'
-      });
-      const result = await response.json();
-      if (result.status === "success") {
-        toast.success("认证刷新成功");
-        fetchAppsStatus();
-      } else {
-        toast.error(result.message || "刷新失败");
-      }
-
-    } catch (err: any) {
-      console.error("Refresh auth error:", err);
-      toast.error(err.message || t("refreshFailedTryAgain"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // 一键同步处理函数
   const handleGlobalSync = async () => {
-    // if (isSyncing || !sourceId || !targetId) {
-    //   if (!isSyncing && (!sourceId || !targetId)) {
-    //     toast.error(t("selectSourceAndTarget"));
-    //   }
-    //   return;
-    // }
-    // setIsSyncing(true);
-    // try {
-    //   // 同步前先尝试刷新认证，确保凭据有效
-    //   const response = await authFetch('/api/v1/settings/oneclickSyncActivities', {
-    //     method: 'POST',
-    //     headers: { 'Content-Type': 'application/json' },
-    //     body: JSON.stringify({ source: sourceId, target: targetId })
-    //   });
-
-    //   const result = await response.json();
-
-    //   if (result.status === "success") {
-    //     toast.success(t("syncCompleted"));
-    //     fetchAppsStatus();
-    //   } else {
-    //     toast.error(result.message || t("syncFailed"));
-    //   }
-    // } catch (err) {
-    //   console.error("Global sync error:", err);
-    //   toast.error(t("syncFailedTryAgain"));
-    // } finally {
-    //   setIsSyncing(false);
-    // }
+    if (isSyncing || !sourceId || !targetId) {
+      if (!isSyncing && (!sourceId || !targetId)) {
+        toast.error(t("selectSourceAndTarget"));
+      }
+      return;
+    }
   };
 
   return (
@@ -223,9 +154,14 @@ export default function DashPage() {
             </Button>
           </div>
 
-          <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-            {t("fetchMore")}
-          </Link>
+          <div className="flex items-center gap-6">
+            <Link href="/dash/accounts" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+              平台账号管理
+            </Link>
+            <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+              {t("fetchMore")}
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -243,53 +179,7 @@ export default function DashPage() {
         </div>
       </div>
 
-      {/* 活跃连接与添加管理 */}
-      {/* <section>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-bold">连接管理</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {apps.map((app) => (
-            <AppCard
-              key={app.id}
-              app={app}
-              onConnect={(selectedApp) => {
-                setCurrentApp(selectedApp);
-                setOpen(true);
-              }}
-              onRefresh={(id) => handleRefreshAuth(id)}
-              onTest={(id) => handleTestAuth(id)}
-            />
-          ))}
-          <Card
-            className="flex flex-col items-center justify-cente cursor-pointer hover:bg-muted/30 transition-all border-dashed border-2 group"
-            onClick={() => {
-              setCurrentApp({ source_type: 'garmin_cn' });
-              setOpen(true);
-            }}
-          >
-            <div className="p-4 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors">
-              <IconPlus className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-            <span className="mt-2 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-              {t("connectAccount")}
-            </span>
-          </Card>
-        </div>
-      </section> */}
-
       <SyncLogs />
-
-      <AppConnectionDialog
-        key={currentApp?.id || currentApp?.platform}
-        open={open}
-        onOpenChange={(val) => {
-          setOpen(val);
-          if (!val) setCurrentApp(null);
-        }}
-        app={currentApp}
-        onSuccess={fetchAppsStatus}
-      />
     </div>
   );
 }
