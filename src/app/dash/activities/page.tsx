@@ -6,7 +6,6 @@ import { toast } from "sonner";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   IconSearch,
-  IconChevronDown,
   IconRefresh,
   IconDownload,
   IconSend
@@ -21,7 +20,6 @@ import {
   SelectItem,
   SelectTrigger,
   SelectGroup,
-  SelectLabel,
   SelectValue,
 } from "@/components/ui/select";
 import {

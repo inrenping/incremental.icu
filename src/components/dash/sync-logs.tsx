@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { IconHistory } from "@tabler/icons-react";
@@ -50,9 +51,14 @@ export function SyncLogs() {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center gap-2 px-2">
-        <IconHistory className="h-5 w-5 text-muted-foreground" />
-        <h2 className="font-semibold">{t("recentLogs")}</h2>
+      <div className="flex items-center justify-between px-2">
+        <div className="flex items-center gap-2">
+          <IconHistory className="h-5 w-5 text-muted-foreground" />
+          <h2 className="font-semibold">{t("recentLogs")}</h2>
+        </div>
+        <Link href="/dash/logs" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
+          更多
+        </Link>
       </div>
       <Card>
         <CardContent className="p-0 overflow-hidden">
