@@ -77,7 +77,7 @@
     "refreshAuthentication": "刷新认证",
     "recentLogs": "最近操作记录",
     "noLogData": "未查询到相关日志",
-    "selectPlatform": "选择平台",
+    "selectPlatform": "选择平台账号",
     "syncing": "同步中...",
     "syncFailed": "同步失败",
     "selectSourceAndTarget": "请先选择数据源和目标平台",

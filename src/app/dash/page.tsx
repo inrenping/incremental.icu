@@ -260,7 +260,7 @@ export default function DashPage() {
               平台账号管理
             </Link>
             <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              {t("fetchMore")}
+              查询同步数据
             </Link>
           </div>
         </div>

@@ -624,53 +624,15 @@ const ActivityListPage = () => {
                       </td>
                     </tr>
                   </DialogTrigger>
-                  <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
+                  <DialogContent className="sm:max-w-4xl max-h-3xl flex flex-col">
                     <DialogHeader>
                       <DialogTitle className="text-xl flex items-center gap-2">
-                        {act.source_type} - {act.activity_name}
+                        {act.source_type} - {act.activity_name} - {dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}
                       </DialogTitle>
                       <DialogDescription className="sr-only">
                         显示该活动的详细原始数据和平台指标。
                       </DialogDescription>
                     </DialogHeader>
-                    {/* <div className="flex-1 overflow-y-auto py-4 min-h-0">
-                      {loadingActivityDetail ? (
-                        <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
-                          <IconRefresh className="animate-spin" />
-                          正在从云端获取详细数据...
-                        </div>
-                      ) : selectedActivityDetail ? (
-                        <div className="flex flex-col gap-4">
-                          <div className="bg-muted/10 rounded-xl overflow-hidden">
-                            <div className="px-4 py-2">
-                              {Object.entries(selectedActivityDetail)
-                                .filter(([key]) => !['platform', 'id', 'user_id'].includes(key.toLowerCase()))
-                                .map(([key, value]) => {
-                                  let formattedValue = String(value);
-                                  if (value === null || value === undefined) {
-                                    formattedValue = '--';
-                                  } else if (typeof value === 'object') {
-                                    formattedValue = JSON.stringify(value);
-                                  }
-
-                                  return (
-                                    <div key={key} className="flex justify-between items-center py-3 border-b border-border/40 last:border-0 hover:bg-muted/20 px-2 -mx-2 transition-colors">
-                                      <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">{key.replace(/_/g, ' ')}</span>
-                                      <span className="text-sm font-mono font-medium text-foreground text-right ml-6 break-all">
-                                        {formattedValue}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="py-12 text-center text-muted-foreground">
-                          未能成功加载活动详情，请稍后重试。
-                        </div>
-                      )}
-                    </div> */}
 
                     {selectedActivityDetail && !loadingActivityDetail && (
                       <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">
@@ -684,7 +646,7 @@ const ActivityListPage = () => {
                                 className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
                               >
                                 {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
-                                {pushing ? '推送中...' : `推送 ${target.name}`}
+                                {pushing ? '推送中...' : `手动推送 ${target.name}`}
                               </button>
                             ))}
                           </div>
