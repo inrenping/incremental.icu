@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { SyncLogs } from "@/components/dash/sync-logs";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export interface AppConfig {
   id: number;
@@ -254,7 +255,14 @@ export default function DashPage() {
               {isSyncing ? t("syncing") : t("oneclickSync")}
             </Button>
           </div>
-          {/* ... */}
+          <div className="flex items-center gap-6">
+            <Link href="/dash/accounts" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+              平台账号管理
+            </Link>
+            <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+              {t("fetchMore")}
+            </Link>
+          </div>
         </div>
       </section>
 
