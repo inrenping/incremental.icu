@@ -330,7 +330,7 @@ const ActivityListPage = () => {
       const response = await authFetch(pushUrl, { method: 'POST' });
       const result = await response.json();
       if (result) {
-        alert(result.message);
+        alert(JSON.stringify(result));
       } else {
         alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
       }
@@ -379,7 +379,7 @@ const ActivityListPage = () => {
           <SelectContent>
             {apps.filter(app => app.is_active).map((app) => (
               <SelectItem key={app.id} value={app.id.toString()}>
-                <span className="font-semibold uppercase">{app.source_type}_{app.region}</span>
+                <span className="font-semibold uppercase">{app.source_type}-{app.region}</span>
                 <span className="ml-2 text-muted-foreground text-xs">({app.account})</span>
               </SelectItem>
             ))}
@@ -554,7 +554,7 @@ const ActivityListPage = () => {
                         显示该活动的详细原始数据和平台指标。
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="flex-1 overflow-y-auto py-4 min-h-0">
+                    {/* <div className="flex-1 overflow-y-auto py-4 min-h-0">
                       {loadingActivityDetail ? (
                         <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
                           <IconRefresh className="animate-spin" />
@@ -591,7 +591,7 @@ const ActivityListPage = () => {
                           未能成功加载活动详情，请稍后重试。
                         </div>
                       )}
-                    </div>
+                    </div> */}
 
                     {selectedActivityDetail && !loadingActivityDetail && (
                       <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">

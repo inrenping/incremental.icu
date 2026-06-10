@@ -8,7 +8,6 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import {
   IconCircleCheckFilled,
-  IconAlertCircleFilled,
   IconDeviceWatch
 } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";

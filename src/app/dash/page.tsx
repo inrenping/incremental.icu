@@ -244,7 +244,7 @@ export default function DashPage() {
       </div>
 
       {/* 活跃连接与添加管理 */}
-      <section>
+      {/* <section>
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold">连接管理</h2>
         </div>
@@ -276,7 +276,7 @@ export default function DashPage() {
             </span>
           </Card>
         </div>
-      </section>
+      </section> */}
 
       <SyncLogs />
 
