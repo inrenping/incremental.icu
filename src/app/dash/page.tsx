@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
+import { storage } from '@/lib/storage';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLayout } from "@/hooks/use-layout";
@@ -30,7 +30,17 @@ export interface AppConfig {
   account: string;
   source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
   is_active: boolean;
-  // ... 其他你原有的字段
+  access_token: string | null;
+  access_token_expires_at: string | null;
+  refresh_token: string | null;
+  refresh_token_expires_at: string | null;
+  oauth_token: string | null;
+  oauth_token_secret: string | null;
+  secret_string: string | null;
+  total_count: number;
+  created_at: string;
+  updated_at: string;
+  last_synced_at: string | null;
 }
 
 export default function DashPage() {
@@ -103,12 +113,12 @@ export default function DashPage() {
 
     try {
       // 3. 启动 HTTP POST 模拟的流式 SSE 接口
+      const token = storage.get('accessToken');
       await fetchEventSource('/api/v1/base/execute', { // 修改为你实际的 FastAPI 接口地址
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // 如果你的 authFetch 会在 Header 自动带 Token，请在此同步补充：
-          // 'Authorization': `Bearer ${YOUR_TOKEN}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           source_id: sourceId,
