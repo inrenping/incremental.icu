@@ -28,7 +28,9 @@ export interface AppConfig {
   user_id: number;
   guid: string | null;
   account: string;
+  encrypted_password?: string;
   source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
+  region: string;
   is_active: boolean;
   access_token: string | null;
   access_token_expires_at: string | null;
