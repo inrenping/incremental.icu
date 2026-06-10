@@ -619,7 +619,7 @@ const ActivityListPage = () => {
                       <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
                         {act.activity_id}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-center text-xs whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
                         {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}
                       </td>
                     </tr>
