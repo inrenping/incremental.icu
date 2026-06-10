@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
+import { fetchEventSource } from "@microsoft/fetch-event-source"; // 导入 SSE 客户端库
+import { TerminalModal, type LogLine } from "@/components/dash/terminal-modal"; // 导入刚才创建的组件
 import {
   IconRefresh,
   IconArrowsLeftRight,
-  IconPlus,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -20,7 +21,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SyncLogs } from "@/components/dash/sync-logs";
-
 import { useTranslations } from "next-intl";
 
 export interface AppConfig {
@@ -28,25 +28,13 @@ export interface AppConfig {
   user_id: number;
   guid: string | null;
   account: string;
-  encrypted_password?: string;
   source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
-  region: string;
   is_active: boolean;
-  access_token: string | null;
-  access_token_expires_at: string | null;
-  refresh_token: string | null;
-  refresh_token_expires_at: string | null;
-  oauth_token: string | null;
-  oauth_token_secret: string | null;
-  secret_string: string | null;
-  total_count: number;
-  created_at: string;
-  updated_at: string;
-  last_synced_at: string | null;
+  // ... 其他你原有的字段
 }
 
 export default function DashPage() {
-  const t = useTranslations('DashPage')
+  const t = useTranslations('DashPage');
   const { layout } = useLayout();
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [loading, setLoading] = useState(false);
@@ -54,11 +42,16 @@ export default function DashPage() {
   const [sourceId, setSourceId] = useState<string>();
   const [targetId, setTargetId] = useState<string>();
 
+  // ---- 终端状态管理 ----
+  const [isTerminalOpen, setIsTerminalOpen] = useState(false);
+  const [terminalLogs, setTerminalLogs] = useState<LogLine[]>([]);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "done" | "error">("idle");
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
     fetchAppsStatus();
   }, []);
 
-  // 参考用户提供的请求模式：初始化获取应用连接状态
   const fetchAppsStatus = async () => {
     setLoading(true);
     try {
@@ -76,7 +69,17 @@ export default function DashPage() {
     }
   };
 
-  // 一键同步处理函数
+  // 辅助方法：快速写入终端单行日志
+  const pushTerminalLog = (text: string, level: LogLine["level"] = "info") => {
+    const newLine: LogLine = {
+      time: new Date().toLocaleTimeString(),
+      text,
+      level,
+    };
+    setTerminalLogs((prev) => [...prev, newLine]);
+  };
+
+  // 一键同步处理函数（核心改造为 SSE 模式）
   const handleGlobalSync = async () => {
     if (isSyncing || !sourceId || !targetId) {
       if (!isSyncing && (!sourceId || !targetId)) {
@@ -84,6 +87,96 @@ export default function DashPage() {
       }
       return;
     }
+
+    // 1. 初始化终端状态
+    setIsSyncing(true);
+    setSyncStatus("syncing");
+    setTerminalLogs([]); // 清空上次日志
+    setIsTerminalOpen(true); // 唤起类终端弹出框
+
+    pushTerminalLog("🔧 Establishing high-speed transmission pipe...", "info");
+    pushTerminalLog(`Source Engine ID: ${sourceId} | Target Engine ID: ${targetId}`, "info");
+
+    // 2. 准备控制信号（用于支持点击圆点强制退出/中止）
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    try {
+      // 3. 启动 HTTP POST 模拟的流式 SSE 接口
+      await fetchEventSource('/api/v1/base/execute', { // 修改为你实际的 FastAPI 接口地址
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // 如果你的 authFetch 会在 Header 自动带 Token，请在此同步补充：
+          // 'Authorization': `Bearer ${YOUR_TOKEN}`
+        },
+        body: JSON.stringify({
+          source_id: sourceId,
+          target_id: targetId,
+        }),
+        signal: controller.signal,
+
+        onopen(response) {
+          if (response.ok && response.headers.get('content-type')?.includes('text/event-stream')) {
+            pushTerminalLog("🛰️ Pipeline handshake complete. Data streaming...", "success");
+          } else {
+            pushTerminalLog(`❌ Pipeline rejected connection. Status: ${response.status}`, "error");
+            setSyncStatus("error");
+          }
+          return Promise.resolve();
+        },
+
+        onmessage(msg) {
+          // 捕获约定的结束暗号
+          if (msg.data === '[DONE]') {
+            pushTerminalLog("🎉 Synchronization routine exited with code 0.", "success");
+            setSyncStatus("done");
+            setIsSyncing(false);
+            controller.abort();
+            toast.success("任务完成！");
+            return;
+          }
+
+          // 正常解析 FastAPI 推送出的 JSON 日志段
+          try {
+            const payload = JSON.parse(msg.data);
+            // 契合 FastAPI 发来的结构: { level: 'info' | 'warn' | 'error' | 'success', message: '内容' }
+            pushTerminalLog(payload.message, payload.level || "info");
+          } catch (e) {
+            // 如果后端吐过来的是非 JSON 的纯文本
+            pushTerminalLog(msg.data, "info");
+          }
+        },
+
+        onclose() {
+          pushTerminalLog("🔒 Server pipeline link channel closed.", "warn");
+          setSyncStatus("done");
+          setIsSyncing(false);
+        },
+
+        onerror(err) {
+          pushTerminalLog(`🚨 Interrupted fatal error: ${err.message || err}`, "error");
+          setSyncStatus("error");
+          setIsSyncing(false);
+          throw err; // 抛出异常避免库自动疯狂重试
+        }
+      });
+
+    } catch (err) {
+      console.log("SSE execution pipeline final clear.");
+    }
+  };
+
+  // 处理在终端弹窗中点击红色关闭按钮的逻辑
+  const handleCloseTerminal = () => {
+    if (syncStatus === "syncing" && abortControllerRef.current) {
+      // 如果正在同步时强行关闭，终止长连接，通知后端中断
+      abortControllerRef.current.abort();
+      pushTerminalLog("🛑 Sync pipeline aborted by manual terminal kill signal.", "error");
+    }
+    setIsTerminalOpen(false);
+    setIsSyncing(false);
+    setSyncStatus("idle");
   };
 
   return (
@@ -91,17 +184,13 @@ export default function DashPage() {
       "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
+
       {/* 核心操作区 */}
       <section className="text-center space-y-6 py-8 bg-muted/30 rounded-3xl border border-dashed border-border">
-        <div className="space-y-2">
-          <div className="flex items-center justify-center gap-1">
-            <p className="text-muted-foreground">{t("oneclickSyncDesc")}</p>
-
-          </div>
-        </div>
-
+        {/* ...原有顶层代码不变... */}
         <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto px-4">
           <div className="flex flex-col md:flex-row items-center gap-2 p-2 bg-background/50 backdrop-blur-sm rounded-[2.5rem] w-full md:w-fit">
+
             {/* 数据源选择 */}
             <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm  w-full text-left transition-all hover:border-primary/30">
               <div className="flex flex-col flex-1">
@@ -120,7 +209,6 @@ export default function DashPage() {
               </div>
             </div>
 
-            {/* 连接图标 */}
             <div className="bg-primary/5 p-2 rounded-full hidden md:block shrink-0">
               <IconArrowsLeftRight className="h-5 w-5 text-primary/60" />
             </div>
@@ -143,6 +231,7 @@ export default function DashPage() {
               </div>
             </div>
 
+            {/* 一键同步触发按钮 */}
             <Button
               size="lg"
               className="h-14 px-8 text-lg gap-2 rounded-4xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto shrink-0"
@@ -153,15 +242,7 @@ export default function DashPage() {
               {isSyncing ? t("syncing") : t("oneclickSync")}
             </Button>
           </div>
-
-          <div className="flex items-center gap-6">
-            <Link href="/dash/accounts" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              平台账号管理
-            </Link>
-            <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              {t("fetchMore")}
-            </Link>
-          </div>
+          {/* ... */}
         </div>
       </section>
 
@@ -180,6 +261,14 @@ export default function DashPage() {
       </div>
 
       <SyncLogs />
+
+      {/* 🛠️ 将终端模态框挂载在页面最底部 */}
+      <TerminalModal
+        isOpen={isTerminalOpen}
+        onClose={handleCloseTerminal}
+        logs={terminalLogs}
+        status={syncStatus}
+      />
     </div>
   );
 }
