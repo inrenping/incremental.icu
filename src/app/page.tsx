@@ -84,7 +84,6 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon:
 function PlatformCard({ name, desc, logo, link }: { name: string; desc: string; logo: string; link: string }) {
   return (
     <div className="p-8 rounded-2xl border bg-background text-center flex flex-col items-center justify-center hover:shadow-md transition-shadow" onClick={() => window.open(`${link}`, '_blank')}>
-      <img src={`/${logo}.png`} alt={name} className="h-20 w-auto mb-4 object-contain" />
       <h3 className="font-bold mb-1">{name}</h3>
       <p className="text-xs text-muted-foreground uppercase tracking-wider">{desc}</p>
     </div>

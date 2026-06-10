@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { Pagination } from "@/components/dash/pagination";
 import Link from "next/link";
-import { IconHistory, IconSearch } from "@tabler/icons-react";
+import { IconArrowLeft, IconSearch } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/lib/api";
@@ -22,10 +22,19 @@ import dayjs from "dayjs";
 
 interface Log {
   id: number;
+  user_id: string | null;
+  user_name: string | null;
   log_type: string;
-  module_name: string;
-  op_desc: string;
+  module_name: string | null;
+  op_desc: string | null;
+  req_url: string | null;
+  req_method: string | null;
+  req_params: any | null;
+  ip_address: string | null;
+  user_agent: string | null;
+  duration_ms: number;
   created_at: string;
+  resp_data: string | null;
 }
 
 export default function LogsPage() {
@@ -43,7 +52,7 @@ export default function LogsPage() {
     try {
       setLoading(true);
       setError(null);
-      const response = await authFetch(`/api/v1/log?page_size=${limit}&page_count=${page}`);
+      const response = await authFetch(`/api/v1/log/syslog?page_size=${limit}&page_count=${page}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.message || `Failed to fetch logs (HTTP ${response.status})`);
@@ -55,13 +64,13 @@ export default function LogsPage() {
           setTotal(data.total);
         } else if (data.data && typeof data.data === 'object') {
           setLogs(data.data.list || []);
-          setTotal(data.data.total || 0);
+          setTotal(data.total || 0);
         }
       } else {
         throw new Error("Invalid data format received from the server.");
       }
     } catch (err: any) {
-      setError(err.message || t("fetchLogsError")); // Use translation for generic error
+      setError(err.message || t("fetchLogsError"));
       console.error("Error fetching logs:", err);
     } finally {
       setLoading(false);
@@ -80,12 +89,11 @@ export default function LogsPage() {
       <section className="space-y-4">
         <div className="flex items-center justify-between px-2">
           <div className="flex items-center gap-2">
-            <IconHistory className="h-5 w-5 text-muted-foreground" />
-            <h2 className="font-semibold">{t("recentLogs")}</h2>
+            <Link href="/dash/logs" className="hover:text-primary transition-colors">
+              <IconArrowLeft className="h-5 w-5 text-muted-foreground" />
+            </Link>
+            <h2 className="font-semibold"> 接口调用日志</h2>
           </div>
-          <Link href="/dash/syslogs" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
-            接口调用记录
-          </Link>
         </div>
         <div className="flex items-center justify-end px-2">
           <Button onClick={() => fetchLogs()} size="sm" variant="outline" className="gap-2">
@@ -93,24 +101,29 @@ export default function LogsPage() {
             查询
           </Button>
         </div>
-        <div className="rounded-md border bg-background overflow-hidden">
+        <div className="rounded-md border bg-background overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>模块</TableHead>
                 <TableHead>类型</TableHead>
                 <TableHead>操作描述</TableHead>
+                <TableHead>方法</TableHead>
+                <TableHead>URL</TableHead>
+                <TableHead>请求参数</TableHead>
                 <TableHead>时间</TableHead>
+                <TableHead>耗时</TableHead>
+                <TableHead>响应数据</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">加载中...</TableCell>
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">加载中...</TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-destructive">{error}</TableCell>
+                  <TableCell colSpan={9} className="h-24 text-center text-destructive">{error}</TableCell>
                 </TableRow>
               ) : logs.length > 0 ? (
                 logs.map((log) => (
@@ -125,17 +138,32 @@ export default function LogsPage() {
                         {log.log_type}
                       </Badge>
                     </TableCell>
-                    <TableCell className=" text-foreground truncate">
+                    <TableCell className="text-foreground  truncate" title={log.op_desc || ''}>
                       {log.op_desc}
                     </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="font-mono text-[10px]">{log.req_method}</Badge>
+                    </TableCell>
+                    <TableCell className="max-w-2xl truncate font-mono" title={log.req_url || ''}>
+                      {log.req_url}
+                    </TableCell>
+                    <TableCell className="max-w-xl truncate font-mono" title={typeof log.req_params === 'object' ? JSON.stringify(log.req_params) : String(log.req_params)}>
+                      {typeof log.req_params === 'object' ? JSON.stringify(log.req_params) : String(log.req_params)}
+                    </TableCell>
                     <TableCell className="  text-muted-foreground font-mono">
-                      {dayjs(log.created_at).format('YYYY-MM-DD HH:mm')}
+                      {dayjs(log.created_at).format('YYYY-MM-DD HH:mm:ss')}
+                    </TableCell>
+                    <TableCell className="font-mono text-right text-muted-foreground">
+                      {log.duration_ms}
+                    </TableCell>
+                    <TableCell className="max-w-2xl truncate font-mono" title={log.resp_data || ''}>
+                      {log.resp_data}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">没数据</TableCell>
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">没数据</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -144,7 +172,7 @@ export default function LogsPage() {
             <Pagination total={total} page={page} limit={limit} onPageChange={setPage} onLimitChange={(v) => { setLimit(Number(v)); setPage(1); }} />
           )}
         </div>
-      </section>
-    </div>
+      </section >
+    </div >
   );
 }

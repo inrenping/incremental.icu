@@ -1,11 +1,11 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
+import activityTypes from '@/lib/activity_type.json';
 import { toast } from "sonner";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   IconSearch,
-  IconChevronDown,
   IconRefresh,
   IconDownload,
   IconSend
@@ -19,6 +19,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectGroup,
   SelectValue,
 } from "@/components/ui/select";
 import {
@@ -95,8 +96,11 @@ const ActivityListPage = () => {
   const appSelected = searchParams.get('connect_id');
   const page = parseInt(searchParams.get('page') || '1');
   const limit = parseInt(searchParams.get('pageSize') || '20');
-  const startDate = searchParams.get('startDate') || "";
-  const endDate = searchParams.get('endDate') || "";
+
+  const [startDate, setStartDate] = useState(searchParams.get('startDate') || "");
+  const [endDate, setEndDate] = useState(searchParams.get('endDate') || "");
+  const [sportType, setSportType] = useState(searchParams.get('sport_type') || "");
+  const [searchName, setSearchName] = useState(searchParams.get('name') || "");
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -107,6 +111,14 @@ const ActivityListPage = () => {
   const [pushing, setPushing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [apps, setApps] = useState<AppConfig[]>([]);
+
+  // 当 URL 参数变化时（如点击浏览器后退），同步本地状态
+  useEffect(() => {
+    setStartDate(searchParams.get('startDate') || "");
+    setEndDate(searchParams.get('endDate') || "");
+    setSportType(searchParams.get('sport_type') || "");
+    setSearchName(searchParams.get('name') || "");
+  }, [searchParams]);
 
   // 处理平台切换逻辑：统一使用 connect_id 并重置页码和列表
   const handlePlatformChange = useCallback((id: string) => {
@@ -151,16 +163,29 @@ const ActivityListPage = () => {
     if (!appSelected) return;
 
     setLoading(true);
+    // 获取 URL 中的最新参数进行查询，确保只有“已提交”的条件生效
+    const currentParams = new URLSearchParams(window.location.search);
+    const urlStartDate = currentParams.get('startDate');
+    const urlEndDate = currentParams.get('endDate');
+    const urlSportType = currentParams.get('sport_type');
+    const urlName = currentParams.get('name');
+
     try {
       const queryParams = new URLSearchParams({
         connect_id: appSelected,
         pageSize: limit.toString(),
         pageCount: page.toString(),
       });
-      if (startDate) queryParams.set('startDate', startDate);
-      if (endDate) queryParams.set('endDate', endDate);
+      if (urlStartDate)
+        queryParams.set('startDate', urlStartDate);
+      if (urlEndDate)
+        queryParams.set('endDate', urlEndDate);
+      if (urlSportType)
+        queryParams.set('sport_type', urlSportType);
+      if (urlName)
+        queryParams.set('name', urlName);
 
-      // 根据后端定义的参数名对接：platform, pageSize, pageCount
+
       const response = await authFetch(
         `/api/v1/base/getActivitiesByPage?${queryParams.toString()}`
       );
@@ -174,7 +199,7 @@ const ActivityListPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [appSelected, page, limit, startDate, endDate]);
+  }, [appSelected, page, limit, searchParams]);
 
   useEffect(() => {
     fetchActivities();
@@ -194,15 +219,27 @@ const ActivityListPage = () => {
   };
 
   const handleDateChange = (key: string, value: string) => {
+    if (key === 'startDate') setStartDate(value);
+    if (key === 'endDate') setEndDate(value);
+  };
+
+  const handleSportTypeChange = (value: string) => {
+    setSportType(value === 'all' ? "" : value);
+  };
+
+  // 处理点击查询按钮：将当前所有本地状态同步到 URL，触发 useEffect 中的 fetchActivities
+  const handleSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
-    if (value) {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
+    if (startDate) params.set('startDate', startDate); else params.delete('startDate');
+    if (endDate) params.set('endDate', endDate); else params.delete('endDate');
+    if (sportType && sportType !== 'all') params.set('sport_type', sportType); else params.delete('sport_type');
+    if (searchName) params.set('name', searchName); else params.delete('name');
+
+    // 搜索时重置页码到第一页
     params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   };
+
 
   const handlePull = async () => {
     if (syncing || !appSelected) return;
@@ -330,7 +367,7 @@ const ActivityListPage = () => {
       const response = await authFetch(pushUrl, { method: 'POST' });
       const result = await response.json();
       if (result) {
-        alert(result.message);
+        alert(JSON.stringify(result));
       } else {
         alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
       }
@@ -379,7 +416,7 @@ const ActivityListPage = () => {
           <SelectContent>
             {apps.filter(app => app.is_active).map((app) => (
               <SelectItem key={app.id} value={app.id.toString()}>
-                <span className="font-semibold uppercase">{app.source_type}_{app.region}</span>
+                <span className="font-semibold uppercase">{app.source_type}-{app.region}</span>
                 <span className="ml-2 text-muted-foreground text-xs">({app.account})</span>
               </SelectItem>
             ))}
@@ -406,13 +443,55 @@ const ActivityListPage = () => {
 
         <div className="w-px h-6 bg-border shrink-0 mx-1" />
 
-        <button className="flex items-center gap-1 px-3 py-1.5 border border-border rounded bg-background hover:bg-muted text-foreground transition-colors">
-          全部运动 <IconChevronDown size={14} />
-        </button>
+        <Select
+          value={sportType || "all"}
+          onValueChange={handleSportTypeChange}
+        >
+          <SelectTrigger className="w-[160px] bg-background">
+            <SelectValue placeholder="全部运动" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">全部运动</SelectItem>
+            {activityTypes.map((group: any) => {
+              const childKeys = group.children && group.children.length > 0
+                ? Array.from(new Set(group.children.map((c: any) => c.key))).join(',')
+                : String(group.key);
+
+              return (
+                <SelectGroup key={group.name}>
+                  {/* 父节点 */}
+                  <SelectItem
+                    value={childKeys}
+                    className="font-bold uppercase"
+                  >
+                    {group.name_zh}
+                  </SelectItem>
+
+                  {/* 子节点 */}
+                  {group.children?.map((item: any, index: number) => {
+                    const uniqueReactKey = `${group.name}-${item.key}-${index}`;
+
+                    return (
+                      <SelectItem
+                        key={uniqueReactKey}
+                        value={String(item.key)}
+                        className="pl-6"
+                      >
+                        {item.name_zh}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectGroup>
+              );
+            })}
+          </SelectContent>
+        </Select>
+
         <div className="relative flex-1 max-w-xs">
           <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
           <input
-            type="text"
+            type="text" value={searchName}
+            onChange={(e) => setSearchName(e.target.value)}
             placeholder="搜索关键词..."
             className="w-full pl-9 pr-3 py-1.5 border border-border bg-background rounded focus:outline-none focus:ring-1 focus:ring-ring"
           />
@@ -457,7 +536,7 @@ const ActivityListPage = () => {
 
         <Button
           size="sm"
-          onClick={fetchActivities}
+          onClick={handleSearch}
           disabled={loading}
           className="gap-2"
         >
@@ -473,10 +552,10 @@ const ActivityListPage = () => {
             <tr className="bg-muted/50 text-muted-foreground border-b border-border">
               <th className="px-4 py-3 font-medium w-24">{t("type")}</th>
               <th className="px-4 py-3 font-medium">{t("name")}</th>
+              <th className="px-4 py-3 font-medium text-right">{t("distance")}</th>
               <th className="px-4 py-3 font-medium">{t("startTime")}</th>
               <th className="px-4 py-3 font-medium text-right">{t("movingTime")}</th>
-              {/* <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th> */}
-              <th className="px-4 py-3 font-medium text-right">{t("distance")}</th>
+              <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th>
               <th className="px-4 py-3 font-medium text-right">{t("elevation")}</th>
               <th className="px-4 py-3 font-medium text-center">{t("platform")}</th>
               <th className="px-4 py-3 font-medium text-center">{t("id")}</th>
@@ -519,17 +598,17 @@ const ActivityListPage = () => {
                           </div>
                         </div>
                       </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                        {(act.distance_meters / 1000).toFixed(2)} km
+                      </td>
                       <td className="px-4 py-5 text-muted-foreground whitespace-nowrap">
                         <div className="font-mono">{dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}</div>
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                         {formatDuration(act.moving_duration_seconds)}
                       </td>
-                      {/* <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
-                        {formatDuration(act.duration_seconds)}
-                      </td> */}
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
-                        {(act.distance_meters / 1000).toFixed(2)} km
+                        {formatDuration(act.duration_seconds)}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
                         {act.elevation_gain} m
@@ -554,7 +633,7 @@ const ActivityListPage = () => {
                         显示该活动的详细原始数据和平台指标。
                       </DialogDescription>
                     </DialogHeader>
-                    <div className="flex-1 overflow-y-auto py-4 min-h-0">
+                    {/* <div className="flex-1 overflow-y-auto py-4 min-h-0">
                       {loadingActivityDetail ? (
                         <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
                           <IconRefresh className="animate-spin" />
@@ -591,7 +670,7 @@ const ActivityListPage = () => {
                           未能成功加载活动详情，请稍后重试。
                         </div>
                       )}
-                    </div>
+                    </div> */}
 
                     {selectedActivityDetail && !loadingActivityDetail && (
                       <div className="mt-auto px-6 pt-4 pb-2 border-t border-border bg-background">

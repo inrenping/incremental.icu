@@ -65,7 +65,25 @@ export default function AccountsPage() {
 
   // 测试 token 有效性
   const handleTestAuth = async (id: number) => {
-    toast.success("测试 Token 有效性" + id);
+    setLoading(true);
+    try {
+      const response = await authFetch(`/api/v1/base/testConnect?id=${id}`, {
+        method: 'GET'
+      });
+      const result = await response.json();
+      if (result.status === "success") {
+        toast.success("测试通过");
+        fetchAppsStatus();
+      } else {
+        toast.error(result.message || "测试失败");
+      }
+
+    } catch (err: any) {
+      console.error("Refresh auth error:", err);
+      toast.error(err.message || t("refreshFailedTryAgain"));
+    } finally {
+      setLoading(false);
+    }
   }
   // 刷新认证处理函数
   const handleRefreshAuth = async (id: number) => {

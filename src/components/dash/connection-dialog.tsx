@@ -119,6 +119,11 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
         const errorData = await response.json().catch(() => ({}));
         throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
       }
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'error')
+          throw new Error(result.message || '验证失败');
+      }
 
       setSuccess(true);
       onSuccess?.();
