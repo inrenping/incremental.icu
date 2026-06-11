@@ -107,8 +107,8 @@ export default function DashPage() {
     setTerminalLogs([]); // 清空上次日志
     setIsTerminalOpen(true); // 唤起类终端弹出框
 
-    pushTerminalLog("🔧 Establishing high-speed transmission pipe...", "info");
-    pushTerminalLog(`Source Engine ID: ${sourceId} | Target Engine ID: ${targetId}`, "info");
+    pushTerminalLog("🔧 开始调用同步任务...", "info");
+    pushTerminalLog(`Source ID: ${sourceId} | Target ID: ${targetId}`, "info");
 
     // 2. 准备控制信号（用于支持点击圆点强制退出/中止）
     const controller = new AbortController();
@@ -126,6 +126,7 @@ export default function DashPage() {
         body: JSON.stringify({
           source_id: sourceId,
           target_id: targetId,
+          count: 10
         }),
         signal: controller.signal,
 
