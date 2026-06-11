@@ -215,7 +215,7 @@ export default function DashPage() {
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
                       <SelectItem key={app.id} value={app.id.toString()}>
-                        {app.source_type}  ({app.account})
+                        {app.source_type}-{app.region}  ({app.account})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -237,7 +237,7 @@ export default function DashPage() {
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
                       <SelectItem key={app.id} value={app.id.toString()}>
-                        {app.source_type}  ({app.account})
+                        {app.source_type}-{app.region}  ({app.account})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -261,7 +261,7 @@ export default function DashPage() {
               平台账号管理
             </Link>
             <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              查询同步数据
+              查询详细数据
             </Link>
           </div>
         </div>
@@ -283,7 +283,7 @@ export default function DashPage() {
 
       <SyncLogs />
 
-      {/* 🛠️ 将终端模态框挂载在页面最底部 */}
+      {/*终端模态框 */}
       <TerminalModal
         isOpen={isTerminalOpen}
         onClose={handleCloseTerminal}
