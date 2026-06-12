@@ -173,13 +173,13 @@ const ActivityListPage = () => {
     try {
       const queryParams = new URLSearchParams({
         connect_id: appSelected,
-        pageSize: limit.toString(),
-        pageCount: page.toString(),
+        page_size: limit.toString(),
+        page_count: page.toString(),
       });
       if (urlStartDate)
-        queryParams.set('startDate', urlStartDate);
+        queryParams.set('start_date', urlStartDate);
       if (urlEndDate)
-        queryParams.set('endDate', urlEndDate);
+        queryParams.set('end_date', urlEndDate);
       if (urlSportType)
         queryParams.set('sport_type', urlSportType);
       if (urlName)
