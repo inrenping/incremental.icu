@@ -30,7 +30,7 @@ export function TerminalModal({ isOpen, onClose, logs, status }: TerminalModalPr
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl h-[450px] bg-[#1e1e1e] border border-zinc-800 rounded-xl shadow-2xl flex flex-col overflow-hidden text-sm">
+      <div className="w-full max-w-4xl h-full bg-[#1e1e1e] border border-zinc-800 rounded-xl shadow-2xl flex flex-col overflow-hidden text-sm">
 
         {/* 终端头部工具栏 - 经典三色圆点 */}
         <div className="bg-[#2d2d2d] px-4 py-3 flex items-center justify-between border-b border-zinc-800 select-none">

@@ -1,7 +1,8 @@
 export default function guidePage() {
 
-    return (
-      <div>
-      </div >
-    );
-  }
+  return (
+    <div>
+      <p>施工中……</p>
+    </div >
+  );
+}

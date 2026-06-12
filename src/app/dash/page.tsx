@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { SyncLogs } from "@/components/dash/sync-logs";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 export interface AppConfig {
   id: number;
@@ -106,8 +107,8 @@ export default function DashPage() {
     setTerminalLogs([]); // 清空上次日志
     setIsTerminalOpen(true); // 唤起类终端弹出框
 
-    pushTerminalLog("🔧 Establishing high-speed transmission pipe...", "info");
-    pushTerminalLog(`Source Engine ID: ${sourceId} | Target Engine ID: ${targetId}`, "info");
+    pushTerminalLog("🔧 开始调用同步任务...", "info");
+    pushTerminalLog(`Source ID: ${sourceId} | Target ID: ${targetId}`, "info");
 
     // 2. 准备控制信号（用于支持点击圆点强制退出/中止）
     const controller = new AbortController();
@@ -125,6 +126,7 @@ export default function DashPage() {
         body: JSON.stringify({
           source_id: sourceId,
           target_id: targetId,
+          count: 10
         }),
         signal: controller.signal,
 
@@ -213,7 +215,7 @@ export default function DashPage() {
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
                       <SelectItem key={app.id} value={app.id.toString()}>
-                        {app.source_type}  ({app.account})
+                        {app.source_type}-{app.region}  ({app.account})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -235,7 +237,7 @@ export default function DashPage() {
                   <SelectContent>
                     {apps.filter(a => a.is_active).map(app => (
                       <SelectItem key={app.id} value={app.id.toString()}>
-                        {app.source_type}  ({app.account})
+                        {app.source_type}-{app.region}  ({app.account})
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -254,7 +256,14 @@ export default function DashPage() {
               {isSyncing ? t("syncing") : t("oneclickSync")}
             </Button>
           </div>
-          {/* ... */}
+          <div className="flex items-center gap-6">
+            <Link href="/dash/accounts" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+              平台账号管理
+            </Link>
+            <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
+              查询详细数据
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -274,7 +283,7 @@ export default function DashPage() {
 
       <SyncLogs />
 
-      {/* 🛠️ 将终端模态框挂载在页面最底部 */}
+      {/*终端模态框 */}
       <TerminalModal
         isOpen={isTerminalOpen}
         onClose={handleCloseTerminal}
