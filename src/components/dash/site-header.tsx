@@ -58,9 +58,6 @@ export function SiteHeader() {
 
   const navItems = [
     { name: t("dash"), href: '/dash' },
-    // { name: "定时任务", href: '/dash/guide' },
-    { name: t("accounts"), href: '/dash/accounts' },
-    { name: t("logs"), href: '/dash/logs' },
     { name: "使用说明", href: '/dash/guide' },
     { name: "网站状态", href: 'https://status.incremental.icu' }
   ];
@@ -155,6 +152,9 @@ export function SiteHeader() {
                 </div>
                 <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="focus:bg-primary/50">
                   <span>{t("userSettings")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/dash/accounts')} className="focus:bg-primary/50">
+                  <span>{t("accounts")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950">
