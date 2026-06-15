@@ -67,7 +67,7 @@ export default function tosPage() {
             <div className="space-y-2">
               <h2 className="text-lg font-semibold text-foreground">4. 隐私与安全</h2>
               <ul className="list-disc pl-5 space-y-1">
-                <li><strong className="text-foreground">隐私政策：</strong>个人信息的收集与使用详见我们的 <Link href="/dash/privacy">「隐私政策」</Link>。</li>
+                <li><strong className="text-foreground">隐私政策：</strong>个人信息的收集与使用详见我们的 <Link href="/doc/privacy">「隐私政策」</Link>。</li>
                 <li><strong className="text-foreground">营销信息：</strong>我们或第三方广告商可能会依法向您发送促销或宣传信息。</li>
                 <li><strong className="text-foreground">安全提示：</strong>网络传输并非绝对安全，信息存在被拦截的风险，我们无法保证数据传输的绝对机密性。</li>
               </ul>

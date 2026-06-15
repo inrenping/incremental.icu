@@ -14,6 +14,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
+
         <section className="py-24 px-4 text-center bg-cover bg-center bg-no-repeat">
           <div className="max-w-3xl mx-auto space-y-6">
             <p className="text-6xl text-foreground font-bold tracking-tight">{t('hello')}</p>
@@ -44,20 +45,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 px-4 bg-muted/70">
-          <div className="max-w-6xl mx-auto text-center space-y-12">
-            <h2 className="text-lg font-black">{t("supportPlatform")}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-              {[
-                { name: t("garmin"), logo: "garmin", desc: "Garmin Connect", link: "https://connect.garmin.com" },
-                { name: t("garminCn"), logo: "garmin", desc: "Garmin Connect for China", link: "https://connect.garmin.cn/" },
-                { name: t("coros"), logo: "coros", desc: "COROS Training Hub", link: "https://t.coros.com/" },
-              ].map((platform) => (
-                <PlatformCard key={platform.name} {...platform} />
-              ))}
-            </div>
+
+        <section className="space-y-4">
+          <div className="space-y-4 flex items-center justify-between">
+            <iframe width="100%" height="454" scrolling="no" src='https://www.strava.com/clubs/2195257/latest-rides/cf8a59f301f929036ecc77f53f351e35596757ee?show_rides=true'></iframe>
           </div>
         </section>
+
       </main>
       <SiteFooter />
     </div>

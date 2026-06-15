@@ -58,7 +58,7 @@ export function SiteHeader() {
 
   const navItems = [
     { name: t("dash"), href: '/dash' },
-    { name: "使用说明", href: '/dash/guide' },
+    { name: "使用说明", href: '/doc/guide' },
     { name: "网站状态", href: 'https://status.incremental.icu' }
   ];
 
