@@ -261,7 +261,7 @@ export default function DashPage() {
               平台账号管理
             </Link>
             <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              查询详细数据
+              详细数据查询
             </Link>
           </div>
         </div>

@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* 引入官方排版插件 */
+@plugin "@tailwindcss/typography";
+
 @custom-variant dark (&:is(.dark *));
 @custom-variant fixed (html.layout-fixed &);
 

@@ -32,7 +32,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 px-4 max-w-6xl mx-auto">
+        <section className="py-10 px-0 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { title: t("card1Title"), desc: t("card1Desc"), icon: <IconRepeat className="h-6 w-6" /> },
@@ -45,8 +45,7 @@ export default function Home() {
           </div>
         </section>
 
-
-        <section className="space-y-4">
+        <section className="py-20 px-0 max-w-6xl mx-auto">
           <div className="space-y-4 flex items-center justify-between">
             <iframe width="100%" height="454" scrolling="no" src='https://www.strava.com/clubs/2195257/latest-rides/cf8a59f301f929036ecc77f53f351e35596757ee?show_rides=true'></iframe>
           </div>
