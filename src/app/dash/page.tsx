@@ -23,6 +23,7 @@ import {
 import { SyncLogs } from "@/components/dash/sync-logs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { SiteExplore } from "@/components/login/site-explore";
 
 export interface AppConfig {
   id: number;
@@ -282,6 +283,8 @@ export default function DashPage() {
       </div>
 
       <SyncLogs />
+
+      <SiteExplore />
 
       {/*终端模态框 */}
       <TerminalModal

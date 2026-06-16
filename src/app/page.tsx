@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
+import { SiteExplore } from '@/components/login/site-explore';
 export default function Home() {
   const t = useTranslations('IndexPage')
   const router = useRouter()
@@ -46,9 +47,7 @@ export default function Home() {
         </section>
 
         <section className="py-20 px-0 max-w-6xl mx-auto">
-          <div className="space-y-4 flex items-center justify-between">
-            <iframe width="100%" height="454" scrolling="no" src='https://www.strava.com/clubs/2195257/latest-rides/cf8a59f301f929036ecc77f53f351e35596757ee?show_rides=true'></iframe>
-          </div>
+          <SiteExplore />
         </section>
 
       </main>
@@ -70,15 +69,6 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon:
       <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
         {desc}
       </p>
-    </div>
-  )
-}
-
-function PlatformCard({ name, desc, logo, link }: { name: string; desc: string; logo: string; link: string }) {
-  return (
-    <div className="p-8 rounded-2xl border bg-background text-center flex flex-col items-center justify-center hover:shadow-md transition-shadow" onClick={() => window.open(`${link}`, '_blank')}>
-      <h3 className="font-bold mb-1">{name}</h3>
-      <p className="text-xs text-muted-foreground uppercase tracking-wider">{desc}</p>
     </div>
   )
 }
