@@ -32,7 +32,7 @@ export function ModeIntl() {
 
   const languages = [
     { label: "简体中文", value: "zh" },
-    { label: "English", value: "en" },
+    { label: "English (25%)", value: "en" },
   ]
 
   return (

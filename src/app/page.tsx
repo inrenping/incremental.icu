@@ -1,7 +1,9 @@
 'use client'
 
 import { useRouter } from 'next/navigation';
-import { IconArrowRight, IconRepeat, IconStack, IconShield, IconChartBar, } from "@tabler/icons-react";
+import {
+  IconArrowRight, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
+} from "@tabler/icons-react";
 import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
@@ -14,24 +16,61 @@ export default function Home() {
     <div className="flex flex-col min-h-screen">
       <SiteHeader />
       <main className="flex-1">
-        <section className="py-24 px-4 text-center bg-cover bg-center bg-no-repeat">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <p className="text-6xl text-foreground font-bold tracking-tight">{t('hello')}</p>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">{t('description')}</p>
-            <div className="pt-8 space-y-4">
-              <Button
-                onClick={() => router.push('/login')}
-                size="lg"
-                className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
-              >
-                {t('getStarted')}
-                <IconArrowRight className="h-5 w-5" />
-              </Button>
+
+        <section className="py-24 px-4 text-left bg-cover bg-center bg-no-repeat">
+          <div className="max-w-6xl mx-auto space-y-6">
+            <h1 className="text-6xl font-black tracking-tighter text-foreground flex items-center justify-start gap-4">
+              <img src="/favicon.svg" alt="Logo" className="h-16 w-16" />
+              {t("title")}
+            </h1>
+            <p className="text-5xl text-foreground font-black tracking-tighter">{t('hello')}</p>
+            <p className="text-lg text-muted-foreground max-w-xl">{t('description')}</p>
+            <div className="pt-8 flex flex-col items-start gap-6">
+              <div className="flex flex-wrap justify-start gap-6">
+                <Button
+                  onClick={() => router.push('/login')}
+                  size="lg"
+                  className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
+                >
+                  {t('getStarted')}
+                </Button>
+                <Button
+                  onClick={() => router.push('/login')}
+                  variant="outline"
+                  size="lg"
+                  className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
+                >
+                  <IconBrandGithubFilled className="h-4 w-4" />
+                  Github
+                  <IconMinusVertical className="h-4 w-1" />
+                  <IconStarFilled className="h-4 w-4 text-yellow-400" />
+
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap justify-start gap-3">
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('/doc/intro')}>
+                  项目介绍
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('/doc/guide')}>
+                  快速开始
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('https://github.com/users/inrenping/projects/1')}>
+                  开发进度
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('/doc/community')}>
+                  联系作者
+                </Button>
+              </div>
             </div>
           </div>
         </section>
 
-        <section className="py-20 px-4 max-w-6xl mx-auto">
+        <section className="py-10 px-0 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { title: t("card1Title"), desc: t("card1Desc"), icon: <IconRepeat className="h-6 w-6" /> },
@@ -43,21 +82,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        <section className="py-20 px-4 bg-muted/70">
-          <div className="max-w-6xl mx-auto text-center space-y-12">
-            <h2 className="text-lg font-black">{t("supportPlatform")}</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-              {[
-                { name: t("garmin"), logo: "garmin", desc: "Garmin Connect", link: "https://connect.garmin.com" },
-                { name: t("garminCn"), logo: "garmin", desc: "Garmin Connect for China", link: "https://connect.garmin.cn/" },
-                { name: t("coros"), logo: "coros", desc: "COROS Training Hub", link: "https://t.coros.com/" },
-              ].map((platform) => (
-                <PlatformCard key={platform.name} {...platform} />
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
       <SiteFooter />
     </div>
@@ -67,25 +91,16 @@ export default function Home() {
 function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon: React.ReactNode }) {
   return (
     <div className="bg-white dark:bg-black rounded-lg p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col gap-3">
-      {/* 图标 */}
-      <div className="text-green-500 mb-2 text-2xl">{icon}</div>
-      {/* 标题 */}
-      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-        {title}
-      </h3>
+      <div className="flex items-center gap-2.5">
+        <div className="text-green-500 text-2xl shrink-0">{icon}</div>
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          {title}
+        </h3>
+      </div>
       {/* 描述 */}
       <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
         {desc}
       </p>
-    </div>
-  )
-}
-
-function PlatformCard({ name, desc, logo, link }: { name: string; desc: string; logo: string; link: string }) {
-  return (
-    <div className="p-8 rounded-2xl border bg-background text-center flex flex-col items-center justify-center hover:shadow-md transition-shadow" onClick={() => window.open(`${link}`, '_blank')}>
-      <h3 className="font-bold mb-1">{name}</h3>
-      <p className="text-xs text-muted-foreground uppercase tracking-wider">{desc}</p>
     </div>
   )
 }
