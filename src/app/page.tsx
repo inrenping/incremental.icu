@@ -1,12 +1,13 @@
 'use client'
 
 import { useRouter } from 'next/navigation';
-import { IconArrowRight, IconRepeat, IconStack, IconShield, IconChartBar, } from "@tabler/icons-react";
+import {
+  IconArrowRight, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
+} from "@tabler/icons-react";
 import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
-import { SiteExplore } from '@/components/login/site-explore';
 export default function Home() {
   const t = useTranslations('IndexPage')
   const router = useRouter()
@@ -20,15 +21,43 @@ export default function Home() {
           <div className="max-w-3xl mx-auto space-y-6">
             <p className="text-6xl text-foreground font-bold tracking-tight">{t('hello')}</p>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto">{t('description')}</p>
-            <div className="pt-8 space-y-4">
-              <Button
-                onClick={() => router.push('/login')}
-                size="lg"
-                className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
-              >
-                {t('getStarted')}
-                <IconArrowRight className="h-5 w-5" />
-              </Button>
+            <div className="pt-8 flex flex-col items-center gap-6">
+              <div className="flex flex-wrap justify-center gap-6">
+                <Button
+                  onClick={() => router.push('/login')}
+                  size="lg"
+                  className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
+                >
+                  {t('getStarted')}
+                </Button>
+                <Button
+                  onClick={() => router.push('/login')}
+                  variant="outline"
+                  size="lg"
+                  className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
+                >
+                  <IconBrandGithubFilled className="h-4 w-4" />
+                  Github
+                  <IconMinusVertical className="h-4 w-1" />
+                  <IconStarFilled className="h-4 w-4 text-yellow-400" />
+
+                </Button>
+              </div>
+
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('/doc/guide')}>
+                  快速开始
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('https://github.com/users/inrenping/projects/1')}>
+                  开发进度
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('/doc/community')}>
+                  联系作者
+                </Button>
+              </div>
             </div>
           </div>
         </section>
@@ -45,11 +74,6 @@ export default function Home() {
             ))}
           </div>
         </section>
-
-        <section className="py-20 px-0 max-w-6xl mx-auto">
-          <SiteExplore />
-        </section>
-
       </main>
       <SiteFooter />
     </div>
@@ -59,12 +83,12 @@ export default function Home() {
 function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon: React.ReactNode }) {
   return (
     <div className="bg-white dark:bg-black rounded-lg p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col gap-3">
-      {/* 图标 */}
-      <div className="text-green-500 mb-2 text-2xl">{icon}</div>
-      {/* 标题 */}
-      <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
-        {title}
-      </h3>
+      <div className="flex items-center gap-2.5">
+        <div className="text-green-500 text-2xl shrink-0">{icon}</div>
+        <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+          {title}
+        </h3>
+      </div>
       {/* 描述 */}
       <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
         {desc}

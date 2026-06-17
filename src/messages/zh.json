@@ -3,7 +3,7 @@
     "title": "incremental.icu-Beta",
     "hello": "保持你各个平台的数据同步",
     "description": "incremental.icu 是一个专注于跨平台同步运动数据的网页应用。它是完全免费开源的，通过官方公开的 API 来实现数据同步，目前已经支持了佳明和高驰这两个平台。",
-    "getStarted": "开始免费使用",
+    "getStarted": "开始使用",
     "card1Title": "一键同步",
     "card1Desc": "点一下，就同步好了。",
     "card2Title": "定时任务",

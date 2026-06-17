@@ -284,7 +284,6 @@ export default function DashPage() {
 
       <SyncLogs />
 
-      <SiteExplore />
 
       {/*终端模态框 */}
       <TerminalModal

@@ -97,14 +97,14 @@ export function SiteExplore() {
                 <span>加入 Strava Club</span>
               </CardTitle>
             </CardHeader>
-            <iframe
+            {/* <iframe
               title="Strava Activity"
               width="100%"
               height="454"
               scrolling="no"
               src='https://www.strava.com/clubs/2195257/latest-rides/cf8a59f301f929036ecc77f53f351e35596757ee?show_rides=true'
               className="rounded-xl border bg-card shadow-sm hover:shadow-md transition-shadow duration-300"
-            />
+            /> */}
           </Card>
         </div>
       </div>
