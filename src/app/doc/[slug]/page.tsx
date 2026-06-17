@@ -80,7 +80,7 @@ export default function docPage({ params }: DocPageProps) {
           <nav className="flex flex-col gap-4 text-muted-foreground/80">
             <div className="flex flex-col gap-3">
               <a href="/doc/intro" className="hover:text-primary transition-colors">项目介绍</a>
-              <a href="/doc/community" className="hover:text-primary transition-colors">联系作者</a>
+              <a href="https://status.incremental.icu" className="hover:text-primary transition-colors">网站状态</a>
             </div>
 
             <div className="border-t border-border/60" />
@@ -89,6 +89,7 @@ export default function docPage({ params }: DocPageProps) {
               <a href="/doc/guide" className="hover:text-primary transition-colors">快速开始</a>
               <a href="/doc/faq" className="hover:text-primary transition-colors">常见问题</a>
               <a href="/doc/recommended" className="hover:text-primary transition-colors">其他推荐</a>
+              <a href="/doc/development" className="hover:text-primary transition-colors">开发指南</a>
             </div>
 
             <div className="border-t border-border/60" />

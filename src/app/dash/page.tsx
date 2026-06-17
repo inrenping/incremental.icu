@@ -75,6 +75,15 @@ export default function DashPage() {
       }
       const data: AppConfig[] = await response.json();
       setApps(data);
+
+      // 设置默认选中的源平台和目标平台
+      const activeApps = data.filter(a => a.is_active);
+      if (activeApps.length > 0) {
+        setSourceId(activeApps[0].id.toString());
+      }
+      if (activeApps.length > 1) {
+        setTargetId(activeApps[1].id.toString());
+      }
     } catch (err: any) {
       console.error("Fetch status error:", err);
     } finally {
