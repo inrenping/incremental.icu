@@ -123,9 +123,9 @@ export default function docPage({ params }: DocPageProps) {
       {!isLoading && toc.length > 0 && (
         <aside className="hidden xl:block w-64 shrink-0">
           <div className="sticky top-10 space-y-4">
-            <div className="font-semibold text-foreground/70 uppercase tracking-wider text-[11px] px-4">
+            {/* <div className="font-semibold text-foreground/70 uppercase tracking-wider text-[11px] px-4">
               本页目录
-            </div>
+            </div> */}
             <nav className="flex flex-col border-l border-border/60">
               {toc.map((item, index) => (
                 <a
