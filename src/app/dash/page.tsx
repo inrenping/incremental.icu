@@ -23,7 +23,6 @@ import {
 import { SyncLogs } from "@/components/dash/sync-logs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { SiteExplore } from "@/components/login/site-explore";
 
 export interface AppConfig {
   id: number;

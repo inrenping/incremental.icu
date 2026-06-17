@@ -50,6 +50,10 @@ export default function Home() {
 
               <div className="flex flex-wrap justify-start gap-3">
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
+                  onClick={() => router.push('/doc/intro')}>
+                  项目介绍
+                </Button>
+                <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
                   onClick={() => router.push('/doc/guide')}>
                   快速开始
                 </Button>
