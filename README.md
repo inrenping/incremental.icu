@@ -6,30 +6,25 @@
   <a href="https://github.com/inrenping/incremental.icu/issues"><img src="https://img.shields.io/github/issues/inrenping/incremental.icu?style=flat&label=Issues&labelColor=1F2937&color=D97706" alt="Issues"></a>
 </p>
 
-**[incremental.icu](https://incremental.icu)** 是一款专为运动爱好者打造的跨平台数据同步工具。它能够连接佳明（Garmin）与高驰（Coros）平台，协助用户高效管理运动记录，特别适合同时拥有两个品牌设备的多表用户。
+**[incremental.icu](https://incremental.icu)** 是一款专为运动爱好者打造的跨平台数据同步工具。它能够连接佳明（Garmin）与高驰（Coros）平台，通过调用官方提供的 API 同步数据，协助用户高效管理运动记录，特别适合同时使用多设备记录运动状态的用户。
+
+创建这个工具的初衷，是为了解决佳明海内外版本数据不同步导致 Strava 和微信运动等数据国内平台只能二选一的问题。后来使用了高驰训练平台感觉不错，于是增加了高驰的平台支持。
 
 ---
 
-## 📸 界面预览
-
-| 数据看板 | 活动列表 | 详情查看 |
-| :---: | :---: | :---: |
-| ![dash](/doc/dash_page.png) | ![activities](/doc/activities_page.png) | ![activity](/doc/activity_page.png) |
-
 ## ✨ 主要功能
 
-- **实时查看**：跨平台聚合展示最新的运动记录。
-- **手动推送**：支持将特定运动记录单条手动同步至其他平台。
-- **批量同步**：提供一键同步功能，快速补全近期的运动数据缺失。
-- **定时同步**：支持设置定时任务，自动保持数据更新随送。
+- **一键同步**：设定两个平台，手动拉取最新 10 条数据，进行差量同步。
+- **手动同步**：在数据列表中找到对应的数据记录，手动推送到指定平台。
+- **定时同步**：设定定时任务，自动执行同步。
 
 ## 🌐 支持平台
 
 | 平台 | 支持状态 | 交互格式 |
 | :--- | :---: | :--- |
-| 佳明 (Garmin) 国内版 | ✅ 已支持 | `.fit` |
-| 佳明 (Garmin) 国际版 | ✅ 已支持 | `.fit` |
-| 高驰 (Coros) | ✅ 已支持 | `.fit` |
+| 佳明 (Garmin) 国内版 | ✅ 已支持 | `.FIT` |
+| 佳明 (Garmin) 国际版 | ✅ 已支持 | `.FIT` |
+| 高驰 (Coros) | ✅ 已支持 | `.FIT` |
 
 ## 🚀 线上版本
 

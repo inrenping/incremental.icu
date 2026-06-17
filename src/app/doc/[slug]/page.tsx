@@ -89,6 +89,7 @@ export default function docPage({ params }: DocPageProps) {
               <a href="/doc/guide" className="hover:text-primary transition-colors">快速开始</a>
               <a href="/doc/faq" className="hover:text-primary transition-colors">常见问题</a>
               <a href="/doc/recommended" className="hover:text-primary transition-colors">其他推荐</a>
+              <a href="/doc/development" className="hover:text-primary transition-colors">开发指南</a>
             </div>
 
             <div className="border-t border-border/60" />
