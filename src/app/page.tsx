@@ -62,8 +62,8 @@ export default function Home() {
                   开发进度
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
-                  onClick={() => router.push('/doc/community')}>
-                  联系作者
+                  onClick={() => router.push('https://status.incremental.icu')}>
+                  网站状态
                 </Button>
               </div>
             </div>
