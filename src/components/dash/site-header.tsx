@@ -74,13 +74,12 @@ export function SiteHeader() {
         "px-6 transition-all duration-300 mx-auto",
         layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
       )}>
-        <div className="flex h-(--header-height) items-center **:data-[slot=separator]:h-4!">
-          <h1
-            className="text-base font-medium cursor-pointer"
-            onClick={() => router.push('/')}
-          >
+        <div className="flex h-(--header-height) gap-3 items-center **:data-[slot=separator]:h-4!">
+          <img src="/favicon.svg" alt="Logo" className="h-6 w-6" />
+          <h1 className="text-base font-medium cursor-pointer" onClick={() => router.push('/')}>
             {t('title')}
           </h1>
+
 
           <nav className="hidden md:flex items-center space-x-6 ml-6">
             {navItems.map((item) => (

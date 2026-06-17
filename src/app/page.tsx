@@ -17,12 +17,16 @@ export default function Home() {
       <SiteHeader />
       <main className="flex-1">
 
-        <section className="py-24 px-4 text-center bg-cover bg-center bg-no-repeat">
-          <div className="max-w-3xl mx-auto space-y-6">
-            <p className="text-6xl text-foreground font-bold tracking-tight">{t('hello')}</p>
-            <p className="text-lg text-muted-foreground max-w-xl mx-auto">{t('description')}</p>
-            <div className="pt-8 flex flex-col items-center gap-6">
-              <div className="flex flex-wrap justify-center gap-6">
+        <section className="py-24 px-4 text-left bg-cover bg-center bg-no-repeat">
+          <div className="max-w-6xl mx-auto space-y-6">
+            <h1 className="text-6xl font-black tracking-tighter text-foreground flex items-center justify-start gap-4">
+              <img src="/favicon.svg" alt="Logo" className="h-16 w-16" />
+              {t("title")}
+            </h1>
+            <p className="text-5xl text-foreground font-black tracking-tighter">{t('hello')}</p>
+            <p className="text-lg text-muted-foreground max-w-xl">{t('description')}</p>
+            <div className="pt-8 flex flex-col items-start gap-6">
+              <div className="flex flex-wrap justify-start gap-6">
                 <Button
                   onClick={() => router.push('/login')}
                   size="lg"
@@ -44,7 +48,7 @@ export default function Home() {
                 </Button>
               </div>
 
-              <div className="flex flex-wrap justify-center gap-3">
+              <div className="flex flex-wrap justify-start gap-3">
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
                   onClick={() => router.push('/doc/guide')}>
                   快速开始

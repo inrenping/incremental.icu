@@ -1,6 +1,6 @@
 {
   "IndexPage": {
-    "title": "incremental.icu-Beta",
+    "title": "incremental.icu",
     "hello": "保持你各个平台的数据同步",
     "description": "incremental.icu 是一个专注于跨平台同步运动数据的网页应用。它是完全免费开源的，通过官方公开的 API 来实现数据同步，目前已经支持了佳明和高驰这两个平台。",
     "getStarted": "开始使用",
@@ -11,7 +11,7 @@
     "card3Title": "免费使用",
     "card3Desc": "反正试试也不花钱。",
     "card4Title": "开源代码",
-    "card4Desc": "帮我在GitHub上点个star吧！",
+    "card4Desc": "支持自行部署",
     "supportPlatform": "支持平台",
     "garmin": "佳明",
     "garminCn": "佳明中国版",
