@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import {
-  IconArrowRight, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
+  IconTrendingUp, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
@@ -32,7 +32,7 @@ export default function Home() {
                   size="lg"
                   className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
                 >
-                  {t('getStarted')}
+                  {t('getStarted')}<IconTrendingUp className="h-4 w-4" />
                 </Button>
                 <Button
                   onClick={() => router.push('/login')}
@@ -90,7 +90,7 @@ export default function Home() {
 
 function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon: React.ReactNode }) {
   return (
-    <div className="bg-white dark:bg-black rounded-lg p-6 border border-gray-100 dark:border-gray-700 shadow-sm flex flex-col gap-3">
+    <div className="bg-white dark:bg-black rounded-lg p-6 border border-gray-100 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col gap-3">
       <div className="flex items-center gap-2.5">
         <div className="text-green-500 text-2xl shrink-0">{icon}</div>
         <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100">
