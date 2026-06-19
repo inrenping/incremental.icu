@@ -92,10 +92,9 @@ const ActivityListPage = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  // 从 URL 获取分页和平台参数
   const appSelected = searchParams.get('connect_id');
-  const page = parseInt(searchParams.get('page') || '1');
-  const limit = parseInt(searchParams.get('pageSize') || '20');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
 
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || "");
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || "");
@@ -124,9 +123,9 @@ const ActivityListPage = () => {
   const handlePlatformChange = useCallback((id: string) => {
     setActivities([]);
     setTotal(0);
+    setPage(1);
     const params = new URLSearchParams(searchParams.toString());
     params.set('connect_id', id);
-    params.set('page', '1');
     router.push(`${pathname}?${params.toString()}`);
   }, [searchParams, pathname, router]);
 
@@ -206,16 +205,12 @@ const ActivityListPage = () => {
   }, [fetchActivities]);
 
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('page', newPage.toString());
-    router.push(`${pathname}?${params.toString()}`);
+    setPage(newPage);
   };
 
   const handleLimitChange = (newLimit: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set('pageSize', newLimit);
-    params.set('page', '1');
-    router.push(`${pathname}?${params.toString()}`);
+    setLimit(Number(newLimit));
+    setPage(1);
   };
 
   const handleDateChange = (key: string, value: string) => {
@@ -235,8 +230,7 @@ const ActivityListPage = () => {
     if (sportType && sportType !== 'all') params.set('sport_type', sportType); else params.delete('sport_type');
     if (searchName) params.set('name', searchName); else params.delete('name');
 
-    // 搜索时重置页码到第一页
-    params.set('page', '1');
+    setPage(1);
     router.push(`${pathname}?${params.toString()}`);
   };
 

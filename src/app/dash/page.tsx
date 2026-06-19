@@ -1,17 +1,26 @@
 'use client';
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { storage } from '@/lib/storage';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
-import { fetchEventSource } from "@microsoft/fetch-event-source"; // 导入 SSE 客户端库
-import { TerminalModal, type LogLine } from "@/components/dash/terminal-modal"; // 导入刚才创建的组件
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { TerminalModal, type LogLine } from "@/components/dash/terminal-modal";
 import {
   IconRefresh,
   IconArrowsLeftRight,
+  IconInfinity,
+  IconClock,
+  IconChevronDown,
+  IconChevronUp,
+  IconShieldCheck,
+  IconUser,
+  IconUserCog,
+  IconListDetails,
+  IconActivity,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -20,9 +29,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { SyncLogs } from "@/components/dash/sync-logs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import dayjs from "dayjs";
 
 export interface AppConfig {
   id: number;
@@ -46,24 +57,204 @@ export interface AppConfig {
   last_synced_at: string | null;
 }
 
+interface User {
+  id: number;
+  username: string;
+  email: string;
+}
+
+function getPlatformInitials(sourceType: string) {
+  if (sourceType === 'garmin') return 'GA';
+  if (sourceType === 'garmin_cn') return 'GC';
+  if (sourceType === 'coros') return 'CO';
+  return sourceType.slice(0, 2).toUpperCase();
+}
+
+function getPlatformAvatarClass(sourceType: string) {
+  if (sourceType === 'coros') return 'bg-emerald-600 text-white';
+  return 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900';
+}
+
+function getPlatformDisplayName(sourceType: string) {
+  if (sourceType === 'garmin') return 'Garmin';
+  if (sourceType === 'garmin_cn') return 'Garmin CN';
+  if (sourceType === 'coros') return 'COROS';
+  return sourceType.toUpperCase();
+}
+
+function PlatformAvatar({ sourceType }: { sourceType: string }) {
+  return (
+    <div className={cn(
+      "flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+      getPlatformAvatarClass(sourceType)
+    )}>
+      {getPlatformInitials(sourceType)}
+    </div>
+  );
+}
+
+function PlatformSelect({
+  apps,
+  value,
+  onValueChange,
+  placeholder,
+}: {
+  apps: AppConfig[];
+  value?: string;
+  onValueChange: (value: string) => void;
+  placeholder: string;
+}) {
+  const selected = apps.find((app) => app.id.toString() === value);
+
+  return (
+    <Select value={value} onValueChange={onValueChange}>
+      <SelectTrigger className="h-auto min-h-[72px] w-full rounded-xl border-border/60 bg-background px-4 py-4 shadow-none hover:border-border focus:ring-0">
+        {selected ? (
+          <div className="flex w-full items-center gap-3">
+            <PlatformAvatar sourceType={selected.source_type} />
+            <div className="min-w-0 flex-1 text-left">
+              <p className="truncate text-sm font-medium">{selected.source_type}-{selected.region}</p>
+              <p className="truncate text-xs text-muted-foreground">{selected.account}</p>
+            </div>
+          </div>
+        ) : (
+          <SelectValue placeholder={placeholder} />
+        )}
+      </SelectTrigger>
+      <SelectContent>
+        {apps.map((app) => (
+          <SelectItem key={app.id} value={app.id.toString()}>
+            <div className="flex items-center gap-2">
+              <PlatformAvatar sourceType={app.source_type} />
+              <span>{app.source_type}-{app.region} ({app.account})</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
+function StatCard({
+  title,
+  value,
+  subtext,
+  icon: Icon,
+  href,
+}: {
+  title: string;
+  value: string;
+  subtext: string;
+  icon: React.ComponentType<{ className?: string }>;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="block rounded-xl border bg-card p-5 shadow-sm transition-colors hover:border-foreground/20 hover:bg-muted/30"
+    >
+      <div className="flex items-start justify-between">
+        <p className="text-sm text-muted-foreground">{title}</p>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </div>
+      <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{subtext}</p>
+    </Link>
+  );
+}
+
+function SecurityNotice() {
+  const t = useTranslations('DashPage');
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <Card className="h-full gap-0 py-0 shadow-sm">
+      <CardHeader className="border-b px-5 py-4">
+        <div className="flex items-center gap-2">
+          <IconShieldCheck className="h-4 w-4 text-emerald-600" />
+          <CardTitle className="text-base">{t("dataSecurity")}</CardTitle>
+        </div>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4 px-5 py-4">
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {t("dataSecuritySummary")}{" "}
+          <Link href="/doc/tos" className="text-foreground underline underline-offset-2">
+            {t("termsOfUse")}
+          </Link>
+          {t("dataSecuritySummaryEnd")}
+        </p>
+        {expanded && (
+          <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+            <p>{t("dataSecurityDetail1")}</p>
+            <p>{t("dataSecurityDetail2")}</p>
+            <p>{t("dataSecurityDetail3")}</p>
+            <p>{t("dataSecurityDetail4")}</p>
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={() => setExpanded(!expanded)}
+          className="inline-flex items-center gap-1.5 text-lg text-muted-foreground transition-colors hover:text-foreground"
+        >
+          {t("viewDetailedTerms")}
+          {expanded ? (
+            <IconChevronUp className="h-5 w-5" />
+          ) : (
+            <IconChevronDown className="h-5 w-5" />
+          )}
+        </button>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DashPage() {
   const t = useTranslations('DashPage');
   const { layout } = useLayout();
   const [apps, setApps] = useState<AppConfig[]>([]);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [sourceId, setSourceId] = useState<string>();
   const [targetId, setTargetId] = useState<string>();
 
-  // ---- 终端状态管理 ----
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<LogLine[]>([]);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "done" | "error">("idle");
   const abortControllerRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
+    const userData = storage.get('user');
+    if (userData) {
+      try {
+        const parsedUser = typeof userData === 'string' ? JSON.parse(userData) : userData;
+        setUser(parsedUser);
+      } catch (error) {
+        console.error("Failed to parse user info:", error);
+      }
+    }
     fetchAppsStatus();
   }, []);
+
+  const activeApps = useMemo(() => apps.filter((a) => a.is_active), [apps]);
+
+  const stats = useMemo(() => {
+    const platformNames = [...new Set(activeApps.map((a) => getPlatformDisplayName(a.source_type)))].join(' · ');
+    const totalSyncs = activeApps.reduce((sum, a) => sum + (a.total_count || 0), 0);
+    const lastSyncDate = activeApps.reduce<Date | null>((latest, app) => {
+      if (!app.last_synced_at) return latest;
+      const date = new Date(app.last_synced_at);
+      return !latest || date > latest ? date : latest;
+    }, null);
+
+    return {
+      connectedCount: activeApps.length,
+      platformNames: platformNames || '—',
+      totalSyncs,
+      lastSyncDate: lastSyncDate ? dayjs(lastSyncDate).format('MM-DD') : '—',
+      lastSyncTime: lastSyncDate ? dayjs(lastSyncDate).format('HH:mm') : '—',
+    };
+  }, [activeApps]);
 
   const fetchAppsStatus = async () => {
     setLoading(true);
@@ -76,22 +267,20 @@ export default function DashPage() {
       const data: AppConfig[] = await response.json();
       setApps(data);
 
-      // 设置默认选中的源平台和目标平台
-      const activeApps = data.filter(a => a.is_active);
-      if (activeApps.length > 0) {
-        setSourceId(activeApps[0].id.toString());
+      const active = data.filter((a) => a.is_active);
+      if (active.length > 0) {
+        setSourceId(active[0].id.toString());
       }
-      if (activeApps.length > 1) {
-        setTargetId(activeApps[1].id.toString());
+      if (active.length > 1) {
+        setTargetId(active[1].id.toString());
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch status error:", err);
     } finally {
       setLoading(false);
     }
   };
 
-  // 辅助方法：快速写入终端单行日志
   const pushTerminalLog = (text: string, level: LogLine["level"] = "info") => {
     const newLine: LogLine = {
       time: new Date().toLocaleTimeString(),
@@ -101,7 +290,6 @@ export default function DashPage() {
     setTerminalLogs((prev) => [...prev, newLine]);
   };
 
-  // 一键同步处理函数（核心改造为 SSE 模式）
   const handleGlobalSync = async () => {
     if (isSyncing || !sourceId || !targetId) {
       if (!isSyncing && (!sourceId || !targetId)) {
@@ -110,23 +298,20 @@ export default function DashPage() {
       return;
     }
 
-    // 1. 初始化终端状态
     setIsSyncing(true);
     setSyncStatus("syncing");
-    setTerminalLogs([]); // 清空上次日志
-    setIsTerminalOpen(true); // 唤起类终端弹出框
+    setTerminalLogs([]);
+    setIsTerminalOpen(true);
 
     pushTerminalLog("🔧 开始调用同步任务...", "info");
     pushTerminalLog(`Source ID: ${sourceId} | Target ID: ${targetId}`, "info");
 
-    // 2. 准备控制信号（用于支持点击圆点强制退出/中止）
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
     try {
-      // 3. 启动 HTTP POST 模拟的流式 SSE 接口
       const token = storage.get('accessToken');
-      await fetchEventSource('/api/v1/base/execute', { // 修改为你实际的 FastAPI 接口地址
+      await fetchEventSource('/api/v1/base/execute', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -150,7 +335,6 @@ export default function DashPage() {
         },
 
         onmessage(msg) {
-          // 捕获约定的结束暗号
           if (msg.data === '[DONE]') {
             pushTerminalLog("🎉 Synchronization routine exited with code 0.", "success");
             setSyncStatus("done");
@@ -160,13 +344,10 @@ export default function DashPage() {
             return;
           }
 
-          // 正常解析 FastAPI 推送出的 JSON 日志段
           try {
             const payload = JSON.parse(msg.data);
-            // 契合 FastAPI 发来的结构: { level: 'info' | 'warn' | 'error' | 'success', message: '内容' }
             pushTerminalLog(payload.message, payload.level || "info");
-          } catch (e) {
-            // 如果后端吐过来的是非 JSON 的纯文本
+          } catch {
             pushTerminalLog(msg.data, "info");
           }
         },
@@ -181,19 +362,16 @@ export default function DashPage() {
           pushTerminalLog(`🚨 Interrupted fatal error: ${err.message || err}`, "error");
           setSyncStatus("error");
           setIsSyncing(false);
-          throw err; // 抛出异常避免库自动疯狂重试
+          throw err;
         }
       });
-
-    } catch (err) {
+    } catch {
       console.log("SSE execution pipeline final clear.");
     }
   };
 
-  // 处理在终端弹窗中点击红色关闭按钮的逻辑
   const handleCloseTerminal = () => {
     if (syncStatus === "syncing" && abortControllerRef.current) {
-      // 如果正在同步时强行关闭，终止长连接，通知后端中断
       abortControllerRef.current.abort();
       pushTerminalLog("🛑 Sync pipeline aborted by manual terminal kill signal.", "error");
     }
@@ -204,96 +382,133 @@ export default function DashPage() {
 
   return (
     <div className={cn(
-      "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
+      "mx-auto flex flex-1 flex-col gap-6 bg-background p-6 text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
+      {/* Welcome */}
+      <section className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("welcomeBack", { name: user?.username || '...' })}
+          </h1>
+          <p className="text-muted-foreground">{t("manageSync")}</p>
+        </div>
+        <Button variant="outline" size="lg" className="h-10 shrink-0 rounded-full px-4 text-sm" asChild>
+          <Link href="/settings/profile">
+            <IconUser className="h-5 w-5" />
+            {t("userSettings")}
+          </Link>
+        </Button>
+      </section>
 
-      {/* 核心操作区 */}
-      <section className="text-center space-y-6 py-8 bg-muted/30 rounded-3xl border border-dashed border-border">
-        {/* ...原有顶层代码不变... */}
-        <div className="flex flex-col items-center gap-6 max-w-4xl mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center gap-2 p-2 bg-background/50 backdrop-blur-sm rounded-[2.5rem] w-full md:w-fit">
+      {/* Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <StatCard
+          title={t("connectedPlatforms")}
+          value={loading ? '—' : String(stats.connectedCount)}
+          subtext={stats.platformNames}
+          icon={IconInfinity}
+          href="/dash/accounts"
+        />
+        <StatCard
+          title={t("totalSyncs")}
+          value={loading ? '—' : String(stats.totalSyncs)}
+          subtext={t("allSuccessful")}
+          icon={IconRefresh}
+          href="/dash/activities"
+        />
+        <StatCard
+          title={t("lastSync")}
+          value={loading ? '—' : stats.lastSyncDate}
+          subtext={stats.lastSyncTime}
+          icon={IconClock}
+          href="/dash/activities"
+        />
+      </div>
 
-            {/* 数据源选择 */}
-            <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm  w-full text-left transition-all hover:border-primary/30">
-              <div className="flex flex-col flex-1">
-                <Select value={sourceId} onValueChange={setSourceId}>
-                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-lg font-semibold">
-                    <SelectValue placeholder={t("selectPlatform")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {apps.filter(a => a.is_active).map(app => (
-                      <SelectItem key={app.id} value={app.id.toString()}>
-                        {app.source_type}-{app.region}  ({app.account})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+      {/* Data Sync Card */}
+      <Card className="gap-0 py-0 shadow-sm">
+        <CardHeader className="border-b px-5 py-4">
+          <div className="flex items-start justify-between gap-4">
+            <div className="space-y-1">
+              <CardTitle className="text-base">{t("dataSync")}</CardTitle>
+              <CardDescription>{t("dataSyncDesc")}</CardDescription>
+            </div>
+            <Button variant="outline" size="lg" className="h-10 shrink-0 rounded-full px-4 text-sm" asChild>
+              <a
+                href="https://status.incremental.icu"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <IconActivity className="h-5 w-5" />
+                {t("serviceStatus")}
+              </a>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-5 px-5 py-5">
+          <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
+            <div className="flex-1">
+              <PlatformSelect
+                apps={activeApps}
+                value={sourceId}
+                onValueChange={setSourceId}
+                placeholder={t("selectPlatform")}
+              />
+            </div>
+
+            <div className="flex shrink-0 items-center justify-center">
+              <div className="rounded-full bg-muted p-2">
+                <IconArrowsLeftRight className="h-4 w-4 text-muted-foreground" />
               </div>
             </div>
 
-            <div className="bg-primary/5 p-2 rounded-full hidden md:block shrink-0">
-              <IconArrowsLeftRight className="h-5 w-5 text-primary/60" />
+            <div className="flex-1">
+              <PlatformSelect
+                apps={activeApps}
+                value={targetId}
+                onValueChange={setTargetId}
+                placeholder={t("selectPlatform")}
+              />
             </div>
+          </div>
 
-            {/* 目标平台选择 */}
-            <div className="flex items-center gap-2 bg-background rounded-4xl px-6 py-2 border border-border/50 shadow-sm w-full text-left transition-all hover:border-primary/30">
-              <div className="flex flex-col flex-1">
-                <Select value={targetId} onValueChange={setTargetId}>
-                  <SelectTrigger className="border-none shadow-none focus:ring-0 p-0 h-auto bg-transparent text-lg font-semibold">
-                    <SelectValue placeholder={t("selectPlatform")} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {apps.filter(a => a.is_active).map(app => (
-                      <SelectItem key={app.id} value={app.id.toString()}>
-                        {app.source_type}-{app.region}  ({app.account})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
+                <Link href="/dash/accounts">
+                  <IconUserCog className="h-5 w-5" />
+                  {t("platformAccountMgmt")}
+                </Link>
+              </Button>
+              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
+                <Link href="/dash/activities">
+                  <IconListDetails className="h-5 w-5" />
+                  {t("detailedDataQuery")}
+                </Link>
+              </Button>
             </div>
-
-            {/* 一键同步触发按钮 */}
             <Button
               size="lg"
-              className="h-14 px-8 text-lg gap-2 rounded-4xl shadow-lg hover:shadow-xl transition-all w-full md:w-auto shrink-0"
+              className="h-12 rounded-full px-8 text-lg shadow-sm"
               onClick={handleGlobalSync}
               disabled={isSyncing || !sourceId || !targetId}
             >
-              <IconRefresh className={cn("h-6 w-6", isSyncing && "animate-spin")} />
+              <IconRefresh className={cn("h-5 w-5", isSyncing && "animate-spin")} />
               {isSyncing ? t("syncing") : t("oneclickSync")}
             </Button>
           </div>
-          <div className="flex items-center gap-6">
-            <Link href="/dash/accounts" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              平台账号管理
-            </Link>
-            <Link href="/dash/activities" className="text-muted-foreground hover:text-primary transition-colors underline underline-offset-4">
-              详细数据查询
-            </Link>
-          </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
 
-      <div className="text-left space-y-5 px-8 py-7 bg-muted/20 dark:bg-muted/10 rounded-2xl border border-border/50 text-base text-foreground/90 leading-relaxed">
-        <div className="space-y-4 text-foreground">
-          <p>
-            为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。
-          </p>
-          <p>请您知悉并同意以下事项：</p>
-          <p>继续使用本工具，即表示您已阅读并同意我们的<a href="/doc/tos" target="_self" rel="noopener noreferrer"
-            className="underline">「使用条款」</a>。</p>
-          <p>相关服务依赖第三方，我们尽力保障可用性，但不承诺持续可用或可访问。</p>
-          <p>受限于品牌登录机制，使用本工具期间，请勿在其他终端同时登录您的账号，以免导致授权凭证失效。</p>
-          <p>我们将严格加密存储您的信息，但无法完全排除网络环境中的潜在不确定性。继续使用即代表您已充分知悉并理解上述情况，授权我们为您进行数据的同步与管理。</p>
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-2">
+          <SyncLogs limit={3} />
         </div>
+        <SecurityNotice />
       </div>
 
-      <SyncLogs />
-
-
-      {/*终端模态框 */}
       <TerminalModal
         isOpen={isTerminalOpen}
         onClose={handleCloseTerminal}

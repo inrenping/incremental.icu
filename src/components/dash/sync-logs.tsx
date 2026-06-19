@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { IconHistory } from "@tabler/icons-react";
+import { IconClock, IconCircleCheck } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 import { authFetch } from "@/lib/api";
@@ -15,7 +15,11 @@ interface Log {
   created_at: string;
 }
 
-export function SyncLogs() {
+interface SyncLogsProps {
+  limit?: number;
+}
+
+export function SyncLogs({ limit }: SyncLogsProps) {
   const t = useTranslations('DashPage');
 
   const [logs, setLogs] = useState<Log[]>([]);
@@ -38,8 +42,9 @@ export function SyncLogs() {
         } else {
           throw new Error("Invalid data format received from the server.");
         }
-      } catch (err: any) {
-        setError(err.message || t("fetchLogsError")); // Use translation for generic error
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : t("fetchLogsError");
+        setError(message);
         console.error("Error fetching logs:", err);
       } finally {
         setLoading(false);
@@ -47,49 +52,66 @@ export function SyncLogs() {
     };
 
     fetchLogs();
-  }, [t]); // Add t to dependency array as it's used inside useEffect
+  }, [t]);
+
+  const displayLogs = limit ? logs.slice(0, limit) : logs;
 
   return (
-    <section className="space-y-4">
-      <div className="flex items-center justify-between px-2">
-        <div className="flex items-center gap-2">
-          <IconHistory className="h-5 w-5 text-muted-foreground" />
-          <h2 className="font-semibold">{t("recentLogs")}</h2>
-        </div>
-        <Link href="/dash/logs" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
-          更多
-        </Link>
-      </div>
-      <Card>
-        <CardContent className="p-0 overflow-hidden">
-          <div className="divide-y divide-border">
-            {loading ? (
-              <div className="p-8 text-center text-muted-foreground"></div>
-            ) : error ? (
-              <div className="p-8 text-center text-destructive"></div>
-            ) : logs.length > 0 ? (
-              logs.map((log) => (
-                <div key={log.id} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="text-[10px] uppercase font-bold px-1.5 py-0 shrink-0">
-                      {log.module_name}
-                    </Badge>
-                    <Badge variant="secondary" className="text-[10px] uppercase font-bold px-1.5 py-0 shrink-0">
-                      {log.log_type}
-                    </Badge>
-                    <span className="text-sm text-foreground">
-                      {log.op_desc}
-                    </span>
-                  </div>
-                  <span className="text-xs text-muted-foreground font-mono">{dayjs(log.created_at).format('YYYY-MM-DD HH:mm')}</span>
-                </div>
-              ))
-            ) : (
-              <div className="p-8 text-center text-muted-foreground">没数据</div>
-            )}
+    <Card className="h-full gap-0 py-0 shadow-sm">
+      <CardHeader className="border-b px-5 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <IconClock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base">{t("recentLogs")}</CardTitle>
           </div>
-        </CardContent>
-      </Card>
-    </section>
+          <Link
+            href="/dash/logs"
+            className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {t("viewMore")}
+          </Link>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <div className="divide-y divide-border">
+          {loading ? (
+            <div className="p-8 text-center text-muted-foreground" />
+          ) : error ? (
+            <div className="p-8 text-center text-destructive" />
+          ) : displayLogs.length > 0 ? (
+            displayLogs.map((log) => (
+              <div
+                key={log.id}
+                className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-muted/30"
+              >
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <IconCircleCheck className="h-4 w-4 shrink-0 text-emerald-500" />
+                  <Badge
+                    variant="outline"
+                    className="shrink-0 px-1.5 py-0 text-[10px] font-bold uppercase"
+                  >
+                    {log.module_name}
+                  </Badge>
+                  <Badge
+                    variant="secondary"
+                    className="shrink-0 px-1.5 py-0 text-[10px] font-bold uppercase"
+                  >
+                    {log.log_type}
+                  </Badge>
+                  <span className="truncate text-sm text-foreground">
+                    {log.op_desc}
+                  </span>
+                </div>
+                <span className="shrink-0 font-mono text-xs text-muted-foreground">
+                  {dayjs(log.created_at).format('YYYY-MM-DD HH:mm')}
+                </span>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-muted-foreground">{t("noLogData")}</div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }
