@@ -594,7 +594,7 @@ const ActivityListPage = () => {
                           >
                             <ActivitySportIcon
                               sportType={act.sport_type_raw}
-                              className="h-3.5 w-3.5 text-white"
+                              className="h-3.5 w-3.5 "
                             />
                           </div>
                           {/* <span className="capitalize">{act.sport_type_raw}</span> */}

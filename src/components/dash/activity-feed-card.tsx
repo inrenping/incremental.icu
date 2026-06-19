@@ -26,7 +26,7 @@ export function ActivityFeedCard({ activity, onClick }: ActivityFeedCardProps) {
           'flex h-8 w-8 md:h-9 md:w-9 shrink-0 items-center justify-center rounded-full'
         }
       >
-        <ActivitySportIcon sportType={activity.sport_type_raw} className="h-3.5 w-3.5 text-white" />
+        <ActivitySportIcon sportType={activity.sport_type_raw} className="h-3.5 w-3.5" />
       </div>
 
       {/* Mobile: compact two-line layout */}
