@@ -1,14 +1,15 @@
 'use client';
 import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
-import activityTypes from '@/lib/activity_type.json';
+import { ActivitySportIcon, ActivityTypeIcon, ACTIVITY_TYPES, type ActivityTypeEntry } from '@/lib/activity-icons';
 import { toast } from "sonner";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   IconSearch,
   IconRefresh,
   IconDownload,
-  IconSend
+  IconSend,
+  IconLayoutList,
 } from '@tabler/icons-react';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
@@ -43,6 +44,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
+import { ActivityViewToggle } from '@/components/dash/activity-view-toggle';
 
 interface AppConfig {
   id: number;
@@ -87,6 +89,7 @@ interface DetailedActivity {
 }
 const ActivityListPage = () => {
   const t = useTranslations('ListPage');
+  const tFeed = useTranslations('FeedPage');
   const { layout } = useLayout();
   const router = useRouter();
   const pathname = usePathname();
@@ -446,23 +449,24 @@ const ActivityListPage = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">全部运动</SelectItem>
-            {activityTypes.map((group: any) => {
+            {ACTIVITY_TYPES.map((group: ActivityTypeEntry) => {
               const childKeys = group.children && group.children.length > 0
-                ? Array.from(new Set(group.children.map((c: any) => c.key))).join(',')
+                ? Array.from(new Set(group.children.map((c) => c.key))).join(',')
                 : String(group.key);
 
               return (
                 <SelectGroup key={group.name}>
-                  {/* 父节点 */}
                   <SelectItem
                     value={childKeys}
                     className="font-bold uppercase"
                   >
-                    {group.name_zh}
+                    <span className="flex items-center gap-2">
+                      <ActivityTypeIcon name={group.name} className="h-4 w-4 shrink-0" />
+                      {group.name_zh}
+                    </span>
                   </SelectItem>
 
-                  {/* 子节点 */}
-                  {group.children?.map((item: any, index: number) => {
+                  {group.children?.map((item, index) => {
                     const uniqueReactKey = `${group.name}-${item.key}-${index}`;
 
                     return (
@@ -471,7 +475,10 @@ const ActivityListPage = () => {
                         value={String(item.key)}
                         className="pl-6"
                       >
-                        {item.name_zh}
+                        <span className="flex items-center gap-2">
+                          <ActivityTypeIcon name={item.name} className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          {item.name_zh}
+                        </span>
                       </SelectItem>
                     );
                   })}
@@ -552,20 +559,19 @@ const ActivityListPage = () => {
               <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th>
               <th className="px-4 py-3 font-medium text-right">{t("elevation")}</th>
               <th className="px-4 py-3 font-medium text-center">{t("platform")}</th>
-              <th className="px-4 py-3 font-medium text-center">{t("id")}</th>
               <th className="px-4 py-3 font-medium text-center">{t("syncTime")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan={10} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
                   {t("loadingActivity")}
                 </td>
               </tr>
             ) : activities.length === 0 ? (
               <tr>
-                <td colSpan={10} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
                   {t("noActivityFound")}
                 </td>
               </tr>
@@ -582,7 +588,16 @@ const ActivityListPage = () => {
                     <tr className="hover:bg-muted/30 even:bg-muted/20 transition-colors cursor-pointer group">
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-foreground">
-                          <span className="capitalize">{act.sport_type_raw}</span>
+                          <div
+                            className=
+                              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full'                            
+                          >
+                            <ActivitySportIcon
+                              sportType={act.sport_type_raw}
+                              className="h-3.5 w-3.5 text-white"
+                            />
+                          </div>
+                          {/* <span className="capitalize">{act.sport_type_raw}</span> */}
                         </div>
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap">
@@ -609,9 +624,6 @@ const ActivityListPage = () => {
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
                         {act.source_type}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
-                        {act.activity_id}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
                         {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}

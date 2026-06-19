@@ -97,6 +97,7 @@
     "serviceStatus": "服务状态",
     "platformAccountMgmt": "平台账号管理",
     "detailedDataQuery": "详细数据查询",
+    "mobileDataQuery": "移动端查询",
     "dataSecurity": "使用须知",
     "dataSecuritySummary": "为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。继续使用本工具，即表示您已阅读并同意我们的",
     "termsOfUse": "「使用条款」",
@@ -127,6 +128,13 @@
     "pageInfo": "第 {start} 页 / 共 {total} 页",
     "jumpToPageStart": "跳转到 第",
     "jumpToPageEnd": "页"
+  },
+  "FeedPage": {
+    "title": "运动数据",
+    "tableView": "表格视图",
+    "feedView": "卡片视图",
+    "loadingMore": "加载更多...",
+    "noMore": "已加载全部数据"
   },
   "UserPage": {
     "myAccount": "我的账号"

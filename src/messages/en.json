@@ -97,6 +97,7 @@
     "serviceStatus": "Service Status",
     "platformAccountMgmt": "Platform Accounts",
     "detailedDataQuery": "Detailed Data Query",
+    "mobileDataQuery": "Mobile Query",
     "dataSecurity": "Data Security & Usage Notice",
     "dataSecuritySummary": "To sync your sports data, this tool needs to log in and store your account credentials on the server. We encrypt and store your credentials following industry standards to protect your information. By continuing to use this tool, you acknowledge that you have read and agree to our",
     "termsOfUse": "Terms of Use",
@@ -127,6 +128,13 @@
     "pageInfo": "Page {start} of {total}",
     "jumpToPageStart": "Jump to",
     "jumpToPageEnd": "page"
+  },
+  "FeedPage": {
+    "title": "Activities",
+    "tableView": "Table View",
+    "feedView": "Card View",
+    "loadingMore": "Loading more...",
+    "noMore": "All data loaded"
   },
   "UserPage": {
     "myAccount": "My Account"
