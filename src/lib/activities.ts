@@ -52,12 +52,3 @@ export function formatDistance(meters: number) {
   if (meters >= 1000) return `${(meters / 1000).toFixed(2)} km`;
   return `${Math.round(meters)} m`;
 }
-
-export function getSportColor(sportType: string) {
-  const type = sportType.toLowerCase();
-  if (type.includes('run')) return 'bg-orange-500';
-  if (type.includes('cycl') || type.includes('bike')) return 'bg-blue-500';
-  if (type.includes('swim')) return 'bg-cyan-500';
-  if (type.includes('hik') || type.includes('walk')) return 'bg-green-500';
-  return 'bg-violet-500';
-}

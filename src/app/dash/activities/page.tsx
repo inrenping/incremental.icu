@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import dayjs from 'dayjs';
 import { ActivitySportIcon, ActivityTypeIcon, ACTIVITY_TYPES, type ActivityTypeEntry } from '@/lib/activity-icons';
-import { getSportColor } from '@/lib/activities';
 import { toast } from "sonner";
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
@@ -590,10 +589,8 @@ const ActivityListPage = () => {
                       <td className="px-4 py-3 whitespace-nowrap">
                         <div className="flex items-center gap-2 text-foreground">
                           <div
-                            className={cn(
-                              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full',
-                              getSportColor(act.sport_type_raw)
-                            )}
+                            className=
+                              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full'                            
                           >
                             <ActivitySportIcon
                               sportType={act.sport_type_raw}

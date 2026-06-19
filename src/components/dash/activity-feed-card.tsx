@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { type Activity, getSportColor } from '@/lib/activities';
+import { type Activity } from '@/lib/activities';
 import { ActivitySportIcon } from '@/lib/activity-icons';
 import { ActivityFeedDesktopCells } from '@/components/dash/activity-feed-layout';
 import dayjs from 'dayjs';
@@ -22,10 +22,9 @@ export function ActivityFeedCard({ activity, onClick }: ActivityFeedCardProps) {
       className="w-full flex items-center gap-2.5 md:gap-4 px-3 md:px-4 py-2.5 md:py-2.5 text-left border-b border-border hover:bg-muted/40 active:bg-muted/60 transition-colors"
     >
       <div
-        className={cn(
-          'flex h-8 w-8 md:h-9 md:w-9 shrink-0 items-center justify-center rounded-full',
-          getSportColor(activity.sport_type_raw)
-        )}
+        className={
+          'flex h-8 w-8 md:h-9 md:w-9 shrink-0 items-center justify-center rounded-full'
+        }
       >
         <ActivitySportIcon sportType={activity.sport_type_raw} className="h-3.5 w-3.5 text-white" />
       </div>
