@@ -74,31 +74,31 @@ export function SiteHeader() {
         "px-6 transition-all duration-300 mx-auto",
         layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
       )}>
-        <div className="flex h-(--header-height) gap-3 items-center **:data-[slot=separator]:h-4!">
-          <img src="/favicon.svg" alt="Logo" className="h-6 w-6" />
-          <h1 className="text-base font-medium cursor-pointer" onClick={() => router.push('/')}>
-            {t('title')}
-          </h1>
+        <div className="grid h-(--header-height) grid-cols-[1fr_auto] items-center gap-3 **:data-[slot=separator]:h-4!">
+          <div className="flex items-center gap-2">
+            <img src="/favicon.svg" alt="Logo" className="h-6 w-6" />
+            <h1 className="cursor-pointer text-base font-medium" onClick={() => router.push('/')}>
+              {t('title')}
+            </h1>
+          </div>
 
-
-          <nav className="hidden md:flex items-center space-x-6 ml-6">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "text-sm font-medium transition-colors hover:text-primary",
-                  pathname === item.href
-                    ? "text-foreground"
-                    : "text-muted-foreground"
-                )}
-              >
-                {item.name}
-              </Link>
-            ))}
-          </nav>
-
-          <div className="ml-auto flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
+            <nav className="hidden items-center gap-6 md:flex">
+              {navItems.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "text-sm font-medium transition-colors hover:text-primary",
+                    pathname === item.href
+                      ? "text-foreground"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
             <div className="hidden md:flex items-center gap-2">
               <Separator orientation="vertical" className="mx-2 h-4 w-px bg-border" />
               <ModeIntl />
