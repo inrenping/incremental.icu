@@ -3,31 +3,37 @@
     "name": "running",
     "name_zh": "跑步",
     "key": 100,
+    "icon": "IconRun",
     "children": [
       {
         "name": "running",
         "key": 100,
-        "name_zh": "路跑/标准跑步"
+        "name_zh": "路跑/标准跑步",
+        "icon": "IconRun"
       },
       {
         "name": "treadmill_running",
         "key": 101,
-        "name_zh": "跑步机/室内跑"
+        "name_zh": "跑步机/室内跑",
+        "icon": "IconTreadmill"
       },
       {
         "name": "trail_running",
         "key": 102,
-        "name_zh": "越野跑"
+        "name_zh": "越野跑",
+        "icon": "IconMountain"
       },
       {
         "name": "track_running",
         "key": 103,
-        "name_zh": "操场跑"
+        "name_zh": "操场跑",
+        "icon": "IconRun"
       },
       {
         "name": "indoor_running",
         "key": 101,
-        "name_zh": "室内跑步"
+        "name_zh": "室内跑步",
+        "icon": "IconTreadmill"
       }
     ]
   },
@@ -35,26 +41,31 @@
     "name": "cycling",
     "name_zh": "骑行",
     "key": 200,
+    "icon": "IconBike",
     "children": [
       {
         "name": "cycling",
         "key": 200,
-        "name_zh": "户外骑行"
+        "name_zh": "户外骑行",
+        "icon": "IconBike"
       },
       {
         "name": "indoor_cycling",
         "key": 201,
-        "name_zh": "室内骑行"
+        "name_zh": "室内骑行",
+        "icon": "IconBike"
       },
       {
         "name": "mountain_biking",
         "key": 202,
-        "name_zh": "山地骑行"
+        "name_zh": "山地骑行",
+        "icon": "IconMountain"
       },
       {
         "name": "gravel_cycling",
         "key": 200,
-        "name_zh": "碎石路骑行"
+        "name_zh": "碎石路骑行",
+        "icon": "IconBike"
       }
     ]
   },
@@ -62,16 +73,19 @@
     "name": "swimming",
     "name_zh": "游泳",
     "key": 300,
+    "icon": "IconSwimming",
     "children": [
       {
         "name": "lap_swimming",
         "key": 301,
-        "name_zh": "泳池游泳"
+        "name_zh": "泳池游泳",
+        "icon": "IconPool"
       },
       {
         "name": "open_water_swimming",
         "key": 302,
-        "name_zh": "公开水域游泳"
+        "name_zh": "公开水域游泳",
+        "icon": "IconSwimming"
       }
     ]
   },
@@ -79,21 +93,25 @@
     "name": "walking",
     "name_zh": "步行",
     "key": 700,
+    "icon": "IconWalk",
     "children": [
       {
         "name": "walking",
         "key": 700,
-        "name_zh": "户外步行"
+        "name_zh": "户外步行",
+        "icon": "IconWalk"
       },
       {
         "name": "casual_walking",
         "key": 700,
-        "name_zh": "休闲步行"
+        "name_zh": "休闲步行",
+        "icon": "IconWalk"
       },
       {
         "name": "speed_walking",
         "key": 700,
-        "name_zh": "健步走"
+        "name_zh": "健步走",
+        "icon": "IconWalk"
       }
     ]
   },
@@ -101,11 +119,13 @@
     "name": "hiking",
     "name_zh": "徒步",
     "key": 400,
+    "icon": "IconMountain",
     "children": [
       {
         "name": "hiking",
         "key": 400,
-        "name_zh": "徒步/登山"
+        "name_zh": "徒步/登山",
+        "icon": "IconMountain"
       }
     ]
   },
@@ -113,26 +133,31 @@
     "name": "fitness_equipment",
     "name_zh": "健身设备",
     "key": 500,
+    "icon": "IconBarbell",
     "children": [
       {
         "name": "strength_training",
         "key": 501,
-        "name_zh": "力量训练"
+        "name_zh": "力量训练",
+        "icon": "IconBarbell"
       },
       {
         "name": "cardio_training",
         "key": 502,
-        "name_zh": "室内健身/有氧"
+        "name_zh": "室内健身/有氧",
+        "icon": "IconHeartbeat"
       },
       {
         "name": "hiit",
         "key": 502,
-        "name_zh": "HIIT"
+        "name_zh": "HIIT",
+        "icon": "IconFlame"
       },
       {
         "name": "stair_climbing",
         "key": 500,
-        "name_zh": "爬楼机"
+        "name_zh": "爬楼机",
+        "icon": "IconStairs"
       }
     ]
   },
@@ -140,16 +165,19 @@
     "name": "winter_sports",
     "name_zh": "冬季运动",
     "key": 600,
+    "icon": "IconSnowboarding",
     "children": [
       {
         "name": "resort_skiing_snowboarding_ws",
         "key": 601,
-        "name_zh": "单双板滑雪"
+        "name_zh": "单双板滑雪",
+        "icon": "IconSnowboarding"
       },
       {
         "name": "backcountry_skiing_snowboarding_ws",
         "key": 602,
-        "name_zh": "越野滑雪"
+        "name_zh": "越野滑雪",
+        "icon": "IconSkiJumping"
       }
     ]
   },
@@ -157,41 +185,49 @@
     "name": "water_sports",
     "name_zh": "水上运动",
     "key": 800,
+    "icon": "IconKayak",
     "children": [
       {
         "name": "rowing_v2",
         "key": 801,
-        "name_zh": "皮划艇/户外划船"
+        "name_zh": "皮划艇/户外划船",
+        "icon": "IconKayak"
       },
       {
         "name": "paddlesports",
         "key": 802,
-        "name_zh": "桨板 (SUP)"
+        "name_zh": "桨板 (SUP)",
+        "icon": "IconKayak"
       },
       {
         "name": "whitewater_rafting_keyaking",
         "key": 803,
-        "name_zh": "白水漂流/激流皮划艇"
+        "name_zh": "白水漂流/激流皮划艇",
+        "icon": "IconKayak"
       },
       {
         "name": "surfing",
         "key": 804,
-        "name_zh": "冲浪"
+        "name_zh": "冲浪",
+        "icon": "IconWaterpolo"
       },
       {
         "name": "windsurfing",
         "key": 805,
-        "name_zh": "风筝冲浪/风帆冲浪"
+        "name_zh": "风筝冲浪/风帆冲浪",
+        "icon": "IconWind"
       },
       {
         "name": "sailing",
         "key": 806,
-        "name_zh": "航海/帆船"
+        "name_zh": "航海/帆船",
+        "icon": "IconSailboat"
       },
       {
         "name": "wakeboarding",
         "key": 800,
-        "name_zh": "尾波冲浪/水上滑板"
+        "name_zh": "尾波冲浪/水上滑板",
+        "icon": "IconWaterpolo"
       }
     ]
   },
@@ -199,21 +235,25 @@
     "name": "other",
     "name_zh": "其他",
     "key": 900,
+    "icon": "IconActivity",
     "children": [
       {
         "name": "other",
         "key": 900,
-        "name_zh": "其他"
+        "name_zh": "其他",
+        "icon": "IconActivity"
       },
       {
         "name": "rowing",
         "key": 505,
-        "name_zh": "室内划船机"
+        "name_zh": "室内划船机",
+        "icon": "IconKayak"
       },
       {
         "name": "yoga",
         "key": 503,
-        "name_zh": "瑜伽"
+        "name_zh": "瑜伽",
+        "icon": "IconYoga"
       }
     ]
   }
