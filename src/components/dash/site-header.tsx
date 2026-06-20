@@ -149,7 +149,7 @@ export function SiteHeader() {
                   ))}
                   <DropdownMenuSeparator />
                 </div>
-                <DropdownMenuItem onClick={() => router.push('/settings/profile')} className="focus:bg-primary/50">
+                <DropdownMenuItem onClick={() => router.push('/dash/profile')} className="focus:bg-primary/50">
                   <span>{t("userSettings")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/accounts')} className="focus:bg-primary/50">

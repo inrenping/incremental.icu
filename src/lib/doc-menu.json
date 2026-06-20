@@ -1,0 +1,61 @@
+[
+  {
+    "items": [
+      {
+        "text": "我的个人资料",
+        "href": "/dash/profile"
+      },
+      {
+        "text": "我的应用程序",
+        "href": "/dash/accounts"
+      }
+    ]
+  },
+  {
+    "divider": true,
+    "items": [
+      {
+        "text": "项目介绍",
+        "href": "/doc/intro"
+      },
+      {
+        "text": "联系作者",
+        "href": "/doc/community"
+      }
+    ]
+  },
+  {
+    "divider": true,
+    "items": [
+      {
+        "text": "快速开始",
+        "href": "/doc/guide"
+      },
+      {
+        "text": "常见问题",
+        "href": "/doc/faq"
+      },
+      {
+        "text": "推荐",
+        "href": "/doc/recommended"
+      },
+      {
+        "text": "开发指南",
+        "href": "/doc/development"
+      }
+    ]
+  },
+  {
+    "divider": true,
+    "items": [
+      {
+        "text": "使用条款",
+        "href": "/doc/tos"
+      },
+      {
+        "text": "隐私政策",
+        "href": "/doc/privacy"
+      }
+    ]
+  }
+]

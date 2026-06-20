@@ -16,11 +16,14 @@
     "garmin": "佳明",
     "garminCn": "佳明中国版",
     "coros": "高驰",
-    "accounts": "管理账号",
+    "accounts": "账号管理",
     "logs": "操作日志",
     "dash": "一键同步",
     "userSettings": "用户设置",
-    "logout": "登出"
+    "logout": "登出",
+    "quickStart": "快速开始",
+    "siteStatus": "网站状态",
+    "parseUserError": "解析用户信息失败:"
   },
   "LoginPage": {
     "login": "登录",

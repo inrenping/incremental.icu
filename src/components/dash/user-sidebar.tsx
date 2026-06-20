@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/sidebar"
 
 const USER_MENU_ITEMS = [
-  { name: "Profile", href: "/settings/profile", icon: IconUser },
-  { name: "Apps", href: "/settings/apps", icon: IconUser }
+  { name: "Profile", href: "/dash/profile", icon: IconUser },
+  { name: "Apps", href: "/dash/accounts", icon: IconUser }
 ]
 
 export function UserSidebar({
