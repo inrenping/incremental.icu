@@ -3,9 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
-import { storage } from '@/lib/storage';
-import { authFetch } from '@/lib/api';
 import { SiteHeader } from "@/components/dash/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
 

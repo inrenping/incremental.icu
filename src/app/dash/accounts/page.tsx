@@ -7,7 +7,7 @@ import { authFetch } from "@/lib/api";
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
 import { toast } from "sonner";
-import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { IconPlus } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
 
@@ -63,28 +63,6 @@ export default function AccountsPage() {
     }
   };
 
-  // 测试 token 有效性
-  const handleTestAuth = async (id: number) => {
-    setLoading(true);
-    try {
-      const response = await authFetch(`/api/v1/base/testConnect?id=${id}`, {
-        method: 'GET'
-      });
-      const result = await response.json();
-      if (result.status === "success") {
-        toast.success("测试通过");
-        fetchAppsStatus();
-      } else {
-        toast.error(result.message || "测试失败");
-      }
-
-    } catch (err: any) {
-      console.error("Refresh auth error:", err);
-      toast.error(err.message || t("refreshFailedTryAgain"));
-    } finally {
-      setLoading(false);
-    }
-  }
   // 刷新认证处理函数
   const handleRefreshAuth = async (id: number) => {
     setLoading(true);
@@ -109,13 +87,24 @@ export default function AccountsPage() {
   };
 
   return (
-    <div className={cn(
-      "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
-      layout === "fixed" ? "w-full max-w-7xl" : "w-full max-w-none"
-    )}>
-
+    <div className="flex flex-col gap-8 py-4 md:gap-6 md:py-6">
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-xl font-semibold">我的应用程序</h1>
+          <Button
+            onClick={() => {
+              setCurrentApp({ source_type: 'garmin_cn' });
+              setOpen(true);
+            }}
+          >
+            <IconPlus className="h-4 w-4 mr-2" />
+            {t("connectAccount")}
+          </Button>
+        </div>
+        <p className="text-muted-foreground text-sm">你已授权本站点访问你的应用数据。</p>
+      </div>
       <section>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-4">
           {apps.map((app) => (
             <AppCard
               key={app.id}
@@ -125,23 +114,8 @@ export default function AccountsPage() {
                 setOpen(true);
               }}
               onRefresh={(id) => handleRefreshAuth(id)}
-              onTest={(id) => handleTestAuth(id)}
             />
           ))}
-          <Card
-            className="flex flex-col items-center justify-cente cursor-pointer hover:bg-muted/30 transition-all border-dashed border-2 group"
-            onClick={() => {
-              setCurrentApp({ source_type: 'garmin_cn' });
-              setOpen(true);
-            }}
-          >
-            <div className="p-4 rounded-full bg-primary/5 group-hover:bg-primary/10 transition-colors">
-              <IconPlus className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-            <span className="mt-2 text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">
-              {t("connectAccount")}
-            </span>
-          </Card>
         </div>
       </section>
 

@@ -1,9 +1,21 @@
 'use client';
 
-import { useEffect, useState, use, useRef } from 'react';
+import React, { useEffect, useState, use, useRef } from 'react';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import MarkdownRenderer from "@/components/markdown-renderer";
+import docMenu from "@/lib/doc-menu.json";
+
+interface MenuItem {
+  text: string;
+  href: string;
+}
+
+interface MenuSection {
+  divider?: boolean;
+  items: MenuItem[];
+}
+
 interface DocPageProps {
   params: Promise<{ slug: string }>;
 }
@@ -78,26 +90,24 @@ export default function docPage({ params }: DocPageProps) {
       <aside className="hidden lg:block w-40 shrink-0">
         <div className="sticky top-10">
           <nav className="flex flex-col gap-4 text-muted-foreground/80">
-            <div className="flex flex-col gap-3">
-              <a href="/doc/intro" className="hover:text-primary transition-colors">项目介绍</a>
-              <a href="/doc/community" className="hover:text-primary transition-colors">联系作者</a>
-            </div>
-
-            <div className="border-t border-border/60" />
-
-            <div className="flex flex-col gap-3">
-              <a href="/doc/guide" className="hover:text-primary transition-colors">快速开始</a>
-              <a href="/doc/faq" className="hover:text-primary transition-colors">常见问题</a>
-              <a href="/doc/recommended" className="hover:text-primary transition-colors">其他推荐</a>
-              <a href="/doc/development" className="hover:text-primary transition-colors">开发指南</a>
-            </div>
-
-            <div className="border-t border-border/60" />
-
-            <div className="flex flex-col gap-3">
-              <a href="/doc/tos" className="hover:text-primary transition-colors">使用条款</a>
-              <a href="/doc/privacy" className="hover:text-primary transition-colors">隐私政策</a>
-            </div>
+            {docMenu.map((section, sectionIndex) => (
+              <React.Fragment key={sectionIndex}>
+                {section.divider && sectionIndex > 0 && (
+                  <div className="border-t border-border/60" />
+                )}
+                <div className="flex flex-col gap-3">
+                  {section.items.map((item, itemIndex) => (
+                    <a
+                      key={itemIndex}
+                      href={item.href}
+                      className="hover:text-primary transition-colors"
+                    >
+                      {item.text}
+                    </a>
+                  ))}
+                </div>
+              </React.Fragment>
+            ))}
           </nav>
         </div>
       </aside>

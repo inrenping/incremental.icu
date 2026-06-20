@@ -394,7 +394,7 @@ export default function DashPage() {
           <p className="text-muted-foreground">{t("manageSync")}</p>
         </div>
         <Button variant="outline" size="lg" className="h-10 shrink-0 rounded-full px-4 text-sm" asChild>
-          <Link href="/settings/profile">
+          <Link href="/dash/profile">
             <IconUser className="h-5 w-5" />
             {t("userSettings")}
           </Link>

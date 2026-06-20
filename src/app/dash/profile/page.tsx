@@ -95,7 +95,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+    <div className="w-full max-w-2xl flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="space-y-1 ">
         <h1 className="text-xl font-semibold">我的个人资料</h1>
       </div>
