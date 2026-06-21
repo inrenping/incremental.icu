@@ -101,8 +101,9 @@ const ActivityListPage = () => {
 
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || "");
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || "");
-  const [sportType, setSportType] = useState(searchParams.get('sport_type') || "");
+  const [sportType, setSportType] = useState(searchParams.get('sport_types') || "");
   const [searchName, setSearchName] = useState(searchParams.get('name') || "");
+
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -113,12 +114,13 @@ const ActivityListPage = () => {
   const [pushing, setPushing] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [apps, setApps] = useState<AppConfig[]>([]);
+  const [pushResult, setPushResult] = useState<{ success: boolean; result: any } | null>(null);
 
   // 当 URL 参数变化时（如点击浏览器后退），同步本地状态
   useEffect(() => {
     setStartDate(searchParams.get('startDate') || "");
     setEndDate(searchParams.get('endDate') || "");
-    setSportType(searchParams.get('sport_type') || "");
+    setSportType(searchParams.get('sport_types') || "");
     setSearchName(searchParams.get('name') || "");
   }, [searchParams]);
 
@@ -169,7 +171,7 @@ const ActivityListPage = () => {
     const currentParams = new URLSearchParams(window.location.search);
     const urlStartDate = currentParams.get('startDate');
     const urlEndDate = currentParams.get('endDate');
-    const urlSportType = currentParams.get('sport_type');
+    const urlSportType = currentParams.get('sport_types');
     const urlName = currentParams.get('name');
 
     try {
@@ -183,7 +185,7 @@ const ActivityListPage = () => {
       if (urlEndDate)
         queryParams.set('end_date', urlEndDate);
       if (urlSportType)
-        queryParams.set('sport_type', urlSportType);
+        queryParams.set('sport_types', urlSportType);
       if (urlName)
         queryParams.set('name', urlName);
 
@@ -230,7 +232,7 @@ const ActivityListPage = () => {
     const params = new URLSearchParams(searchParams.toString());
     if (startDate) params.set('startDate', startDate); else params.delete('startDate');
     if (endDate) params.set('endDate', endDate); else params.delete('endDate');
-    if (sportType && sportType !== 'all') params.set('sport_type', sportType); else params.delete('sport_type');
+    if (sportType && sportType !== 'all') params.set('sport_types', sportType); else params.delete('sport_types');
     if (searchName) params.set('name', searchName); else params.delete('name');
 
     setPage(1);
@@ -354,8 +356,9 @@ const ActivityListPage = () => {
    */
   const handlePushToPlatform = async (selectedActivityId: number, targetConnectId: number) => {
     if (pushing) return;
+    setPushResult(null);
     if (!selectedActivityId) {
-      alert("未找到活动 ID，请稍后再试");
+      setPushResult({ success: false, result: { message: "未找到活动 ID，请稍后再试" } });
       return;
     }
     setPushing(true);
@@ -363,14 +366,12 @@ const ActivityListPage = () => {
     try {
       const response = await authFetch(pushUrl, { method: 'POST' });
       const result = await response.json();
-      if (result) {
-        alert(JSON.stringify(result));
-      } else {
-        alert(`推送失败: ${result.message || result.detail || '未知错误'}`);
-      }
+      console.log(JSON.stringify(result));
+      const success = result.status === "SUCCESS" || result.status === "success";
+      setPushResult({ success, result });
     } catch (error) {
       console.error("Push failed:", error);
-      alert("请求过程中发生错误");
+      setPushResult({ success: false, result: { message: "请求过程中发生错误", error } });
     } finally {
       setPushing(false);
     }
@@ -380,9 +381,9 @@ const ActivityListPage = () => {
     const pushTargets = apps
       .filter(app => app.is_active)
       .map(app => {
-        let name = app.source_type + "_" + app.region + "(" + app.account + ")";
-        let internalPlatform = name;
-        return { id: app.id, platform: internalPlatform, name };
+        let platformName = app.source_type + "_" + app.region;
+        let internalPlatform = platformName + "(" + app.account + ")";
+        return { id: app.id, platform: internalPlatform, platformName, account: app.account };
       })
       .filter(p => p.id !== currentConnectId);
 
@@ -402,12 +403,12 @@ const ActivityListPage = () => {
       layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
       {/* 平台选择器 & 过滤栏 */}
-      <div className="bg-card dark:bg-muted/20 p-2 rounded-lg border border-border shadow-sm mb-4 flex items-center gap-3">
+      <div className="bg-card dark:bg-muted/20 p-2 rounded-lg border border-border shadow-sm mb-4 flex items-center gap-3 max-[768px]:flex-wrap max-[768px]:p-3">
         <Select
           value={appSelected || ""}
           onValueChange={handlePlatformChange}
         >
-          <SelectTrigger className="w-[300px] bg-background">
+          <SelectTrigger className="w-75 bg-background max-[768px]:w-full max-[768px]:min-h-[44px]">
             <SelectValue placeholder="选择平台账号" />
           </SelectTrigger>
           <SelectContent>
@@ -420,31 +421,31 @@ const ActivityListPage = () => {
           </SelectContent>
         </Select>
 
-        <div className="w-px h-6 bg-border shrink-0 mx-1" />
+        <div className="w-px h-6 bg-border shrink-0 mx-1 max-[768px]:hidden" />
 
         <div className="flex items-center gap-2">
           <input
             type="date"
             value={startDate}
             onChange={(e) => handleDateChange('startDate', e.target.value)}
-            className="px-2 py-1.5 border border-border bg-background rounded text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            className="px-2 py-1.5 border border-border bg-background rounded text-xs focus:outline-none focus:ring-1 focus:ring-ring max-[768px]:flex-1 max-[768px]:min-h-[44px] max-[768px]:text-base"
           />
           <span className="text-muted-foreground">-</span>
           <input
             type="date"
             value={endDate}
             onChange={(e) => handleDateChange('endDate', e.target.value)}
-            className="px-2 py-1.5 border border-border bg-background rounded text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+            className="px-2 py-1.5 border border-border bg-background rounded text-xs focus:outline-none focus:ring-1 focus:ring-ring max-[768px]:flex-1 max-[768px]:min-h-[44px] max-[768px]:text-base"
           />
         </div>
 
-        <div className="w-px h-6 bg-border shrink-0 mx-1" />
+        <div className="w-px h-6 bg-border shrink-0 mx-1 max-[768px]:hidden" />
 
         <Select
           value={sportType || "all"}
           onValueChange={handleSportTypeChange}
         >
-          <SelectTrigger className="w-[160px] bg-background">
+          <SelectTrigger className="w-[160px] bg-background max-[768px]:w-full max-[768px]:min-h-[44px]">
             <SelectValue placeholder="全部运动" />
           </SelectTrigger>
           <SelectContent>
@@ -488,13 +489,13 @@ const ActivityListPage = () => {
           </SelectContent>
         </Select>
 
-        <div className="relative flex-1 max-w-xs">
-          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+        <div className="relative flex-1 max-w-xs max-[768px]:max-w-full">
+          <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground max-[768px]:left-4 max-[768px]:size-5" size={16} />
           <input
             type="text" value={searchName}
             onChange={(e) => setSearchName(e.target.value)}
             placeholder="搜索关键词..."
-            className="w-full pl-9 pr-3 py-1.5 border border-border bg-background rounded focus:outline-none focus:ring-1 focus:ring-ring"
+            className="w-full pl-9 pr-3 py-1.5 border border-border bg-background rounded focus:outline-none focus:ring-1 focus:ring-ring max-[768px]:pl-12 max-[768px]:pr-4 max-[768px]:py-3 max-[768px]:text-base"
           />
         </div>
 
@@ -503,7 +504,7 @@ const ActivityListPage = () => {
           size="sm"
           onClick={handlePull}
           disabled={syncing}
-          className="ml-auto gap-2"
+          className="ml-auto gap-2 max-[768px]:min-h-[44px] max-[768px]:min-w-[88px]"
         >
           <IconRefresh className={cn(syncing && "animate-spin")} />
           {syncing ? '同步中...' : '增量同步'}
@@ -515,7 +516,7 @@ const ActivityListPage = () => {
               variant="outline"
               size="sm"
               disabled={syncing}
-              className="gap-2"
+              className="gap-2 max-[768px]:min-h-[44px] max-[768px]:min-w-[88px]"
             >
               <IconRefresh className={cn(syncing && "animate-spin")} />
               {syncing ? '同步中...' : '全量同步'}
@@ -539,7 +540,7 @@ const ActivityListPage = () => {
           size="sm"
           onClick={handleSearch}
           disabled={loading}
-          className="gap-2"
+          className="gap-2 max-[768px]:min-h-[44px] max-[768px]:min-w-[88px]"
         >
           {loading ? <IconRefresh className="animate-spin" /> : <IconSearch />}
           {loading ? '查询中...' : '查询'}
@@ -551,15 +552,15 @@ const ActivityListPage = () => {
         <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="bg-muted/50 text-muted-foreground border-b border-border">
-              <th className="px-4 py-3 font-medium w-24">{t("type")}</th>
+              <th className="px-4 py-3 font-medium w-12 max-[768px]:w-16">{t("type")}</th>
               <th className="px-4 py-3 font-medium">{t("name")}</th>
-              <th className="px-4 py-3 font-medium text-right">{t("distance")}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("distance")}</th>
               <th className="px-4 py-3 font-medium">{t("startTime")}</th>
-              <th className="px-4 py-3 font-medium text-right">{t("movingTime")}</th>
-              <th className="px-4 py-3 font-medium text-right">{t("totalTime")}</th>
-              <th className="px-4 py-3 font-medium text-right">{t("elevation")}</th>
-              <th className="px-4 py-3 font-medium text-center">{t("platform")}</th>
-              <th className="px-4 py-3 font-medium text-center">{t("syncTime")}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("movingTime")}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("totalTime")}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("elevation")}</th>
+              <th className="px-4 py-3 font-medium text-center max-[768px]:hidden">{t("platform")}</th>
+              <th className="px-4 py-3 font-medium text-center max-[768px]:hidden">{t("syncTime")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -580,21 +581,23 @@ const ActivityListPage = () => {
                 <Dialog key={act.activity_id || i} onOpenChange={(open) => {
                   if (open) {
                     fetchActivityDetails(act.id);
+                    setPushResult(null); // Clear previous push result when opening dialog
                   } else {
                     setSelectedActivityDetail(null); // Clear details when dialog closes
+                    setPushResult(null); // Also clear push result when closing dialog
                   }
                 }}>
                   <DialogTrigger asChild>
                     <tr className="hover:bg-muted/30 even:bg-muted/20 transition-colors cursor-pointer group">
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <div className="flex items-center gap-2 text-foreground">
+                        <div className="flex items-center gap-2 text-foreground justify-center">
                           <div
                             className=
-                              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full'                            
+                            'flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black'
                           >
                             <ActivitySportIcon
                               sportType={act.sport_type_raw}
-                              className="h-3.5 w-3.5 "
+                              className="h-3.5 w-3.5 text-white"
                             />
                           </div>
                           {/* <span className="capitalize">{act.sport_type_raw}</span> */}
@@ -607,25 +610,25 @@ const ActivityListPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
                         {(act.distance_meters / 1000).toFixed(2)} km
                       </td>
                       <td className="px-4 py-5 text-muted-foreground whitespace-nowrap">
                         <div className="font-mono">{dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}</div>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
                         {formatDuration(act.moving_duration_seconds)}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
                         {formatDuration(act.duration_seconds)}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
                         {act.elevation_gain} m
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap max-[768px]:hidden">
                         {act.source_type}
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap">
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap max-[768px]:hidden">
                         {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}
                       </td>
                     </tr>
@@ -649,10 +652,17 @@ const ActivityListPage = () => {
                                 key={target.id}
                                 onClick={() => handlePushToPlatform(selectedActivityDetail?.id, target.id)}
                                 disabled={pushing}
-                                className="flex items-center gap-2 px-4 py-2 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all text-sm font-medium shadow-sm h-10"
+                                className="flex flex-col items-center justify-center gap-0.5 px-4 py-2.5 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm min-w-[180px] h-auto"
                               >
-                                {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
-                                {pushing ? '推送中...' : `手动推送 ${target.name}`}
+                                <div className="flex items-center gap-2">
+                                  {pushing ? <IconRefresh size={16} className="animate-spin" /> : <IconSend size={16} className="text-blue-500" />}
+                                  <span className="font-medium text-sm">
+                                    {pushing ? '推送中...' : `手动推送到 ${target.platformName}`}
+                                  </span>
+                                </div>
+                                {!pushing && (
+                                  <span className="text-xs text-muted-foreground">{target.account}</span>
+                                )}
                               </button>
                             ))}
                           </div>
@@ -665,6 +675,13 @@ const ActivityListPage = () => {
                             {downloading ? '下载中...' : '下载 FIT 文件'}
                           </button>
                         </div>
+                        {pushResult && (
+                          <div className={`mt-4 p-3 rounded-md text-sm font-mono whitespace-pre-wrap break-all ${pushResult.success ? 'bg-green-50 border border-green-200 text-green-800' : 'bg-red-50 border border-red-200 text-red-800'}`}>
+                            {pushResult.success ? '上传成功' : '上传失败'}
+                            <br />
+                            {JSON.stringify(pushResult.result, null, 2)}
+                          </div>
+                        )}
                       </div>
                     )}
                   </DialogContent>
