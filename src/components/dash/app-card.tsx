@@ -33,6 +33,12 @@ export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
               <IconCircleCheckFilled className="h-3 w-3" />
               {t("connected")}
             </Badge>
+            {app.master && (
+              <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 gap-1 border-emerald-200">
+                <IconCircleCheckFilled className="h-3 w-3" />
+                主数据源
+              </Badge>
+            )}
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-2">
             {app.account && (

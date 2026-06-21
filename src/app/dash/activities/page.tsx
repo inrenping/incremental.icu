@@ -101,8 +101,9 @@ const ActivityListPage = () => {
 
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || "");
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || "");
-  const [sportType, setSportType] = useState(searchParams.get('sport_type') || "");
+  const [sportType, setSportType] = useState(searchParams.get('sport_types') || "");
   const [searchName, setSearchName] = useState(searchParams.get('name') || "");
+
 
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -119,7 +120,7 @@ const ActivityListPage = () => {
   useEffect(() => {
     setStartDate(searchParams.get('startDate') || "");
     setEndDate(searchParams.get('endDate') || "");
-    setSportType(searchParams.get('sport_type') || "");
+    setSportType(searchParams.get('sport_types') || "");
     setSearchName(searchParams.get('name') || "");
   }, [searchParams]);
 
@@ -170,7 +171,7 @@ const ActivityListPage = () => {
     const currentParams = new URLSearchParams(window.location.search);
     const urlStartDate = currentParams.get('startDate');
     const urlEndDate = currentParams.get('endDate');
-    const urlSportType = currentParams.get('sport_type');
+    const urlSportType = currentParams.get('sport_types');
     const urlName = currentParams.get('name');
 
     try {
@@ -184,7 +185,7 @@ const ActivityListPage = () => {
       if (urlEndDate)
         queryParams.set('end_date', urlEndDate);
       if (urlSportType)
-        queryParams.set('sport_type', urlSportType);
+        queryParams.set('sport_types', urlSportType);
       if (urlName)
         queryParams.set('name', urlName);
 
@@ -231,7 +232,7 @@ const ActivityListPage = () => {
     const params = new URLSearchParams(searchParams.toString());
     if (startDate) params.set('startDate', startDate); else params.delete('startDate');
     if (endDate) params.set('endDate', endDate); else params.delete('endDate');
-    if (sportType && sportType !== 'all') params.set('sport_type', sportType); else params.delete('sport_type');
+    if (sportType && sportType !== 'all') params.set('sport_types', sportType); else params.delete('sport_types');
     if (searchName) params.set('name', searchName); else params.delete('name');
 
     setPage(1);

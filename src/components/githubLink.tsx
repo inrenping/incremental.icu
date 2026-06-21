@@ -29,14 +29,18 @@ export function StarsCount() {
         const json = await res.json();
 
         const count = json.stargazers_count;
-        const formattedCount = count >= 1000
-          ? `${Math.round(count / 1000)}k`
-          : count?.toLocaleString();
+        if (typeof count === 'number') {
+          const formattedCount = count >= 1000
+            ? `${Math.round(count / 1000)}k`
+            : count.toLocaleString();
 
-        setStars(formattedCount);
+          setStars(formattedCount);
+        } else {
+          setStars(null);
+        }
       } catch (error) {
         console.error("Failed to fetch GitHub stars:", error);
-        setStars("0");
+        setStars(null);
       }
     }
 
@@ -45,7 +49,7 @@ export function StarsCount() {
 
   return (
     <span className="w-fit text-xs text-muted-foreground tabular-nums">
-      {stars ?? null}
+      {stars}
     </span>
   );
 }

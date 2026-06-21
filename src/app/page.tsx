@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
+import { StarsCount } from "@/components/githubLink"
 export default function Home() {
   const t = useTranslations('IndexPage')
   const router = useRouter()
@@ -35,7 +36,7 @@ export default function Home() {
                   {t('getStarted')}<IconTrendingUp className="h-4 w-4" />
                 </Button>
                 <Button
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('https://github.com/inrenping/incremental.icu')}
                   variant="outline"
                   size="lg"
                   className="h-14 px-8 rounded-full shadow-lg hover:shadow-xl transition-all gap-2 text-lg font-semibold"
@@ -44,7 +45,7 @@ export default function Home() {
                   Github
                   <IconMinusVertical className="h-4 w-1" />
                   <IconStarFilled className="h-4 w-4 text-yellow-400" />
-
+                  <StarsCount />
                 </Button>
               </div>
 

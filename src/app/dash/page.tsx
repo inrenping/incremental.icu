@@ -55,6 +55,7 @@ export interface AppConfig {
   created_at: string;
   updated_at: string;
   last_synced_at: string | null;
+  master: boolean;
 }
 
 interface User {
@@ -75,9 +76,9 @@ function getPlatformAvatarClass(sourceType: string) {
   return 'bg-neutral-900 text-white dark:bg-neutral-100 dark:text-neutral-900';
 }
 
-function getPlatformDisplayName(sourceType: string) {
-  if (sourceType === 'garmin') return 'Garmin';
-  if (sourceType === 'garmin_cn') return 'Garmin CN';
+function getPlatformDisplayName(sourceType: string, region: string) {
+  if (sourceType === 'garmin' && region === 'gobal') return 'Garmin Global';
+  if (sourceType === 'garmin' && region === 'cn') return 'Garmin CN';
   if (sourceType === 'coros') return 'COROS';
   return sourceType.toUpperCase();
 }
@@ -108,7 +109,7 @@ function PlatformSelect({
 
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="h-auto min-h-[72px] w-full rounded-xl border-border/60 bg-background px-4 py-4 shadow-none hover:border-border focus:ring-0">
+      <SelectTrigger className="h-auto min-h-18 w-full rounded-xl border-border/60 bg-background px-4 py-4 shadow-none hover:border-border focus:ring-0">
         {selected ? (
           <div className="flex w-full items-center gap-3">
             <PlatformAvatar sourceType={selected.source_type} />
@@ -237,10 +238,12 @@ export default function DashPage() {
   }, []);
 
   const activeApps = useMemo(() => apps.filter((a) => a.is_active), [apps]);
+  const masterApp = useMemo(() => activeApps.filter((a) => a.master)?.[0], [activeApps]);
 
   const stats = useMemo(() => {
-    const platformNames = [...new Set(activeApps.map((a) => getPlatformDisplayName(a.source_type)))].join(' · ');
+    const platformNames = [...new Set(activeApps.map((a) => getPlatformDisplayName(a.source_type, a.region)))].join(' / ');
     const totalSyncs = activeApps.reduce((sum, a) => sum + (a.total_count || 0), 0);
+    const masterTotalSyncs = masterApp?.total_count || 0;
     const lastSyncDate = activeApps.reduce<Date | null>((latest, app) => {
       if (!app.last_synced_at) return latest;
       const date = new Date(app.last_synced_at);
@@ -251,10 +254,10 @@ export default function DashPage() {
       connectedCount: activeApps.length,
       platformNames: platformNames || '—',
       totalSyncs,
-      lastSyncDate: lastSyncDate ? dayjs(lastSyncDate).format('MM-DD') : '—',
-      lastSyncTime: lastSyncDate ? dayjs(lastSyncDate).format('HH:mm') : '—',
+      masterTotalSyncs,
+      lastSyncDate: lastSyncDate ? dayjs(lastSyncDate).format('MM-DD HH:mm') : '—',
     };
-  }, [activeApps]);
+  }, [activeApps, masterApp]);
 
   const fetchAppsStatus = async () => {
     setLoading(true);
@@ -402,7 +405,7 @@ export default function DashPage() {
       </section>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard
           title={t("connectedPlatforms")}
           value={loading ? '—' : String(stats.connectedCount)}
@@ -413,15 +416,8 @@ export default function DashPage() {
         <StatCard
           title={t("totalSyncs")}
           value={loading ? '—' : String(stats.totalSyncs)}
-          subtext={t("allSuccessful")}
+          subtext={masterApp ? `主数据源 · ${getPlatformDisplayName(masterApp.source_type, masterApp.region)} ( ${stats.masterTotalSyncs} )` : '—'}
           icon={IconRefresh}
-          href="/dash/activities"
-        />
-        <StatCard
-          title={t("lastSync")}
-          value={loading ? '—' : stats.lastSyncDate}
-          subtext={stats.lastSyncTime}
-          icon={IconClock}
           href="/dash/activities"
         />
       </div>
