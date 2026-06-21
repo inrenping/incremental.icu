@@ -42,6 +42,7 @@ interface ConnectionDialogProps {
     source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
     region: string;
     is_active: boolean;
+    master: boolean;
     access_token: string | null;
     access_token_expires_at: string | null;
     refresh_token: string | null;
@@ -65,6 +66,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [master, setMaster] = useState(false);
 
   useEffect(() => {
     console.log(app);
@@ -74,6 +76,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
       if (app.region === 'cn') {
         setSelectedPlatform('garmin_cn');
       }
+      setMaster(app.master || false);
     }
   }, [open, app]);
 
@@ -100,13 +103,15 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
           region: selectedPlatform === 'garmin_cn' ? 'cn' : 'global',
           email: username,
           // password,
-          password: CryptoJS.AES.encrypt(password, key).toString()
+          password: CryptoJS.AES.encrypt(password, key).toString(),
+          master,
         }
         : {
           id: app.id ? app.id : 0,
           region: 'coros',
           email: username,
           password: CryptoJS.MD5(password).toString(),
+          master,
         };
 
       const response = await authFetch('/api/v1/base/login', {
@@ -189,6 +194,15 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading || success}
             />
+          </div>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="master"
+              checked={master}
+              onCheckedChange={(checked) => setMaster(checked as boolean)}
+              disabled={loading || success}
+            />
+            <Label htmlFor="master" className="text-sm font-medium leading-none">设置为主数据源</Label>
           </div>
           <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg text-[13px] leading-relaxed text-amber-800 dark:text-amber-200 space-y-2 border border-amber-200 dark:border-amber-800">
             <div className="flex items-center gap-2 font-semibold">
