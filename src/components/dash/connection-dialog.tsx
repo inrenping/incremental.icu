@@ -55,10 +55,11 @@ interface ConnectionDialogProps {
     updated_at: string;
     last_synced_at: string | null;
   };
+  action: 'add' | 'update';
   onSuccess?: () => void;
 }
 
-export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: ConnectionDialogProps) {
+export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess }: ConnectionDialogProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [selectedPlatform, setSelectedPlatform] = useState('');
@@ -102,9 +103,9 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
           id: app.id ? app.id : 0,
           region: selectedPlatform === 'garmin_cn' ? 'cn' : 'global',
           email: username,
-          // password,
           password: CryptoJS.AES.encrypt(password, key).toString(),
           master,
+          action,
         }
         : {
           id: app.id ? app.id : 0,
@@ -112,6 +113,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, onSuccess }: Conn
           email: username,
           password: CryptoJS.MD5(password).toString(),
           master,
+          action,
         };
 
       const response = await authFetch('/api/v1/base/login', {

@@ -128,6 +128,7 @@ export default function AccountsPage() {
           if (!val) setCurrentApp(null);
         }}
         app={currentApp}
+        action={currentApp?.id ? 'update' : 'add'}
         onSuccess={fetchAppsStatus}
       />
     </div>
