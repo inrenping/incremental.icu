@@ -15,7 +15,7 @@ export async function generateMetadata(): Promise<Metadata> {
   const description = messages.IndexPage?.description ?? "";
 
   return {
-    title: `${title} | ${description}`,
+    title: `${title}`,
     description,
   };
 }

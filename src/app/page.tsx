@@ -9,6 +9,7 @@ import { useTranslations } from 'next-intl'
 import { SiteHeader } from "@/components/login/site-header"
 import { SiteFooter } from "@/components/dash/site-footer"
 import { StarsCount } from "@/components/githubLink"
+import { FeaturePreview } from "@/components/feature-preview"
 export default function Home() {
   const t = useTranslations('IndexPage')
   const router = useRouter()
@@ -83,6 +84,9 @@ export default function Home() {
             ))}
           </div>
         </section>
+
+        <FeaturePreview />
+
       </main>
       <SiteFooter />
     </div>
