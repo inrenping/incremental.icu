@@ -4,6 +4,10 @@
 
 [点击发送邮件](mailto:inrenping@gmail.com)
 
+## Github Issue
+
+[提交 Issue](https://github.com/inrenping/incremental.icu/issues)
+
 ## 加微信
 
   <img src="/wechat.webp" alt="wechat" width="250" style="display: block; margin-left: 0; margin-right: auto;" />
