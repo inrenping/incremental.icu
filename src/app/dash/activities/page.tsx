@@ -552,7 +552,7 @@ const ActivityListPage = () => {
         <table className="w-full text-left border-collapse table-fixed">
           <thead>
             <tr className="bg-muted/50 text-muted-foreground border-b border-border">
-              <th className="px-4 py-3 font-medium w-12 max-[768px]:w-16">{t("type")}</th>
+              <th className="px-4 py-3 font-medium w-20 max-[768px]:w-16">{t("type")}</th>
               <th className="px-4 py-3 font-medium">{t("name")}</th>
               <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("distance")}</th>
               <th className="px-4 py-3 font-medium">{t("startTime")}</th>
