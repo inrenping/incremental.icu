@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
 import { toast } from "sonner";
@@ -104,7 +104,7 @@ export default function TasksPage() {
         <div className="sticky top-10">
           <nav className="flex flex-col gap-4 text-muted-foreground/80">
             {docMenu.map((section, sectionIndex) => (
-              <div key={sectionIndex}>
+              <React.Fragment key={sectionIndex}>
                 {section.divider && sectionIndex > 0 && (
                   <div className="border-t border-border/60" />
                 )}
@@ -119,7 +119,7 @@ export default function TasksPage() {
                     </Link>
                   ))}
                 </div>
-              </div>
+              </React.Fragment>
             ))}
           </nav>
         </div>
