@@ -1,17 +1,5 @@
 [
   {
-    "items": [
-      {
-        "text": "我的个人资料",
-        "href": "/dash/profile"
-      },
-      {
-        "text": "我的应用程序",
-        "href": "/dash/accounts"
-      }
-    ]
-  },
-  {
     "divider": true,
     "items": [
       {

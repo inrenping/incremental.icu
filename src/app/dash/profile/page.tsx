@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { storage } from '@/lib/storage';
 import { authFetch } from '@/lib/api';
 import dayjs from 'dayjs';
+import { toast } from 'sonner';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,6 +21,8 @@ import {
 interface User {
   username?: string;
   email?: string;
+  timezone?: string;
+  updated_at?: string;
 }
 
 interface SocialAccount {
@@ -46,6 +49,9 @@ export default function ProfilePage() {
 
     try {
       const parsedUser = typeof userData === 'string' ? JSON.parse(userData) : userData;
+      if (!parsedUser.timezone) {
+        parsedUser.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      }
       setUser(parsedUser as User);
     } catch (error) {
       console.error('解析用户信息失败:', error);
@@ -109,6 +115,40 @@ export default function ProfilePage() {
             <span className="text-sm text-muted-foreground">邮箱</span>
             <span className="font-semibold">{user?.email}</span>
           </div>
+          <div className="grid items-center gap-4 border-b border-border pb-4">
+            <span className="text-sm text-muted-foreground">时区</span>
+            <div className="flex items-center justify-between gap-3">
+              <span className="font-semibold">{user?.timezone ?? '未设置'}</span>
+              <Button variant="outline" size="sm" onClick={async () => {
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                setUser((prev) => prev ? { ...prev, timezone: tz } : prev);
+                try {
+                  const res = await authFetch('/api/v1/user/timezone', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tz }),
+                  });
+                  const data = await res.json();
+                  if (data.status === 'success') {
+                    const userData = storage.get('user');
+                    if (userData) {
+                      const parsed = typeof userData === 'string' ? JSON.parse(userData) : userData;
+                      parsed.timezone = data.timezone;
+                      storage.set('user', parsed);
+                    }
+                    toast.success(`时区已更新: ${data.timezone}`);
+                  } else {
+                    toast.error('更新时区失败');
+                  }
+                } catch (error) {
+                  console.error('更新时区失败:', error);
+                  toast.error('更新时区失败，请稍后重试');
+                }
+              }}>
+                刷新
+              </Button>
+            </div>
+          </div>
           {SOCIAL_PROVIDERS.map((item) => {
             const social = socials.find((entry) => entry.provider === item.provider);
             return (
@@ -131,6 +171,10 @@ export default function ProfilePage() {
               </div>
             );
           })}
+          <div className="grid items-center gap-4 border-b border-border pb-4">
+            <span className="text-sm text-muted-foreground">最后修改时间</span>
+            <span className="font-semibold">{user?.updated_at ? dayjs(user.updated_at).format('YYYY-MM-DD HH:mm') : '未记录'}</span>
+          </div>
           <div className="flex flex-col items-start gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
