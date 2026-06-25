@@ -122,9 +122,11 @@ export async function GET(request: NextRequest) {
     if (!data?.daily || !data.details?.length) return new NextResponse(buildErrorSvg('无数据'), { status: 200, headers: { 'Content-Type': 'image/svg+xml' } });
 
     const yesterdayMap = new Map<string, number>();
-    if (yesterdayData?.details) for (const d of yesterdayData.details) yesterdayMap.set(dayjs(d.sample_time).format('HH:mm'), d.heart_rate);
+    const tz = (s: string) => dayjs(s).add(8, 'hour');
 
-    const pts = data.details.map(d => ({ time: dayjs(d.sample_time).format('HH:mm'), hr: d.heart_rate, yhr: yesterdayMap.get(dayjs(d.sample_time).format('HH:mm')) ?? null }));
+    if (yesterdayData?.details) for (const d of yesterdayData.details) yesterdayMap.set(tz(d.sample_time).format('HH:mm'), d.heart_rate);
+
+    const pts = data.details.map(d => ({ time: tz(d.sample_time).format('HH:mm'), hr: d.heart_rate, yhr: yesterdayMap.get(tz(d.sample_time).format('HH:mm')) ?? null }));
     const yMin = 0;
     const yMax = 200;
     const scaleY = PLOT_H / (yMax - yMin);
