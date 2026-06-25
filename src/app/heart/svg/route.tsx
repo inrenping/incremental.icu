@@ -138,9 +138,10 @@ export async function GET(request: NextRequest) {
     const yTicks: number[] = [];
     for (let i = 0; i < tickCount; i++) yTicks.push(yMin + (yMax - yMin) * i / (tickCount - 1));
 
-    // X axis ticks (interval ≈ 120 data points)
-    const xInterval = Math.max(1, Math.floor(pts.length / 7));
-    const xTicks = pts.filter((_, i) => i % xInterval === 0 || i === pts.length - 1);
+    // X axis ticks — evenly spaced, avoid overlap at the end
+    const maxXTicks = 7;
+    const xInterval = Math.max(1, Math.floor(pts.length / maxXTicks));
+    const xTicks = pts.filter((_, i) => i % xInterval === 0);
 
     // Build area fill (polygon to bottom)
     const areaD = buildAreaPath(mapped, yMin, scaleY);
