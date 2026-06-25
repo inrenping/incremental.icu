@@ -1,16 +1,20 @@
 # 联系作者
 
-## 电子邮件
+## 关于本站
 
-[点击发送邮件](mailto:inrenping@gmail.com)
+本网站部分架设在 Vultr 之上，如果您想要注册 Vultr，可以考虑使用我的 [Referral](https://www.vultr.com/?ref=8240470)。
 
 ## Github Issue
 
-[提交 Issue](https://github.com/inrenping/incremental.icu/issues)
+[去 Github 提交 Issue](https://github.com/inrenping/incremental.icu/issues)
 
 ## 加微信
 
-  <img src="/wechat.webp" alt="wechat" width="250" style="display: block; margin-left: 0; margin-right: auto;" />
+<img src="/wechat.webp" alt="wechat" width="250" style="display: block; margin-left: 0; margin-right: auto;" />
+
+## 电子邮件
+
+[点击发送邮件](mailto:inrenping@gmail.com)
 
 ---
 
