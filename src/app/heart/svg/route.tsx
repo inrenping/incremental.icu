@@ -4,10 +4,10 @@ import dayjs from 'dayjs';
 export const runtime = 'nodejs';
 
 const CHART_W = 800;
-const CHART_H = 450;
+const CHART_H = 500;
 const PANEL_W = 140;
 const TOTAL_W = CHART_W + PANEL_W;
-const PAD = { top: 20, right: 20, left: 50, bottom: 30 };
+const PAD = { top: 60, right: 20, left: 50, bottom: 30 };
 const PLOT_W = CHART_W - PAD.left - PAD.right;
 const PLOT_H = CHART_H - PAD.top - PAD.bottom;
 
@@ -28,10 +28,10 @@ function buildErrorSvg(msg: string) {
 
 function buildPanel(d: DailyHR) {
   const items = [
-    { l: '最高心率', v: String(d.max_heart_rate) },
-    { l: '最低心率', v: String(d.min_heart_rate) },
-    { l: '静息心率', v: String(d.resting_heart_rate) },
-    { l: '近7日平均\n静息', v: String(d.last_seven_days_avg_resting_heart_rate) },
+    { l: 'Max HR', v: String(d.max_heart_rate) },
+    { l: 'Min HR', v: String(d.min_heart_rate) },
+    { l: 'Resting HR', v: String(d.resting_heart_rate) },
+    { l: '7d Avg\nResting', v: String(d.last_seven_days_avg_resting_heart_rate) },
   ];
   const spacing = (CHART_H - 60) / items.length;
   const cx = CHART_W + PANEL_W / 2;
@@ -39,7 +39,7 @@ function buildPanel(d: DailyHR) {
   items.forEach((it, i) => {
     const cy = 30 + spacing * i + spacing / 2;
     const lines = it.l.split('\n');
-    out += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="#222" font-size="18" font-weight="bold">${S(it.v)}</text>`;
+    out += `<text x="${cx}" y="${cy - 8}" text-anchor="middle" fill="#222" font-size="18" font-weight="bold"><tspan fill="#e53e3e">♥ </tspan>${S(it.v)}</text>`;
     lines.forEach((ln, li) => {
       out += `<text x="${cx}" y="${cy + 10 + li * 14}" text-anchor="middle" fill="#888" font-size="11">${S(ln)}</text>`;
     });
@@ -151,12 +151,17 @@ export async function GET(request: NextRequest) {
     const lineD = buildPath(mapped, yMin, scaleY);
     const yLineD = buildPath(yMapped, yMin, scaleY);
 
-    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${TOTAL_W}" height="${CHART_H}" viewBox="0 0 ${TOTAL_W} ${CHART_H}" font-family="sans-serif">
+    let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${TOTAL_W}" height="${CHART_H}" viewBox="0 0 ${TOTAL_W} ${CHART_H}" font-family="Orbitron, 'Courier New', monospace">
   <rect width="100%" height="100%" fill="#ffffff"/>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&amp;display=swap');
+  </style>
   <defs>
     <linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#e53e3e" stop-opacity="0.8"/><stop offset="95%" stop-color="#e53e3e" stop-opacity="0.1"/></linearGradient>
     <linearGradient id="yg" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stop-color="#999" stop-opacity="0.4"/><stop offset="95%" stop-color="#999" stop-opacity="0.05"/></linearGradient>
-  </defs>`;
+  </defs>
+  <text x="${PAD.left}" y="40" text-anchor="start" fill="#222" font-size="22" font-weight="bold">I Am Still Alive
+</text>`;
 
     // Grid lines
     svg += buildGridLines(yTicks, yMin, scaleY);
