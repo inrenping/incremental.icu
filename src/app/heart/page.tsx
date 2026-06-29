@@ -29,7 +29,7 @@ interface HeartRateData {
 
 interface ChartDataPoint {
   time: string;
-  heartRate: number;
+  heartRate: number | null;
   yesterdayHeartRate: number | null;
 }
 
@@ -100,14 +100,33 @@ export default function HeartPage() {
     }
   }
 
-  const chartData: ChartDataPoint[] = data.details.map(d => {
+  // Process chart data with gaps for periods over 15 minutes
+  const chartData: ChartDataPoint[] = [];
+  for (let i = 0; i < data.details.length; i++) {
+    const d = data.details[i];
     const time = dayjs(d.sample_time).format('HH:mm');
-    return {
+    chartData.push({
       time,
       heartRate: d.heart_rate,
       yesterdayHeartRate: yesterdayMap.get(time) ?? null,
-    };
-  });
+    });
+
+    // Check time gap to next data point
+    if (i < data.details.length - 1) {
+      const currentTime = dayjs(d.sample_time);
+      const nextTime = dayjs(data.details[i + 1].sample_time);
+      const diffMinutes = nextTime.diff(currentTime, 'minute');
+      if (diffMinutes > 15) {
+        // Insert a null point to break the line
+        const middleTime = currentTime.add(diffMinutes / 2, 'minute').format('HH:mm');
+        chartData.push({
+          time: middleTime,
+          heartRate: null as any,
+          yesterdayHeartRate: null,
+        });
+      }
+    }
+  }
 
   if (chartData.length === 0) {
     return (
@@ -227,7 +246,6 @@ export default function HeartPage() {
                 strokeDasharray="4 4"
                 dot={false}
                 activeDot={false}
-                connectNulls
               />
               <Area
                 dataKey="heartRate"
