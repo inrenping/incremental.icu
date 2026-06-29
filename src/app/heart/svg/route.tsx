@@ -60,29 +60,34 @@ function buildGridLines(yTicks: number[], yMin: number, scaleY: number) {
   }).join('\n');
 }
 
-function buildPath(data: { x: number; y: number | null }[], yMin: number, scaleY: number) {
+function buildPath(data: { x: number; y: number | null; gap?: boolean }[], yMin: number, scaleY: number) {
   let d = '';
   for (const pt of data) {
     if (pt.y === null) { d += 'Z'; continue; }
     const yy = toY(pt.y, yMin, scaleY);
-    if (d === '') d = `M${pt.x},${yy}`;
+    if (d === '' || pt.gap) d += `M${pt.x},${yy}`;
     else d += `L${pt.x},${yy}`;
   }
   return d;
 }
 
-function buildAreaPath(data: { x: number; y: number | null }[], yMin: number, scaleY: number) {
+function buildAreaPath(data: { x: number; y: number | null; gap?: boolean }[], yMin: number, scaleY: number) {
   const baselineY = PAD.top + PLOT_H;
   let d = '';
   let segStart = -1;
   for (let i = 0; i < data.length; i++) {
     const pt = data[i];
-    if (pt.y === null) {
+    if (pt.y === null || pt.gap) {
       if (segStart >= 0) {
         const lastX = data[i - 1].x;
         d += `L${lastX},${baselineY}Z`;
         segStart = -1;
       }
+      if (pt.y === null) continue;
+      // gap but has value — start a new filled segment
+      const yy = toY(pt.y, yMin, scaleY);
+      d += `M${pt.x},${baselineY}L${pt.x},${yy}`;
+      segStart = i;
       continue;
     }
     const yy = toY(pt.y, yMin, scaleY);
@@ -126,14 +131,17 @@ export async function GET(request: NextRequest) {
 
     if (yesterdayData?.details) for (const d of yesterdayData.details) yesterdayMap.set(tz(d.sample_time).format('HH:mm'), d.heart_rate);
 
-    const pts = data.details.map(d => ({ time: tz(d.sample_time).format('HH:mm'), hr: d.heart_rate, yhr: yesterdayMap.get(tz(d.sample_time).format('HH:mm')) ?? null }));
+    const pts = data.details.map(d => {
+      const t = tz(d.sample_time);
+      return { time: t.format('HH:mm'), ts: t.unix(), hr: d.heart_rate, yhr: yesterdayMap.get(t.format('HH:mm')) ?? null };
+    });
     const yMin = 0;
     const yMax = 200;
     const scaleY = PLOT_H / (yMax - yMin);
     const xStep = pts.length > 1 ? PLOT_W / (pts.length - 1) : PLOT_W;
 
-    const mapped = pts.map((p, i) => ({ x: PAD.left + xStep * i, y: p.hr }));
-    const yMapped = pts.map((p, i) => ({ x: PAD.left + xStep * i, y: p.yhr }));
+    const mapped = pts.map((p, i) => ({ x: PAD.left + xStep * i, y: p.hr, gap: i > 0 && (p.ts - pts[i - 1].ts) / 60 > 15 }));
+    const yMapped = pts.map((p, i) => ({ x: PAD.left + xStep * i, y: p.yhr, gap: i > 0 && (p.ts - pts[i - 1].ts) / 60 > 15 }));
 
     // Y axis ticks
     const tickCount = 6;
