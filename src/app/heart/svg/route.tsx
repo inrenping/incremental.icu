@@ -63,7 +63,7 @@ function buildGridLines(yTicks: number[], yMin: number, scaleY: number) {
 function buildPath(data: { x: number; y: number | null; gap?: boolean }[], yMin: number, scaleY: number) {
   let d = '';
   for (const pt of data) {
-    if (pt.y === null) { d += 'Z'; continue; }
+    if (pt.y === null) { continue; }
     const yy = toY(pt.y, yMin, scaleY);
     if (d === '' || pt.gap) d += `M${pt.x},${yy}`;
     else d += `L${pt.x},${yy}`;
@@ -126,14 +126,22 @@ export async function GET(request: NextRequest) {
     const yesterdayData: HRData | null = yestJson.status === 'success' ? yestJson.data : null;
     if (!data?.daily || !data.details?.length) return new NextResponse(buildErrorSvg('无数据'), { status: 200, headers: { 'Content-Type': 'image/svg+xml' } });
 
-    const yesterdayMap = new Map<string, number>();
     const tz = (s: string) => dayjs(s).add(8, 'hour');
 
-    if (yesterdayData?.details) for (const d of yesterdayData.details) yesterdayMap.set(tz(d.sample_time).format('HH:mm'), d.heart_rate);
+    const yesterdayMap = new Map<string, { hr: number; ts: number }>();
+    let yesterdayTsArray: number[] = [];
+    if (yesterdayData?.details) {
+      for (const d of yesterdayData.details) {
+        const t = tz(d.sample_time);
+        yesterdayMap.set(t.format('HH:mm'), { hr: d.heart_rate, ts: t.unix() });
+      }
+      yesterdayTsArray = yesterdayData.details.map(d => tz(d.sample_time).unix());
+    }
 
-    const pts = data.details.map(d => {
+    const pts = data.details.map((d, i) => {
       const t = tz(d.sample_time);
-      return { time: t.format('HH:mm'), ts: t.unix(), hr: d.heart_rate, yhr: yesterdayMap.get(t.format('HH:mm')) ?? null };
+      const yInfo = yesterdayMap.get(t.format('HH:mm'));
+      return { idx: i, time: t.format('HH:mm'), ts: t.unix(), hr: d.heart_rate, yhr: yInfo?.hr ?? null, yts: yInfo?.ts ?? null };
     });
     const yMin = 0;
     const yMax = 200;
@@ -141,7 +149,18 @@ export async function GET(request: NextRequest) {
     const xStep = pts.length > 1 ? PLOT_W / (pts.length - 1) : PLOT_W;
 
     const mapped = pts.map((p, i) => ({ x: PAD.left + xStep * i, y: p.hr, gap: i > 0 && (p.ts - pts[i - 1].ts) / 60 > 15 }));
-    const yMapped = pts.map((p, i) => ({ x: PAD.left + xStep * i, y: p.yhr, gap: i > 0 && (p.ts - pts[i - 1].ts) / 60 > 15 }));
+
+    // 构建昨天的有效点序列用于 gap 检测
+    const yPtsWithTs = pts.filter(p => p.yts !== null).map(p => ({ idx: p.idx, yts: p.yts as number }));
+    const yMapped = pts.map((p, i) => {
+      const yIdx = yPtsWithTs.findIndex(yt => yt.idx === i);
+      let gap = false;
+      if (yIdx > 0) {
+        const prevY = yPtsWithTs[yIdx - 1];
+        gap = (p.yts! - prevY.yts) / 60 > 15;
+      }
+      return { x: PAD.left + xStep * i, y: p.yhr, gap: gap };
+    });
 
     // Y axis ticks
     const tickCount = 6;
