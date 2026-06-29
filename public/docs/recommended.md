@@ -36,8 +36,10 @@
 
 一款类 Strava 应用（支持 iOS、Android、鸿蒙平台）
 
-## ITRA
+## ITRA 积分查询
 
 网址: [https://itra.run/](https://itra.run/)
 
-查询 ITRA 积分
+## 中国马拉松官网赛事日历
+
+网址: [https://www.runchina.org.cn/index.html#/race/v/list](https://www.runchina.org.cn/index.html#/race/v/list)
