@@ -125,6 +125,7 @@
     "totalTime": "总时间",
     "distance": "距离",
     "elevation": "爬升",
+    "averageHr": "平均心率",
     "platform": "平台",
     "id": "ID",
     "syncTime": "同步时间",

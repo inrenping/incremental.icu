@@ -78,6 +78,7 @@ interface Activity {
   duration_seconds: number;
   distance_meters: number;
   elevation_gain: number;
+  average_hr?: number;
   source_type: string;
   created_at: string;
 }
@@ -101,7 +102,7 @@ const ActivityListPage = () => {
 
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || "");
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || "");
-  const [sportType, setSportType] = useState(searchParams.get('sport_types') || "");
+  const [sportType, setSportType] = useState(searchParams.get('sport_types') || "100,101,102,103");
   const [searchName, setSearchName] = useState(searchParams.get('name') || "");
 
 
@@ -120,9 +121,18 @@ const ActivityListPage = () => {
   useEffect(() => {
     setStartDate(searchParams.get('startDate') || "");
     setEndDate(searchParams.get('endDate') || "");
-    setSportType(searchParams.get('sport_types') || "");
+    setSportType(searchParams.get('sport_types') || "100,101,102,103");
     setSearchName(searchParams.get('name') || "");
   }, [searchParams]);
+
+  // 首次加载时如果没有 sport_types 参数，设置默认值
+  useEffect(() => {
+    if (!searchParams.get('sport_types') && appSelected) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set('sport_types', '100,101,102,103');
+      router.replace(`${pathname}?${params.toString()}`);
+    }
+  }, [searchParams, appSelected, pathname, router]);
 
   // 处理平台切换逻辑：统一使用 connect_id 并重置页码和列表
   const handlePlatformChange = useCallback((id: string) => {
@@ -554,25 +564,24 @@ const ActivityListPage = () => {
             <tr className="bg-muted/50 text-muted-foreground border-b border-border">
               <th className="px-4 py-3 font-medium w-20 max-[768px]:w-16">{t("type")}</th>
               <th className="px-4 py-3 font-medium">{t("name")}</th>
-              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("distance")}</th>
               <th className="px-4 py-3 font-medium">{t("startTime")}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("distance")}</th>
               <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("movingTime")}</th>
               <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("totalTime")}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("averageHr")}</th>
               <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("elevation")}</th>
-              <th className="px-4 py-3 font-medium text-center max-[768px]:hidden">{t("platform")}</th>
-              <th className="px-4 py-3 font-medium text-center max-[768px]:hidden">{t("syncTime")}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {loading ? (
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                   {t("loadingActivity")}
                 </td>
               </tr>
             ) : activities.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-12 text-center text-muted-foreground">
+                <td colSpan={8} className="px-4 py-12 text-center text-muted-foreground">
                   {t("noActivityFound")}
                 </td>
               </tr>
@@ -610,11 +619,11 @@ const ActivityListPage = () => {
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
-                        {(act.distance_meters / 1000).toFixed(2)} km
-                      </td>
                       <td className="px-4 py-5 text-muted-foreground whitespace-nowrap">
                         <div className="font-mono">{dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}</div>
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
+                        {(act.distance_meters / 1000).toFixed(2)} km
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
                         {formatDuration(act.moving_duration_seconds)}
@@ -623,13 +632,10 @@ const ActivityListPage = () => {
                         {formatDuration(act.duration_seconds)}
                       </td>
                       <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
+                        {act.average_hr ? `${act.average_hr} bpm` : '--'}
+                      </td>
+                      <td className="px-4 py-3 text-muted-foreground font-mono text-right whitespace-nowrap max-[768px]:hidden">
                         {act.elevation_gain} m
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap max-[768px]:hidden">
-                        {act.source_type}
-                      </td>
-                      <td className="px-4 py-3 text-muted-foreground font-mono text-center whitespace-nowrap max-[768px]:hidden">
-                        {dayjs(act.created_at).format('YYYY-MM-DD HH:mm')}
                       </td>
                     </tr>
                   </DialogTrigger>
