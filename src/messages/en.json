@@ -95,7 +95,7 @@
     "allSuccessful": "All successful",
     "lastSync": "Last Sync",
     "dataSync": "Data Sync",
-    "dataSyncDesc": "Select source and target platforms to complete incremental sync with one click",
+    "dataSyncDesc": "Select the source and destination platforms, then sync your latest 10 activities with one click.",
     "serviceStatus": "Service Status",
     "platformAccountMgmt": "Platform Accounts",
     "detailedDataQuery": "Detailed Data Query",

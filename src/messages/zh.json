@@ -98,7 +98,7 @@
     "allSuccessful": "全部成功",
     "lastSync": "上次同步",
     "dataSync": "数据同步",
-    "dataSyncDesc": "选择来源与目标平台，一键完成增量同步",
+    "dataSyncDesc": "选择来源与目标平台，一键同步最近 10 条记录",
     "serviceStatus": "服务状态",
     "platformAccountMgmt": "平台账号管理",
     "detailedDataQuery": "详细数据查询",
