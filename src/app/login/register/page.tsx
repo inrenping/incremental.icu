@@ -163,7 +163,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4" style={{ display: "none" }}>
+          <div className="grid grid-cols-2 gap-4">
             <Button
               variant="outline"
               type="button"

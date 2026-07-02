@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useLayout } from "@/hooks/use-layout";
+import { cn } from "@/lib/utils";
 import dayjs from 'dayjs';
 import { authFetch } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
@@ -46,6 +48,7 @@ const chartConfig = {
 };
 
 export default function HeartPage() {
+  const { layout } = useLayout();
   const [data, setData] = useState<HeartRateData | null>(null);
   const [yesterdayData, setYesterdayData] = useState<HeartRateData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -82,7 +85,6 @@ export default function HeartPage() {
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
       try {
         const [mainRes, yestRes] = await Promise.all([
           authFetch(`/api/v1/garmin/getDailyHeartRate?date_str=${dateStr}`),
@@ -150,155 +152,161 @@ export default function HeartPage() {
   }
 
   return (
-    <div className="space-y-6 p-6">
-      {/* 心率摘要卡片 */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+
+    <div className={cn(
+      "p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 w-full text-sm transition-all duration-300",
+      layout === "fixed" ? "max-w-7xl" : ""
+    )}>
+      <div className="space-y-6 w-full">
+        {/* 心率摘要卡片 */}
+        <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                最高心率
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data?.daily?.max_heart_rate ?? '--'}</div>
+              <p className="text-xs text-muted-foreground">bpm</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                最低心率
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data?.daily?.min_heart_rate ?? '--'}</div>
+              <p className="text-xs text-muted-foreground">bpm</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                静息心率
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data?.daily?.resting_heart_rate ?? '--'}</div>
+              <p className="text-xs text-muted-foreground">bpm</p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                近7日平均静息
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{data?.daily?.last_seven_days_avg_resting_heart_rate ?? '--'}</div>
+              <p className="text-xs text-muted-foreground">bpm</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* 心率趋势面积图 */}
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              最高心率
-            </CardTitle>
+          <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
+            <CardAction className="col-start-1 row-span-2 row-start-1 self-center justify-self-start">
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setDateStr(dayjs(dateStr).subtract(1, 'day').format('YYYY-MM-DD'))}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <IconChevronLeft className="h-4 w-4" />
+                </button>
+                <input
+                  type="date"
+                  value={dateStr}
+                  onChange={(e) => setDateStr(e.target.value)}
+                  max={dayjs().format('YYYY-MM-DD')}
+                  className="flex h-9 w-[130px] rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+                />
+                {dateStr !== today && (
+                  <button
+                    type="button"
+                    onClick={() => setDateStr(dayjs(dateStr).add(1, 'day').format('YYYY-MM-DD'))}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <IconChevronRight className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleSync}
+                  disabled={syncing}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <IconRefresh className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
+            </CardAction>
+            <CardDescription className="self-center text-right">
+              共 {chartData.length} 个采样点
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data?.daily?.max_heart_rate ?? '--'}</div>
-            <p className="text-xs text-muted-foreground">bpm</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              最低心率
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data?.daily?.min_heart_rate ?? '--'}</div>
-            <p className="text-xs text-muted-foreground">bpm</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              静息心率
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data?.daily?.resting_heart_rate ?? '--'}</div>
-            <p className="text-xs text-muted-foreground">bpm</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              近7日平均静息
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{data?.daily?.last_seven_days_avg_resting_heart_rate ?? '--'}</div>
-            <p className="text-xs text-muted-foreground">bpm</p>
+            <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
+              <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
+                <defs>
+                  <linearGradient id="fillHeartRate" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-heartRate)" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="var(--color-heartRate)" stopOpacity={0.1} />
+                  </linearGradient>
+                  <linearGradient id="fillYesterdayHeartRate" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--color-yesterdayHeartRate)" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="var(--color-yesterdayHeartRate)" stopOpacity={0.05} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="time"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  interval={30}
+                  tickFormatter={(value: string) => value}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  domain={['dataMin - 10', 'dataMax + 10']}
+                />
+                <ChartTooltip
+                  content={
+                    <ChartTooltipContent
+                      labelFormatter={(label) => String(label)}
+                    />
+                  }
+                />
+                <Area
+                  dataKey="yesterdayHeartRate"
+                  type="monotone"
+                  fill="url(#fillYesterdayHeartRate)"
+                  stroke="var(--color-yesterdayHeartRate)"
+                  strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  activeDot={false}
+                />
+                <Area
+                  dataKey="heartRate"
+                  type="monotone"
+                  fill="url(#fillHeartRate)"
+                  stroke="var(--color-heartRate)"
+                  strokeWidth={2}
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0 }}
+                />
+              </AreaChart>
+            </ChartContainer>
           </CardContent>
         </Card>
       </div>
-
-      {/* 心率趋势面积图 */}
-      <Card>
-        <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
-          <CardAction className="col-start-1 row-span-2 row-start-1 self-center justify-self-start">
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setDateStr(dayjs(dateStr).subtract(1, 'day').format('YYYY-MM-DD'))}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-              >
-                <IconChevronLeft className="h-4 w-4" />
-              </button>
-              <input
-                type="date"
-                value={dateStr}
-                onChange={(e) => setDateStr(e.target.value)}
-                max={dayjs().format('YYYY-MM-DD')}
-                className="flex h-9 w-[130px] rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-              />
-              {dateStr !== today && (
-                <button
-                  type="button"
-                  onClick={() => setDateStr(dayjs(dateStr).add(1, 'day').format('YYYY-MM-DD'))}
-                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                >
-                  <IconChevronRight className="h-4 w-4" />
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={handleSync}
-                disabled={syncing}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <IconRefresh className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
-              </button>
-            </div>
-          </CardAction>
-          <CardDescription className="self-center text-right">
-            共 {chartData.length} 个采样点
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
-            <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
-              <defs>
-                <linearGradient id="fillHeartRate" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-heartRate)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--color-heartRate)" stopOpacity={0.1} />
-                </linearGradient>
-                <linearGradient id="fillYesterdayHeartRate" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-yesterdayHeartRate)" stopOpacity={0.4} />
-                  <stop offset="95%" stopColor="var(--color-yesterdayHeartRate)" stopOpacity={0.05} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="time"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                interval={30}
-                tickFormatter={(value: string) => value}
-              />
-              <YAxis
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-                domain={['dataMin - 10', 'dataMax + 10']}
-              />
-              <ChartTooltip
-                content={
-                  <ChartTooltipContent
-                    labelFormatter={(label) => String(label)}
-                  />
-                }
-              />
-              <Area
-                dataKey="yesterdayHeartRate"
-                type="monotone"
-                fill="url(#fillYesterdayHeartRate)"
-                stroke="var(--color-yesterdayHeartRate)"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                dot={false}
-                activeDot={false}
-              />
-              <Area
-                dataKey="heartRate"
-                type="monotone"
-                fill="url(#fillHeartRate)"
-                stroke="var(--color-heartRate)"
-                strokeWidth={2}
-                dot={false}
-                activeDot={{ r: 4, strokeWidth: 0 }}
-              />
-            </AreaChart>
-          </ChartContainer>
-        </CardContent>
-      </Card>
     </div>
   );
 }

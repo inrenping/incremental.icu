@@ -110,7 +110,10 @@
     "dataSecurityDetail4": "We encrypt and store your information strictly, but cannot completely eliminate potential uncertainties in the network environment. Continued use means you fully understand the above and authorize us to sync and manage your data.",
     "viewDetailedTerms": "View detailed terms",
     "viewMore": "View more",
-    "fetchLogsError": "Failed to fetch logs"
+    "fetchLogsError": "Failed to fetch logs",
+    "yearlyRunning": "This Year",
+    "monthlyRunning": "This Month",
+    "runningLabel": "Running"
   },
   "ListPage": {
     "loadingActivity": "Loading activity data...",
