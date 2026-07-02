@@ -30,6 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { SyncLogs } from "@/components/dash/sync-logs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -62,6 +63,26 @@ interface User {
   id: number;
   username: string;
   email: string;
+}
+
+interface RunningTotalData {
+  monthly_total: number;
+  monthly_target: number;
+  monthly_completion: string;
+  monthly_count: number;
+  monthly_duration: number;
+  monthly_progress: string;
+  yearly_total: number;
+  yearly_target: number;
+  yearly_completion: string;
+  yearly_count: number;
+  yearly_duration: number;
+  yearly_progress: string;
+}
+
+interface RunningTotalResponse {
+  status: string;
+  data: RunningTotalData;
 }
 
 function getPlatformInitials(sourceType: string) {
@@ -136,6 +157,65 @@ function PlatformSelect({
   );
 }
 
+function RunningStatCard({
+  title,
+  period,
+  data,
+}: {
+  title: string;
+  period: "year" | "month";
+  data: {
+    count: number;
+    total: number;
+    target: number;
+    duration: number;
+  };
+}) {
+  const completionPercent = data.target > 0 ? (data.total / data.target) * 100 : 0;
+  const completionDisplay = `${completionPercent.toFixed(2)}%`;
+
+  const now = dayjs();
+  const progressPercent = period === "year"
+    ? ((now.diff(now.startOf('year'), 'day') + 1) / (now.endOf('year').diff(now.startOf('year'), 'day') + 1)) * 100
+    : ((now.date()) / now.daysInMonth()) * 100;
+  const progressDisplay = `${progressPercent.toFixed(2)}%`;
+
+  return (
+    <Card className="gap-0 py-0 shadow-sm">
+      <CardHeader className="px-4 py-2">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-2xl font-semibold">{title}</CardTitle>
+          <span className="text-lg font-semibold">跑步 {data.count} 次</span>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-3 px-4 pb-4 pt-1">
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">距离</span>
+          <span className="text-lg font-semibold"><span className="text-emerald-600">{data.total}</span> / {data.target} 公里</span>
+        </div>
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-muted-foreground">时长</span>
+          <span className="text-lg font-semibold">{data.duration} 小时</span>
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">目标完成</span>
+            <span className="text-emerald-600">{completionDisplay}</span>
+          </div>
+          <Progress value={completionPercent} className="h-2" indicatorClassName="bg-emerald-600" />
+        </div>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">时间已过</span>
+            <span>{progressDisplay}</span>
+          </div>
+          <Progress value={progressPercent} className="h-2" indicatorClassName="bg-black dark:bg-white" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function StatCard({
   title,
   value,
@@ -158,7 +238,7 @@ function StatCard({
         <p className="text-sm text-muted-foreground">{title}</p>
         <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
-      <p className="mt-3 text-3xl font-semibold tracking-tight">{value}</p>
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-emerald-600">{value}</p>
       <p className="mt-1 text-sm text-muted-foreground">{subtext}</p>
     </Link>
   );
@@ -218,11 +298,29 @@ export default function DashPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [sourceId, setSourceId] = useState<string>();
   const [targetId, setTargetId] = useState<string>();
+  const [runningData, setRunningData] = useState<RunningTotalData | null>(null);
+  const [runningDataLoading, setRunningDataLoading] = useState(true);
 
   const [isTerminalOpen, setIsTerminalOpen] = useState(false);
   const [terminalLogs, setTerminalLogs] = useState<LogLine[]>([]);
   const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "done" | "error">("idle");
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  const fetchRunningData = async () => {
+    try {
+      const response = await authFetch('/api/v1/base/getRunningTotal');
+      if (response.ok) {
+        const result: RunningTotalResponse = await response.json();
+        if (result.status === 'success') {
+          setRunningData(result.data);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch running data:", error);
+    } finally {
+      setRunningDataLoading(false);
+    }
+  };
 
   useEffect(() => {
     const userData = storage.get('user');
@@ -235,6 +333,7 @@ export default function DashPage() {
       }
     }
     fetchAppsStatus();
+    fetchRunningData();
   }, []);
 
   const activeApps = useMemo(() => apps.filter((a) => a.is_active), [apps]);
@@ -420,6 +519,65 @@ export default function DashPage() {
           icon={IconRefresh}
           href="/dash/activities"
         />
+      </div>
+
+      {/* Running Stats */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {runningDataLoading ? (
+          <>
+            <Card className="gap-0 py-0 shadow-sm">
+              <CardHeader className="px-4 py-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-2xl font-semibold">今年</CardTitle>
+                  <div className="h-5 w-16 animate-pulse rounded bg-muted" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 px-4 pb-4 pt-1">
+                <div className="h-5 animate-pulse rounded bg-muted" />
+                <div className="h-5 animate-pulse rounded bg-muted" />
+                <div className="h-2 animate-pulse rounded bg-muted" />
+                <div className="h-2 animate-pulse rounded bg-muted" />
+              </CardContent>
+            </Card>
+            <Card className="gap-0 py-0 shadow-sm">
+              <CardHeader className="px-4 py-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-2xl font-semibold">本月</CardTitle>
+                  <div className="h-5 w-16 animate-pulse rounded bg-muted" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-3 px-4 pb-4 pt-1">
+                <div className="h-5 animate-pulse rounded bg-muted" />
+                <div className="h-5 animate-pulse rounded bg-muted" />
+                <div className="h-2 animate-pulse rounded bg-muted" />
+                <div className="h-2 animate-pulse rounded bg-muted" />
+              </CardContent>
+            </Card>
+          </>
+        ) : runningData ? (
+          <>
+            <RunningStatCard
+              title="今年"
+              period="year"
+              data={{
+                count: runningData.yearly_count,
+                total: runningData.yearly_total,
+                target: runningData.yearly_target,
+                duration: runningData.yearly_duration,
+              }}
+            />
+            <RunningStatCard
+              title="本月"
+              period="month"
+              data={{
+                count: runningData.monthly_count,
+                total: runningData.monthly_total,
+                target: runningData.monthly_target,
+                duration: runningData.monthly_duration,
+              }}
+            />
+          </>
+        ) : null}
       </div>
 
       {/* Data Sync Card */}

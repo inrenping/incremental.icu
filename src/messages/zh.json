@@ -113,7 +113,10 @@
     "dataSecurityDetail4": "我们将严格加密存储您的信息，但无法完全排除网络环境中的潜在不确定性。继续使用即代表您已充分知悉并理解上述情况，授权我们为您进行数据的同步与管理。",
     "viewDetailedTerms": "查看详细条款",
     "viewMore": "查看更多",
-    "fetchLogsError": "获取日志失败"
+    "fetchLogsError": "获取日志失败",
+    "yearlyRunning": "今年",
+    "monthlyRunning": "本月",
+    "runningLabel": "跑步"
   },
   "ListPage": {
     "loadingActivity": "正在加载运动数据...",
