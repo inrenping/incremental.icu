@@ -6,6 +6,7 @@ import { authFetch } from '@/lib/api';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardAction } from '@/components/ui/card';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { IconChevronLeft, IconChevronRight, IconRefresh } from '@tabler/icons-react';
 
 interface DailyHeartRate {
   id: number;
@@ -50,8 +51,34 @@ export default function HeartPage() {
   const [loading, setLoading] = useState(true);
   const today = dayjs().format('YYYY-MM-DD');
   const [dateStr, setDateStr] = useState(today);
+  const [syncing, setSyncing] = useState(false);
 
   const yesterdayStr = dayjs(dateStr).subtract(1, 'day').format('YYYY-MM-DD');
+
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      const todayStr = dateStr;
+      const yestStr = dayjs(dateStr).subtract(1, 'day').format('YYYY-MM-DD');
+      await Promise.all([
+        authFetch(`/api/v1/garmin/syncDailyHeartRate?date=${todayStr}`),
+        authFetch(`/api/v1/garmin/syncDailyHeartRate?date=${yestStr}`),
+      ]);
+      // Re-fetch data after sync
+      const [mainRes, yestRes] = await Promise.all([
+        authFetch(`/api/v1/garmin/getDailyHeartRate?date_str=${dateStr}`),
+        authFetch(`/api/v1/garmin/getDailyHeartRate?date_str=${yesterdayStr}`),
+      ]);
+      const mainJson = await mainRes.json();
+      const yestJson = await yestRes.json();
+      setData(mainJson.status === 'success' ? mainJson.data : null);
+      setYesterdayData(yestJson.status === 'success' ? yestJson.data : null);
+    } catch (err) {
+      console.error('Failed to sync heart rate data:', err);
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -84,14 +111,6 @@ export default function HeartPage() {
     );
   }
 
-  if (!data?.daily) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-muted-foreground">无数据</div>
-      </div>
-    );
-  }
-
   // Build yesterday heart rate map by time (HH:mm)
   const yesterdayMap = new Map<string, number>();
   if (yesterdayData) {
@@ -102,38 +121,32 @@ export default function HeartPage() {
 
   // Process chart data with gaps for periods over 15 minutes
   const chartData: ChartDataPoint[] = [];
-  for (let i = 0; i < data.details.length; i++) {
-    const d = data.details[i];
-    const time = dayjs(d.sample_time).format('HH:mm');
-    chartData.push({
-      time,
-      heartRate: d.heart_rate,
-      yesterdayHeartRate: yesterdayMap.get(time) ?? null,
-    });
+  if (data) {
+    for (let i = 0; i < data.details.length; i++) {
+      const d = data.details[i];
+      const time = dayjs(d.sample_time).format('HH:mm');
+      chartData.push({
+        time,
+        heartRate: d.heart_rate,
+        yesterdayHeartRate: yesterdayMap.get(time) ?? null,
+      });
 
-    // Check time gap to next data point
-    if (i < data.details.length - 1) {
-      const currentTime = dayjs(d.sample_time);
-      const nextTime = dayjs(data.details[i + 1].sample_time);
-      const diffMinutes = nextTime.diff(currentTime, 'minute');
-      if (diffMinutes > 15) {
-        // Insert a null point to break the line
-        const middleTime = currentTime.add(diffMinutes / 2, 'minute').format('HH:mm');
-        chartData.push({
-          time: middleTime,
-          heartRate: null as any,
-          yesterdayHeartRate: null,
-        });
+      // Check time gap to next data point
+      if (i < data.details.length - 1) {
+        const currentTime = dayjs(d.sample_time);
+        const nextTime = dayjs(data.details[i + 1].sample_time);
+        const diffMinutes = nextTime.diff(currentTime, 'minute');
+        if (diffMinutes > 15) {
+          // Insert a null point to break the line
+          const middleTime = currentTime.add(diffMinutes / 2, 'minute').format('HH:mm');
+          chartData.push({
+            time: middleTime,
+            heartRate: null as any,
+            yesterdayHeartRate: null,
+          });
+        }
       }
     }
-  }
-
-  if (chartData.length === 0) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-muted-foreground">无数据</div>
-      </div>
-    );
   }
 
   return (
@@ -147,7 +160,7 @@ export default function HeartPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.daily.max_heart_rate}</div>
+            <div className="text-2xl font-bold">{data?.daily?.max_heart_rate ?? '--'}</div>
             <p className="text-xs text-muted-foreground">bpm</p>
           </CardContent>
         </Card>
@@ -158,7 +171,7 @@ export default function HeartPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.daily.min_heart_rate}</div>
+            <div className="text-2xl font-bold">{data?.daily?.min_heart_rate ?? '--'}</div>
             <p className="text-xs text-muted-foreground">bpm</p>
           </CardContent>
         </Card>
@@ -169,7 +182,7 @@ export default function HeartPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.daily.resting_heart_rate}</div>
+            <div className="text-2xl font-bold">{data?.daily?.resting_heart_rate ?? '--'}</div>
             <p className="text-xs text-muted-foreground">bpm</p>
           </CardContent>
         </Card>
@@ -180,7 +193,7 @@ export default function HeartPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{data.daily.last_seven_days_avg_resting_heart_rate}</div>
+            <div className="text-2xl font-bold">{data?.daily?.last_seven_days_avg_resting_heart_rate ?? '--'}</div>
             <p className="text-xs text-muted-foreground">bpm</p>
           </CardContent>
         </Card>
@@ -190,13 +203,39 @@ export default function HeartPage() {
       <Card>
         <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
           <CardAction className="col-start-1 row-span-2 row-start-1 self-center justify-self-start">
-            <input
-              type="date"
-              value={dateStr}
-              onChange={(e) => setDateStr(e.target.value)}
-              max={dayjs().format('YYYY-MM-DD')}
-              className="flex h-9 w-[130px] rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
-            />
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setDateStr(dayjs(dateStr).subtract(1, 'day').format('YYYY-MM-DD'))}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <IconChevronLeft className="h-4 w-4" />
+              </button>
+              <input
+                type="date"
+                value={dateStr}
+                onChange={(e) => setDateStr(e.target.value)}
+                max={dayjs().format('YYYY-MM-DD')}
+                className="flex h-9 w-[130px] rounded-md border border-input bg-background px-2 py-1 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-calendar-picker-indicator]:cursor-pointer"
+              />
+              {dateStr !== today && (
+                <button
+                  type="button"
+                  onClick={() => setDateStr(dayjs(dateStr).add(1, 'day').format('YYYY-MM-DD'))}
+                  className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                >
+                  <IconChevronRight className="h-4 w-4" />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={handleSync}
+                disabled={syncing}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <IconRefresh className={`h-4 w-4 ${syncing ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </CardAction>
           <CardDescription className="self-center text-right">
             共 {chartData.length} 个采样点
