@@ -82,7 +82,6 @@ export default function HeartPage() {
 
   useEffect(() => {
     async function fetchData() {
-      setLoading(true);
       try {
         const [mainRes, yestRes] = await Promise.all([
           authFetch(`/api/v1/garmin/getDailyHeartRate?date_str=${dateStr}`),
