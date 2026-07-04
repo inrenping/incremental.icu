@@ -121,7 +121,7 @@ const ActivityListPage = () => {
   useEffect(() => {
     setStartDate(searchParams.get('startDate') || "");
     setEndDate(searchParams.get('endDate') || "");
-    setSportType(searchParams.get('sport_types') || "100,101,102,103");
+    setSportType(searchParams.get('sport_types') || "");
     setSearchName(searchParams.get('name') || "");
   }, [searchParams]);
 
