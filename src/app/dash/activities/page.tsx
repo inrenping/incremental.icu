@@ -102,7 +102,7 @@ const ActivityListPage = () => {
 
   const [startDate, setStartDate] = useState(searchParams.get('startDate') || "");
   const [endDate, setEndDate] = useState(searchParams.get('endDate') || "");
-  const [sportType, setSportType] = useState(searchParams.get('sport_types') || "100,101,102,103");
+  const [sportType, setSportType] = useState(searchParams.get('sport_types') || "");
   const [searchName, setSearchName] = useState(searchParams.get('name') || "");
 
 
@@ -125,14 +125,7 @@ const ActivityListPage = () => {
     setSearchName(searchParams.get('name') || "");
   }, [searchParams]);
 
-  // 首次加载时如果没有 sport_types 参数，设置默认值
-  useEffect(() => {
-    if (!searchParams.get('sport_types') && appSelected) {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set('sport_types', '100,101,102,103');
-      router.replace(`${pathname}?${params.toString()}`);
-    }
-  }, [searchParams, appSelected, pathname, router]);
+
 
   // 处理平台切换逻辑：统一使用 connect_id 并重置页码和列表
   const handlePlatformChange = useCallback((id: string) => {
