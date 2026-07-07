@@ -179,10 +179,10 @@ export default function TaskResultsPage() {
         {task && (
           <div className="px-2 py-3 bg-background rounded-md border text-sm flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground">
             <span>
-              账号 1：<span className="font-medium text-foreground">{getAppDisplay(task.connect_source_id)}</span>
+              源账号：<span className="font-medium text-foreground">{getAppDisplay(task.connect_source_id)}</span>
             </span>
             <span>
-              账号 2：<span className="font-medium text-foreground">{getAppDisplay(task.connect_target_id)}</span>
+              目标账号：<span className="font-medium text-foreground">{getAppDisplay(task.connect_target_id)}</span>
             </span>
             <span>
               执行时间：<span className="font-medium text-foreground">每天 {task.hour} 点</span>
