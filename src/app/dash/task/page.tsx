@@ -184,12 +184,12 @@ export default function TasksPage() {
                         <div className="flex flex-wrap gap-x-6 gap-y-2">
                           <div className="flex items-center gap-2 text-sm">
                             <IconSourceCode className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground">账号 1</span>
+                            <span className="text-muted-foreground">源账号</span>
                             <span className="font-medium">{getAppDisplay(task.connect_source_id)}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
                             <IconSourceCode className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground">账号 2</span>
+                            <span className="text-muted-foreground">目标账号</span>
                             <span className="font-medium">{getAppDisplay(task.connect_target_id)}</span>
                           </div>
                           <div className="flex items-center gap-2 text-sm">
