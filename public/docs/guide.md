@@ -4,7 +4,7 @@
 
 在 LoadingPage 页面点击“开始使用”会进入登录页面。如果是第一次登录，需要先“注册账号”。账号不支持密码登录，仅支持邮箱验证码或者第三方（Google、Github）Ouath登录。
 
-![注册账号](docs/guide/login.webp)
+![注册账号](/docs/guide/login.webp)
 
 ## 关联运动账号
 
