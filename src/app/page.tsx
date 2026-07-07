@@ -70,14 +70,17 @@ export default function Home() {
               </div>
             </div>
           </div>
+          <hr className="max-w-6xl mx-auto border-border/50 mt-8" />
         </section>
 
         {/* Preview Images - 3D Carousel */}
-        <section className="py-6">
+        <section className="pt-8 pb-6">
           <div className="max-w-6xl mx-auto px-4">
             <Carousel3D />
           </div>
         </section>
+
+        <hr className="max-w-6xl mx-auto border-border/50 mt-8" />
 
         <section className="py-10 px-0 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
