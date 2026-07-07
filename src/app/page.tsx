@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   IconTrendingUp, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
@@ -71,6 +72,13 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Preview Images - 3D Carousel */}
+        <section className="py-6">
+          <div className="max-w-6xl mx-auto px-4">
+            <Carousel3D />
+          </div>
+        </section>
+
         <section className="py-10 px-0 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -105,4 +113,91 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon:
       </p>
     </div>
   )
+}
+
+function Carousel3D() {
+  const [activeIndex, setActiveIndex] = useState(0);
+  const images = ['/dash_0.webp', '/dash_1.webp', '/dash_2.webp'];
+
+  return (
+    <div className="carousel-3d">
+      <div className="carousel-3d-track">
+        {images.map((src, i) => {
+          const offset = ((i - activeIndex + images.length) % images.length);
+          let isCenter = offset === 0;
+          let isLeft = offset === images.length - 1;
+
+          return (
+            <div
+              key={i}
+              className="carousel-3d-slide"
+              onClick={() => setActiveIndex(i)}
+              style={{
+                transform: isCenter
+                  ? 'translateX(0) scale(1) translateZ(0)'
+                  : isLeft
+                    ? 'translateX(-55%) scale(0.7) translateZ(-120px)'
+                    : 'translateX(55%) scale(0.7) translateZ(-120px)',
+                opacity: isCenter ? 1 : 0.6,
+                zIndex: isCenter ? 3 : 1,
+                overflow: isCenter ? 'visible' : 'hidden',
+                aspectRatio: isCenter ? 'auto' : '16/14',
+                width: isCenter ? 'auto' : '680px',
+              }}
+            >
+              <img
+                src={src}
+                alt={`Dashboard preview ${i + 1}`}
+                className={isCenter ? 'carousel-3d-image center' : 'carousel-3d-image'}
+              />
+            </div>
+          );
+        })}
+      </div>
+      <style>{`
+        .carousel-3d {
+          perspective: 1600px;
+          width: 100%;
+          padding: 10px 0 60px 0;
+        }
+        .carousel-3d-track {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          position: relative;
+          width: 100%;
+          min-height: 420px;
+        }
+        .carousel-3d-slide {
+          position: absolute;
+          border-radius: 12px;
+          border: 1px solid hsl(var(--border));
+          background: hsl(var(--card));
+          box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+          transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+          cursor: pointer;
+        }
+        .carousel-3d-slide:hover {
+          box-shadow: 0 8px 40px rgba(0,0,0,0.18);
+        }
+        .carousel-3d-image {
+          display: block;
+        }
+        .carousel-3d-image.center {
+          width: 680px;
+          height: auto;
+          border-radius: 12px;
+        }
+        .carousel-3d-image:not(.center) {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        @media (max-width: 768px) {
+          .carousel-3d-image.center { width: 320px; }
+          .carousel-3d-track { min-height: 200px; }
+        }
+      `}</style>
+    </div>
+  );
 }
