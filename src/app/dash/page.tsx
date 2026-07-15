@@ -120,11 +120,13 @@ function PlatformSelect({
   value,
   onValueChange,
   placeholder,
+  disabledIds = [],
 }: {
   apps: AppConfig[];
   value?: string;
   onValueChange: (value: string) => void;
   placeholder: string;
+  disabledIds?: string[];
 }) {
   const selected = apps.find((app) => app.id.toString() === value);
 
@@ -145,7 +147,7 @@ function PlatformSelect({
       </SelectTrigger>
       <SelectContent>
         {apps.map((app) => (
-          <SelectItem key={app.id} value={app.id.toString()}>
+          <SelectItem key={app.id} value={app.id.toString()} disabled={disabledIds.includes(app.id.toString())}>
             <div className="flex items-center gap-2">
               <PlatformAvatar sourceType={app.source_type} />
               <span>{app.source_type}-{app.region} ({app.account})</span>
@@ -370,11 +372,13 @@ export default function DashPage() {
       setApps(data);
 
       const active = data.filter((a) => a.is_active);
+      const master = active.find((a) => a.master);
       if (active.length > 0) {
-        setSourceId(active[0].id.toString());
+        setSourceId(master ? master.id.toString() : active[0].id.toString());
       }
       if (active.length > 1) {
-        setTargetId(active[1].id.toString());
+        const target = master ? active.find((a) => !a.master) : active[1];
+        setTargetId(target?.id.toString());
       }
     } catch (err: unknown) {
       console.error("Fetch status error:", err);
@@ -623,6 +627,7 @@ export default function DashPage() {
                 value={targetId}
                 onValueChange={setTargetId}
                 placeholder={t("selectPlatform")}
+                disabledIds={sourceId ? [sourceId] : []}
               />
             </div>
           </div>
