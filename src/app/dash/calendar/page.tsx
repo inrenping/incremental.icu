@@ -6,7 +6,7 @@ import { useLayout } from '@/hooks/use-layout';
 import { cn } from '@/lib/utils';
 import { formatDistance } from '@/lib/activities';
 import { Button } from '@/components/ui/button';
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import { IconChevronLeft, IconChevronRight, IconRefresh } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 
 interface MainActivity {
@@ -121,6 +121,7 @@ export default function MainFeedPage() {
   const [activities, setActivities] = useState<MainActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const [activePopover, setActivePopover] = useState<number | null>(null);
+  const [syncing, setSyncing] = useState(false);
 
   const today = dayjs();
   const [currentYear, setCurrentYear] = useState(today.year());
@@ -173,6 +174,23 @@ export default function MainFeedPage() {
     setCurrentMonth(today.month() + 1);
   };
 
+  const handleSync = async () => {
+    setSyncing(true);
+    try {
+      await authFetch('/api/v1/main/syncBaseToMainActivity');
+      // Re-fetch activities after sync
+      const response = await authFetch(`/api/v1/main/getActivitiesByMonth?year=${currentYear}&month=${currentMonth}`);
+      if (response.ok) {
+        const result = await response.json();
+        setActivities(result.data || []);
+      }
+    } catch (err) {
+      console.error('Failed to sync activities:', err);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
   const todayStr = today.format('YYYY-MM-DD');
 
   return (
@@ -188,6 +206,15 @@ export default function MainFeedPage() {
           <h1 className="text-xl font-semibold">{currentYear}</h1>
           <Button variant="ghost" size="sm" onClick={goToToday} className="h-7 px-3 text-xs">
             今天
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
+            onClick={handleSync}
+            disabled={syncing}
+          >
+            <IconRefresh className={cn('h-3.5 w-3.5', syncing && 'animate-spin')} />
           </Button>
         </div>
         <div className="flex items-center gap-1">
