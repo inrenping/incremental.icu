@@ -183,7 +183,7 @@ function RunningStatCard({
   const progressDisplay = `${progressPercent.toFixed(2)}%`;
 
   return (
-    <Link href="/dash/activities" className="block rounded-xl border bg-card py-0 shadow-sm transition-colors hover:border-foreground/20 hover:bg-muted/30">
+    <Link href="/dash/calendar" className="block rounded-xl border bg-card py-0 shadow-sm transition-colors hover:border-foreground/20 hover:bg-muted/30">
       <Card className="gap-0 py-0 border-0 shadow-none">
         <CardHeader className="px-4 py-2">
           <div className="flex items-center justify-between">
