@@ -183,38 +183,40 @@ function RunningStatCard({
   const progressDisplay = `${progressPercent.toFixed(2)}%`;
 
   return (
-    <Card className="gap-0 py-0 shadow-sm">
-      <CardHeader className="px-4 py-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-2xl font-semibold">{title}</CardTitle>
-          <span className="text-lg font-semibold">跑步 {data.count} 次</span>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3 px-4 pb-4 pt-1">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">距离</span>
-          <span className="text-lg font-semibold"><span className="text-emerald-600">{data.total}</span> / {data.target} 公里</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-muted-foreground">时长</span>
-          <span className="text-lg font-semibold">{data.duration} 小时</span>
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">目标完成</span>
-            <span className="text-emerald-600">{completionDisplay}</span>
+    <Link href="/dash/calendar" className="block rounded-xl border bg-card py-0 shadow-sm transition-colors hover:border-foreground/20 hover:bg-muted/30">
+      <Card className="gap-0 py-0 border-0 shadow-none">
+        <CardHeader className="px-4 py-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-semibold">{title}</CardTitle>
+            <span className="text-lg font-semibold">跑步 {data.count} 次</span>
           </div>
-          <Progress value={completionPercent} className="h-2" indicatorClassName="bg-emerald-600" />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">时间已过</span>
-            <span>{progressDisplay}</span>
+        </CardHeader>
+        <CardContent className="space-y-3 px-4 pb-4 pt-1">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">距离</span>
+            <span className="text-lg font-semibold"><span className="text-emerald-600">{data.total}</span> / {data.target} 公里</span>
           </div>
-          <Progress value={progressPercent} className="h-2" indicatorClassName="bg-black dark:bg-white" />
-        </div>
-      </CardContent>
-    </Card>
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">时长</span>
+            <span className="text-lg font-semibold">{data.duration} 小时</span>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">目标完成</span>
+              <span className="text-emerald-600">{completionDisplay}</span>
+            </div>
+            <Progress value={completionPercent} className="h-2" indicatorClassName="bg-emerald-600" />
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">时间已过</span>
+              <span>{progressDisplay}</span>
+            </div>
+            <Progress value={progressPercent} className="h-2" indicatorClassName="bg-black dark:bg-white" />
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }
 

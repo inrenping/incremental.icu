@@ -28,13 +28,19 @@
 
 网址: [https://www.strava.com/](https://www.strava.com/)
 
-运动社交 TOP 1,不用过多介绍了。
+运动社交 TOP 1
 
 ## Outbase
 
 网址: [https://outbase.cn/](https://outbase.cn/)
 
 一款类 Strava 应用（支持 iOS、Android、鸿蒙平台）
+
+## Digrun
+
+网址: [https://digrun.dingstock.net/](https://digrun.dingstock.net/)
+
+一款很有个性的跑步数据统计应用，分享页做得很漂亮。
 
 ## ITRA 积分查询
 
