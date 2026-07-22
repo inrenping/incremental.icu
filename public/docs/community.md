@@ -4,6 +4,10 @@
 
 本网站部分架设在 Vultr 之上，如果您想要注册 Vultr，可以考虑使用我的 [Referral](https://www.vultr.com/?ref=8240470)。
 
+## 相关项目
+
+[我的赛历](https://c.incremental.icu/)：宁波及其周边地区马拉松路跑越野赛等信息汇总标记
+
 ## Github Issue
 
 [去 Github 提交 Issue](https://github.com/inrenping/incremental.icu/issues)

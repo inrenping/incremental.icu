@@ -203,7 +203,7 @@ export default function MainFeedPage() {
       {/* Header */}
       <div className="mb-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-semibold">{currentYear}</h1>
+          <h1 className="text-xl font-semibold">{currentYear}年{currentMonth}月</h1>
           <Button variant="ghost" size="sm" onClick={goToToday} className="h-7 px-3 text-xs">
             今天
           </Button>
