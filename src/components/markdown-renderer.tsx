@@ -26,7 +26,7 @@ export default function MarkdownRenderer({ content, className }: MarkdownRendere
         rehypePlugins={[rehypeRaw]}
         components={{
           // 优化 iframe 渲染
-          iframe: ({ node, ...props }) => {
+          iframe: ({ ...props }) => {
             // 检查 src 是否有效，避免传空字符串导致浏览器重复加载页面
             if (!props.src || props.src === "") {
               return null;

@@ -30,31 +30,33 @@ const SUPPORTED_PLATFORMS = [
   { id: 'coros', label: 'Coros', platform: 'coros', description: '高驰账号' },
 ];
 
+interface AppConfig {
+  id: number;
+  user_id: number;
+  guid: string | null;
+  account: string;
+  encrypted_password?: string;
+  source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
+  region: string;
+  is_active: boolean;
+  master: boolean;
+  access_token: string | null;
+  access_token_expires_at: string | null;
+  refresh_token: string | null;
+  refresh_token_expires_at: string | null;
+  oauth_token: string | null;
+  oauth_token_secret: string | null;
+  secret_string: string | null;
+  total_count: number;
+  created_at: string;
+  updated_at: string;
+  last_synced_at: string | null;
+}
+
 interface ConnectionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  app: {
-    id: number;
-    user_id: number;
-    guid: string | null;
-    account: string;
-    encrypted_password?: string;
-    source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
-    region: string;
-    is_active: boolean;
-    master: boolean;
-    access_token: string | null;
-    access_token_expires_at: string | null;
-    refresh_token: string | null;
-    refresh_token_expires_at: string | null;
-    oauth_token: string | null;
-    oauth_token_secret: string | null;
-    secret_string: string | null;
-    total_count: number;
-    created_at: string;
-    updated_at: string;
-    last_synced_at: string | null;
-  };
+  app: AppConfig | null;
   action: 'add' | 'update';
   onSuccess?: () => void;
 }
@@ -100,7 +102,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
       const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
       const loginPayload = isGarmin
         ? {
-          id: app.id ? app.id : 0,
+          id: app?.id ? app.id : 0,
           region: selectedPlatform === 'garmin_cn' ? 'cn' : 'global',
           email: username,
           password: CryptoJS.AES.encrypt(password, key).toString(),
@@ -108,7 +110,7 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
           action,
         }
         : {
-          id: app.id ? app.id : 0,
+          id: app?.id ? app.id : 0,
           region: 'coros',
           email: username,
           password: CryptoJS.MD5(password).toString(),
@@ -134,8 +136,8 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
 
       setSuccess(true);
       onSuccess?.();
-    } catch (err: any) {
-      setError(err.message || 'Failed to verify and save account');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to verify and save account');
     } finally {
       setLoading(false);
     }

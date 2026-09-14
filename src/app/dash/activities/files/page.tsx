@@ -9,7 +9,6 @@ import {
   IconRefresh,
   IconDownload,
   IconSend,
-  IconLayoutList,
 } from '@tabler/icons-react';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
@@ -44,7 +43,6 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
-import { ActivityViewToggle } from '@/components/dash/activity-view-toggle';
 
 interface AppConfig {
   id: number;
@@ -86,12 +84,12 @@ interface Activity {
 }
 
 interface DetailedActivity {
-  [key: string]: any;
+  id?: number;
+  [key: string]: unknown;
 }
 
 const ActivityFilesPage = () => {
   const t = useTranslations('ListPage');
-  const tFeed = useTranslations('FeedPage');
   const { layout } = useLayout();
   const router = useRouter();
   const pathname = usePathname();
@@ -117,7 +115,7 @@ const ActivityFilesPage = () => {
   const [downloading, setDownloading] = useState(false);
   const [caching, setCaching] = useState<Set<number>>(new Set());
   const [apps, setApps] = useState<AppConfig[]>([]);
-  const [pushResult, setPushResult] = useState<{ success: boolean; result: any } | null>(null);
+  const [pushResult, setPushResult] = useState<{ success: boolean; result: Record<string, unknown> } | null>(null);
 
   useEffect(() => {
     setStartDate(searchParams.get('startDate') || "");
@@ -201,7 +199,7 @@ const ActivityFilesPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [appSelected, page, limit, searchParams]);
+  }, [appSelected, page, limit]);
 
   useEffect(() => {
     fetchActivities();
@@ -380,7 +378,7 @@ const ActivityFilesPage = () => {
     const pushUrl = `/api/v1/base/uploadActivity2Target/${selectedActivityId}/${targetConnectId}`;
     try {
       const response = await authFetch(pushUrl, { method: 'POST' });
-      const result = await response.json();
+      const result = (await response.json()) as Record<string, unknown>;
       console.log(JSON.stringify(result));
       const success = result.status === "SUCCESS" || result.status === "success";
       setPushResult({ success, result });
@@ -396,8 +394,8 @@ const ActivityFilesPage = () => {
     const pushTargets = apps
       .filter(app => app.is_active)
       .map(app => {
-        let platformName = app.source_type + "_" + app.region;
-        let internalPlatform = platformName + "(" + app.account + ")";
+        const platformName = app.source_type + "_" + app.region;
+        const internalPlatform = platformName + "(" + app.account + ")";
         return { id: app.id, platform: internalPlatform, platformName, account: app.account };
       })
       .filter(p => p.id !== currentConnectId);
@@ -666,7 +664,7 @@ const ActivityFilesPage = () => {
                             {getPushTargets(Number(appSelected)).map((target) => (
                               <button
                                 key={target.id}
-                                onClick={() => handlePushToPlatform(selectedActivityDetail?.id, target.id)}
+                                onClick={() => handlePushToPlatform(selectedActivityDetail?.id ?? 0, target.id)}
                                 disabled={pushing}
                                 className="flex flex-col items-center justify-center gap-0.5 px-4 py-2.5 bg-background border border-border text-foreground rounded-md hover:bg-muted disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm min-w-[180px] h-auto"
                               >

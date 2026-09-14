@@ -25,6 +25,7 @@ export async function POST(request: Request) {
 
     // 获取登录后的 Session 信息，其中包含了 OAuth Token
     // 注意：在生产环境中，请勿将敏感的 session 信息直接返回给前端
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rawClient = (GCClient as any).client;
 
     const tokenData = {
@@ -33,6 +34,7 @@ export async function POST(request: Request) {
       // OAuth 2.0 令牌 (较新 API 使用)
       oauth2: rawClient.oauth2Token || null,
       // 备用：某些版本存在 session 属性
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       session: (GCClient as any).session || null
     };
 
@@ -40,10 +42,11 @@ export async function POST(request: Request) {
       tokenData
 
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Garmin API Error:", error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch Garmin profile';
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch Garmin profile' },
+      { error: message },
       { status: 500 }
     );
   }

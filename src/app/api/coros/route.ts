@@ -14,10 +14,11 @@ export async function POST(request: Request) {
     return NextResponse.json({
     });
 
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Coros API Error:", error);
+    const message = error instanceof Error ? error.message : 'Failed to fetch Coros profile';
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch Coros profile' },
+      { error: message },
       { status: 500 }
     );
   }

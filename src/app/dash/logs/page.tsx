@@ -16,7 +16,7 @@ import { Pagination } from "@/components/dash/pagination";
 import Link from "next/link";
 import { IconHistory, IconSearch } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import dayjs from "dayjs";
 
@@ -39,7 +39,7 @@ export default function LogsPage() {
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
 
-  const fetchLogs = async () => {
+  const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -60,17 +60,17 @@ export default function LogsPage() {
       } else {
         throw new Error("Invalid data format received from the server.");
       }
-    } catch (err: any) {
-      setError(err.message || t("fetchLogsError")); // Use translation for generic error
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t("fetchLogsError"));
       console.error("Error fetching logs:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, limit, t]);
 
   useEffect(() => {
     fetchLogs();
-  }, [page, limit]);
+  }, [fetchLogs]);
 
   return (
     <div className={cn(

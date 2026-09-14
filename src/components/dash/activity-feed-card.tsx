@@ -1,6 +1,5 @@
 'use client';
 
-import { cn } from '@/lib/utils';
 import { type Activity } from '@/lib/activities';
 import { ActivitySportIcon } from '@/lib/activity-icons';
 import { ActivityFeedDesktopCells } from '@/components/dash/activity-feed-layout';
