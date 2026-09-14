@@ -143,7 +143,7 @@ export default function HeartPage() {
           const middleTime = currentTime.add(diffMinutes / 2, 'minute').format('HH:mm');
           chartData.push({
             time: middleTime,
-            heartRate: null as any,
+            heartRate: null,
             yesterdayHeartRate: null,
           });
         }

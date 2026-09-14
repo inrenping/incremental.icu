@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useLayout } from "@/hooks/use-layout";
@@ -18,9 +17,7 @@ import {
   IconPlus,
   IconClock,
   IconSourceCode,
-  IconTargetArrow,
   IconHistory,
-  IconInfoCircle,
 } from "@tabler/icons-react";
 import { TaskDialog } from "@/components/dash/task-dialog";
 
@@ -56,12 +53,7 @@ export default function TasksPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<TaskItem | null>(null);
 
-  useEffect(() => {
-    fetchTasks();
-    fetchApps();
-  }, []);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
       const response = await authFetch('/api/v1/task');
@@ -76,9 +68,9 @@ export default function TasksPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
 
-  const fetchApps = async () => {
+  const fetchApps = useCallback(async () => {
     try {
       const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (response.ok) {
@@ -88,7 +80,12 @@ export default function TasksPage() {
     } catch (err) {
       console.error("Fetch apps error:", err);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchTasks();
+    fetchApps();
+  }, [fetchTasks, fetchApps]);
 
   const getAppDisplay = (id: number) => {
     const app = apps.find(a => a.id === id);

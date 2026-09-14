@@ -2,14 +2,11 @@
 
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
-import { useTranslations } from "next-intl";
-
 
 import { IconSlash, IconHeartFilled } from "@tabler/icons-react";
 
 export function SiteFooter() {
   const { layout } = useLayout();
-  const t = useTranslations("IndexPage");
 
   return (
     <footer className="border-t bg-background w-full py-4">

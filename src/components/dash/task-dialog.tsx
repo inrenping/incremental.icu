@@ -113,8 +113,8 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
       } else {
         toast.error(result.message || '操作失败');
       }
-    } catch (err: any) {
-      toast.error(err.message || '保存失败');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : '保存失败');
     } finally {
       setLoading(false);
     }

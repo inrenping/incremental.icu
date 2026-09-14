@@ -7,6 +7,7 @@ import { ModeIntl } from "@/components/mode-intl";
 import { SiteConfig } from "@/components/site-config";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { storage } from "@/lib/storage";
 import { toast } from 'sonner';
 import { IconMenu2 } from "@tabler/icons-react";
@@ -109,7 +110,7 @@ export function SiteHeader() {
       )}>
         <div className="grid h-(--header-height) grid-cols-[1fr_auto] items-center gap-3 **:data-[slot=separator]:h-4!">
           <div className="flex items-center gap-2">
-            <img src="/favicon.svg" alt="Logo" className="h-6 w-6" />
+            <Image src="/favicon.svg" alt="Logo" width={24} height={24} className="h-6 w-6" />
             <h1 className="cursor-pointer text-base font-medium" onClick={() => router.push('/')}>
               {t('title')}
             </h1>

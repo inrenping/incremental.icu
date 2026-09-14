@@ -6,20 +6,10 @@ import { cn } from "@/lib/utils";
 import MarkdownRenderer from "@/components/markdown-renderer";
 import docMenu from "@/lib/doc-menu.json";
 
-interface MenuItem {
-  text: string;
-  href: string;
-}
-
-interface MenuSection {
-  divider?: boolean;
-  items: MenuItem[];
-}
-
 interface DocPageProps {
   params: Promise<{ slug: string }>;
 }
-export default function docPage({ params }: DocPageProps) {
+export default function DocPage({ params }: DocPageProps) {
   const { layout } = useLayout();
   const { slug } = use(params);
   const [mdContent, setMdContent] = useState<string>('');
@@ -42,7 +32,7 @@ export default function docPage({ params }: DocPageProps) {
         setMdContent('# 加载失败');
         setIsLoading(false);
       });
-  }, []);
+  }, [slug]);
 
   // 当 Markdown 内容加载并渲染后，从 DOM 中提取所有 h2 并设置 ID
   useEffect(() => {

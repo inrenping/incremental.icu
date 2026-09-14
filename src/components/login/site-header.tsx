@@ -5,6 +5,7 @@ import { SiteConfig } from "@/components/site-config";
 import { GitHubLink } from '@/components/githubLink';
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,7 @@ export function SiteHeader() {
         layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
       )}>
         <div className="flex h-(--header-height) gap-3 items-center **:data-[slot=separator]:h-4!">
-          <img src="/favicon.svg" alt="Logo" className="h-6 w-6" />
+          <Image src="/favicon.svg" alt="Logo" width={24} height={24} className="h-6 w-6" />
           <h1 className="text-base font-medium cursor-pointer" onClick={() => router.push('/')}>
             {t('title')}
           </h1>

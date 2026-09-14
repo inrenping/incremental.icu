@@ -15,7 +15,7 @@ import {
 import { Pagination } from "@/components/dash/pagination";
 import Link from "next/link";
 import { IconArrowLeft, IconRefresh } from "@tabler/icons-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { authFetch } from "@/lib/api";
 import dayjs from "dayjs";
@@ -60,7 +60,7 @@ export default function TaskResultsPage() {
   const [limit, setLimit] = useState(20);
   const [total, setTotal] = useState(0);
 
-  const fetchResults = async () => {
+  const fetchResults = useCallback(async () => {
     if (!taskId) return;
     try {
       setLoading(true);
@@ -78,15 +78,15 @@ export default function TaskResultsPage() {
       } else {
         throw new Error(result.message || '获取数据失败');
       }
-    } catch (err: any) {
-      setError(err.message || '获取执行记录失败');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : '获取执行记录失败');
       console.error("Error fetching task results:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [taskId]);
 
-  const fetchTaskInfo = async () => {
+  const fetchTaskInfo = useCallback(async () => {
     if (!taskId) return;
     try {
       const response = await authFetch('/api/v1/task');
@@ -100,9 +100,9 @@ export default function TaskResultsPage() {
     } catch (err) {
       console.error("Fetch task info error:", err);
     }
-  };
+  }, [taskId]);
 
-  const fetchApps = async () => {
+  const fetchApps = useCallback(async () => {
     try {
       const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (response.ok) {
@@ -112,7 +112,7 @@ export default function TaskResultsPage() {
     } catch (err) {
       console.error("Fetch apps error:", err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (taskId) {
@@ -120,7 +120,7 @@ export default function TaskResultsPage() {
       fetchTaskInfo();
       fetchApps();
     }
-  }, [taskId]);
+  }, [taskId, fetchResults, fetchTaskInfo, fetchApps]);
 
   const getAppDisplay = (id: number) => {
     const app = apps.find(a => a.id === id);

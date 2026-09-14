@@ -1,8 +1,6 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { useLayout } from "@/hooks/use-layout";
-import { cn } from "@/lib/utils";
 import { authFetch } from "@/lib/api";
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
@@ -36,18 +34,15 @@ interface AppConfig {
 
 export default function AccountsPage() {
   const t = useTranslations('DashPage')
-  const { layout } = useLayout();
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [open, setOpen] = useState(false);
-  const [currentApp, setCurrentApp] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const [currentApp, setCurrentApp] = useState<AppConfig | null>(null);
 
   useEffect(() => {
     fetchAppsStatus();
   }, []);
 
   const fetchAppsStatus = async () => {
-    setLoading(true);
     try {
       const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (!response.ok) {
@@ -56,17 +51,14 @@ export default function AccountsPage() {
       }
       const data = await response.json();
       setApps(data);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Fetch status error:", err);
       toast.error("获取应用状态失败");
-    } finally {
-      setLoading(false);
     }
   };
 
   // 刷新认证处理函数
   const handleRefreshAuth = async (id: number) => {
-    setLoading(true);
     try {
       const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
         method: 'POST'
@@ -79,11 +71,10 @@ export default function AccountsPage() {
         toast.error(result.message || "刷新失败");
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Refresh auth error:", err);
-      toast.error(err.message || t("refreshFailedTryAgain"));
-    } finally {
-      setLoading(false);
+      const message = err instanceof Error ? err.message : t("refreshFailedTryAgain");
+      toast.error(message);
     }
   };
 
@@ -94,7 +85,7 @@ export default function AccountsPage() {
           <h1 className="text-xl font-semibold">我的应用程序</h1>
           <Button
             onClick={() => {
-              setCurrentApp({ source_type: 'garmin_cn' });
+              setCurrentApp({ source_type: 'garmin_cn' } as unknown as AppConfig);
               setOpen(true);
             }}
           >

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   IconTrendingUp, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
 } from "@tabler/icons-react";
@@ -22,7 +23,7 @@ export default function Home() {
         <section className="py-24 px-4 text-left bg-cover bg-center bg-no-repeat">
           <div className="max-w-6xl mx-auto space-y-6">
             <h1 className="text-6xl font-black tracking-tighter text-foreground flex items-center justify-start gap-4">
-              <img src="/favicon.svg" alt="Logo" className="h-16 w-16" />
+              <Image src="/favicon.svg" alt="Logo" width={64} height={64} className="h-16 w-16" />
               {t("title")}
             </h1>
             <p className="text-5xl text-foreground font-black tracking-tighter">{t('hello')}</p>
@@ -147,6 +148,7 @@ function Carousel3D() {
                 width: isCenter ? 'auto' : '680px',
               }}
             >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={src}
                 alt={`Dashboard preview ${i + 1}`}

@@ -168,13 +168,11 @@ export async function GET(request: NextRequest) {
     const tz = (s: string) => dayjs(s).add(8, 'hour');
 
     const yesterdayMap = new Map<string, { hr: number; ts: number }>();
-    let yesterdayTsArray: number[] = [];
     if (yesterdayData?.details) {
       for (const d of yesterdayData.details) {
         const t = tz(d.sample_time);
         yesterdayMap.set(t.format('HH:mm'), { hr: d.heart_rate, ts: t.unix() });
       }
-      yesterdayTsArray = yesterdayData.details.map(d => tz(d.sample_time).unix());
     }
 
     const pts = data.details.map((d, i) => {
