@@ -1,4 +1,9 @@
+import { toast } from 'sonner';
+
 import { getClerkToken } from '@/lib/token-manager';
+
+let lastAuthErrorToastAt = 0;
+const AUTH_ERROR_TOAST_INTERVAL_MS = 5000;
 
 function buildHeaders(existingHeaders?: HeadersInit) {
   const headers = new Headers(existingHeaders);
@@ -19,8 +24,9 @@ function buildHeaders(existingHeaders?: HeadersInit) {
 }
 
 /**
- * 带 Clerk JWT 的 fetch 封装。
- * 自动附加 Authorization header，401 时触发 Clerk 登录。
+ * Clerk JWT fetch wrapper.
+ * Automatically attaches the Authorization header and shows a toast on 401/403
+ * instead of redirecting, so users can decide when to sign in again.
  */
 export async function clerkFetch(input: RequestInfo, init?: RequestInit) {
   const headers = buildHeaders(init?.headers);
@@ -28,9 +34,17 @@ export async function clerkFetch(input: RequestInfo, init?: RequestInit) {
 
   const response = await fetch(input, requestInit);
 
-  if (response.status === 401 && typeof window !== 'undefined') {
-    // Clerk middleware 会在下次导航时拦截，这里直接跳转触发重定向
-    window.location.href = '/sign-in';
+  if (
+    (response.status === 401 || response.status === 403) &&
+    typeof window !== 'undefined'
+  ) {
+    const now = Date.now();
+    if (now - lastAuthErrorToastAt > AUTH_ERROR_TOAST_INTERVAL_MS) {
+      lastAuthErrorToastAt = now;
+      toast.error(
+        `授权可能已失效（${response.status} ${response.statusText}），请重新登录。如果多次出现此提示，重新登录即可。`
+      );
+    }
   }
 
   return response;

@@ -69,6 +69,10 @@ public/
 - Add all user-facing strings to `src/messages/en.json` and `src/messages/zh.json`.
 - Message keys follow dot-notation: `page.section.action`.
 
+## Working Principles
+
+**Before executing any actual operations (modifying code, creating files, running commands, etc.), you must first confirm with the user. Only proceed after receiving explicit approval.** Read-only operations such as analysis, reading, and searching do not require confirmation.
+
 ## Workflow
 
 1. **Read first**: Understand existing code before suggesting changes.
