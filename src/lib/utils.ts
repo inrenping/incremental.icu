@@ -5,7 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** 平台标识 -> i18n 文案 key（空串表示未知平台，调用方回退显示原始值）。 */
+/**
+ * 平台标识 -> i18n 文案 key（空串表示未知平台，调用方回退显示原始值）。
+ * 注：佳明区分中国版/国际版（garmin_cn / garmin）；高驰不区分版本，统一显示「高驰」。
+ */
 export function platformLabelKey(sourceType: string | null | undefined): string {
   if (sourceType === "garmin") return "platformGarmin";
   if (sourceType === "garmin_cn") return "platformGarminCn";
