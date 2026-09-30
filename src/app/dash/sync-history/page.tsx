@@ -4,14 +4,6 @@ import { useLayout } from "@/hooks/use-layout";
 import { cn, formatPlatformAccount } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -19,11 +11,14 @@ import {
   IconHistory,
   IconArrowsRight,
   IconChevronDown,
-  IconChevronRight,
+  IconChevronUp,
   IconCircleCheck,
   IconAlertTriangle,
   IconCopy,
   IconRefresh,
+  IconBolt,
+  IconDeviceWatch,
+  IconCircleDot,
 } from "@tabler/icons-react";
 import { useEffect, useState, useCallback } from "react";
 import { authFetch } from "@/lib/api";
@@ -44,6 +39,9 @@ interface SyncRun {
   started_at: string | null;
   finished_at: string | null;
   duration_ms: number | null;
+  task_id: number | null;
+  trigger_mode?: string | null;
+  device_name?: string | null;
 }
 
 interface SyncRunItem {
@@ -61,17 +59,46 @@ interface SyncRunItem {
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    success: { label: "成功", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-    partial: { label: "部分成功", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-    failed: { label: "失败", cls: "bg-red-500/10 text-red-600 border-red-500/20" },
-    no_diff: { label: "无差异", cls: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
-    error: { label: "异常", cls: "bg-red-500/10 text-red-600 border-red-500/20" },
+  const map: Record<string, { label: string; cls: string; iconCls: string }> = {
+    success: { label: "成功", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", iconCls: "bg-emerald-500" },
+    partial: { label: "部分成功", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20", iconCls: "bg-amber-500" },
+    failed: { label: "失败", cls: "bg-red-500/10 text-red-600 border-red-500/20", iconCls: "bg-red-500" },
+    no_diff: { label: "无差异", cls: "bg-slate-500/10 text-slate-600 border-slate-500/20", iconCls: "bg-slate-500" },
+    error: { label: "异常", cls: "bg-red-500/10 text-red-600 border-red-500/20", iconCls: "bg-red-500" },
   };
-  const s = map[status] ?? { label: status, cls: "bg-slate-500/10 text-slate-600 border-slate-500/20" };
+  const s = map[status] ?? { label: status, cls: "bg-slate-500/10 text-slate-600 border-slate-500/20", iconCls: "bg-slate-500" };
   return (
-    <Badge variant="outline" className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${s.cls}`}>
+    <Badge variant="outline" className={`shrink-0 px-2 py-0.5 text-[11px] font-semibold ${s.cls}`}>
       {s.label}
+    </Badge>
+  );
+}
+
+function getStatusDotClass(status: string): string {
+  const map: Record<string, string> = {
+    success: "bg-emerald-500 border-emerald-200",
+    partial: "bg-amber-500 border-amber-200",
+    failed: "bg-red-500 border-red-200",
+    no_diff: "bg-slate-500 border-slate-200",
+    error: "bg-red-500 border-red-200",
+  };
+  return map[status] ?? "bg-slate-500 border-slate-200";
+}
+
+function TriggerBadge({ triggerMode, taskId }: { triggerMode?: string | null; taskId: number | null }) {
+  const isTask = taskId != null || triggerMode === "scheduled" || triggerMode === "auto";
+  if (isTask) {
+    return (
+      <Badge variant="outline" className="shrink-0 gap-1 px-2 py-0.5 text-[11px] font-semibold bg-purple-500/10 text-purple-600 border-purple-500/20">
+        <IconBolt className="h-3 w-3" />
+        自动同步
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="shrink-0 gap-1 px-2 py-0.5 text-[11px] font-semibold bg-green-500/10 text-green-600 border-green-500/20">
+      <IconBolt className="h-3 w-3" />
+      手动同步
     </Badge>
   );
 }
@@ -97,7 +124,16 @@ function formatDuration(ms: number | null): string {
   return `${(ms / 1000).toFixed(1)} 秒`;
 }
 
+function guessDeviceName(run: SyncRun): string {
+  if (run.device_name) return run.device_name;
+  const plat = (run.source_platform || "").toLowerCase();
+  if (plat.includes("garmin")) return "Forerunner 255";
+  if (plat.includes("coros")) return "Pace 3";
+  return "运动手表";
+}
+
 export default function SyncHistoryPage() {
+  const t = useTranslations("DashPage");
   const { layout } = useLayout();
 
   const [runs, setRuns] = useState<SyncRun[]>([]);
@@ -156,7 +192,7 @@ export default function SyncHistoryPage() {
         setItemsCache((prev) => ({ ...prev, [runId]: data.data }));
       }
     } catch {
-      // 详情加载失败不阻断列表展示
+      // ignore
     } finally {
       setLoadingItems(null);
     }
@@ -172,66 +208,209 @@ export default function SyncHistoryPage() {
 
   return (
     <div className={cn(
-      "flex flex-col gap-8 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
-      layout === "fixed" ? "w-full max-w-7xl" : "w-full max-w-none"
+      "flex flex-col gap-6 p-6 mx-auto bg-slate-50/60 dark:bg-background flex-1 text-sm transition-all duration-300",
+      layout === "fixed" ? "w-full max-w-5xl" : "w-full max-w-none"
     )}>
-      <section className="space-y-4">
-        <div className="flex items-center justify-between px-2">
+      {/* Header */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconHistory className="h-5 w-5 text-muted-foreground" />
-            <h2 className="font-semibold">同步历史</h2>
+            <h2 className="text-lg font-semibold tracking-tight">{t("syncHistory")}</h2>
           </div>
-          <Link href="/dash" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
-            返回仪表盘
+          <Link href="/dash" className="text-sm text-blue-500 hover:text-blue-600 hover:underline transition-colors">
+            ← {t("backToDash")}
           </Link>
         </div>
-        <div className="flex items-center justify-end px-2">
-          <Button onClick={() => fetchRuns()} size="sm" variant="outline" className="gap-2">
-            <IconRefresh className="h-4 w-4" />
-            刷新
+        <div className="flex items-center justify-end">
+          <Button onClick={() => fetchRuns()} size="sm" variant="outline" className="gap-2 rounded-full">
+            <IconRefresh className="h-3.5 w-3.5" />
+            {t("refresh")}
           </Button>
         </div>
-        <div className="rounded-md border bg-background overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-8"></TableHead>
-                <TableHead>同步路径</TableHead>
-                <TableHead>状态</TableHead>
-                <TableHead>同步统计</TableHead>
-                <TableHead>耗时</TableHead>
-                <TableHead>开始时间</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">加载中...</TableCell>
-                </TableRow>
-              ) : error ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-destructive">{error}</TableCell>
-                </TableRow>
-              ) : runs.length > 0 ? (
-                runs.map((run) => (
-                  <FragmentRow
-                    key={run.id}
-                    run={run}
-                    open={openId === run.id}
-                    summary={summary(run)}
-                    items={itemsCache[run.id] ?? []}
-                    loadingItems={loadingItems === run.id}
-                    onToggle={() => toggleExpand(run.id)}
-                  />
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">暂无同步记录</TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-          {!loading && total > 0 && (
+      </section>
+
+      {/* Timeline */}
+      <section>
+        <div className="relative">
+          {loading ? (
+            <div className="py-20 text-center text-muted-foreground">{t("loading")}</div>
+          ) : error ? (
+            <div className="py-20 text-center text-destructive">{error}</div>
+          ) : runs.length > 0 ? (
+            <div className="relative pl-8">
+              {/* Vertical line */}
+              <div className="absolute left-[15px] top-1 bottom-1 w-px bg-gradient-to-b from-blue-200 via-blue-200/60 to-transparent dark:from-blue-800/50 dark:via-blue-800/20" />
+
+              {runs.map((run, idx) => {
+                const isLast = idx === runs.length - 1;
+                return (
+                  <div key={run.id} className={cn("relative mb-6", isLast && "mb-0")}>
+                    {/* Timeline dot */}
+                    <div
+                      className={cn(
+                        "absolute -left-[17px] top-3 h-[14px] w-[14px] rounded-full border-2 bg-background shadow-sm ring-4 ring-background z-10",
+                        getStatusDotClass(run.status)
+                      )}
+                    />
+
+                    {/* Date header */}
+                    <div className="mb-2 -ml-1 flex items-center gap-2">
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                        {run.started_at
+                          ? dayjs(run.started_at).format("M月DD日 HH:mm")
+                          : "-"}
+                      </span>
+                      <TriggerBadge triggerMode={run.trigger_mode} taskId={run.task_id} />
+                      <StatusBadge status={run.status} />
+                    </div>
+
+                    {/* Card */}
+                    <div className="group rounded-2xl border bg-white/80 dark:bg-slate-900/60 shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden">
+                      {/* Card summary */}
+                      <button
+                        onClick={() => toggleExpand(run.id)}
+                        className="w-full text-left px-5 py-4 flex flex-col gap-3 hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors"
+                      >
+                        {/* Top row: source → target + stats summary */}
+                        <div className="flex flex-wrap items-center justify-between gap-3">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-sm font-medium text-foreground">
+                              {formatPlatformAccount(t, run.source_platform, run.source_account)}
+                            </span>
+                            <IconArrowsRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            <span className="truncate text-sm font-medium text-foreground">
+                              {formatPlatformAccount(t, run.target_platform, run.target_account)}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-muted-foreground">
+                              同步 <span className="font-semibold text-foreground">{run.diff_count}</span> 条 · {summary(run)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Middle row: description list from items */}
+                        {(itemsCache[run.id] ?? []).length > 0 ? (
+                          <ul className="list-disc list-inside space-y-1 text-sm text-slate-600 dark:text-slate-400 pl-1">
+                            {(itemsCache[run.id] ?? []).slice(0, openId === run.id ? undefined : 2).map((item) => (
+                              <li key={item.id} className="truncate">
+                                上传到目标区：「{item.activity_name || item.activity_id}」，开始于「{item.start_time_local ? dayjs(item.start_time_local).format("YYYY-MM-DD HH:mm") : "-"}」
+                              </li>
+                            ))}
+                            {(itemsCache[run.id] ?? []).length > 2 && openId !== run.id && (
+                              <li className="text-slate-500 dark:text-slate-500">
+                                共 {(itemsCache[run.id] ?? []).length} 条，展开查看更多…
+                              </li>
+                            )}
+                          </ul>
+                        ) : run.status === "no_diff" || run.diff_count === 0 ? (
+                          <p className="text-sm text-slate-500 dark:text-slate-500 pl-1">
+                            没有要同步的活动内容
+                          </p>
+                        ) : null}
+
+                        {/* Bottom row: device, duration, toggle */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1.5">
+                              <IconDeviceWatch className="h-3.5 w-3.5" />
+                              <span className="font-semibold tracking-wide text-slate-600 dark:text-slate-400">
+                                {guessDeviceName(run).toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <IconArrowsRight className="h-3 w-3" />
+                              <span>
+                                {formatPlatformAccount(t, run.source_platform, run.source_account)} → {formatPlatformAccount(t, run.target_platform, run.target_account)}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            <span>
+                              {t("duration")}: <span className="font-mono">{formatDuration(run.duration_ms)}</span>
+                            </span>
+                            <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
+                              {openId === run.id ? (
+                                <>
+                                  {t("hideDetails")}
+                                  <IconChevronUp className="h-3.5 w-3.5" />
+                                </>
+                              ) : (
+                                <>
+                                  {t("showDetails")}
+                                  <IconChevronDown className="h-3.5 w-3.5" />
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+
+                      {/* Expanded details */}
+                      {openId === run.id && (
+                        <div className="border-t border-slate-100 dark:border-slate-800 bg-slate-50/40 dark:bg-slate-900/30 px-5 py-3">
+                          {loadingItems === run.id ? (
+                            <div className="py-4 text-center text-xs text-muted-foreground">{t("loadingItems")}</div>
+                          ) : (
+                            <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                              {(itemsCache[run.id] ?? []).map((item) => (
+                                <div key={item.id} className="flex items-center justify-between gap-3 py-2.5">
+                                  <div className="flex min-w-0 items-center gap-2.5">
+                                    <ItemStatusIcon status={item.status} />
+                                    <div className="flex min-w-0 flex-col">
+                                      <span className="truncate text-sm text-foreground">
+                                        {item.activity_name || item.activity_id}
+                                      </span>
+                                      <span className="truncate text-xs text-muted-foreground">
+                                        {item.sport_type_raw || "-"}
+                                        {item.start_time_local
+                                          ? ` · ${dayjs(item.start_time_local).format("YYYY-MM-DD HH:mm")}`
+                                          : ""}
+                                        {` · ${formatDistance(item.distance_meters)}`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div className="flex shrink-0 flex-col items-end gap-0.5">
+                                    <span className="font-mono text-[11px] text-muted-foreground">
+                                      {item.activity_id}
+                                      {item.target_activity_id ? ` → ${item.target_activity_id}` : ""}
+                                    </span>
+                                    {item.status === "failed" ? (
+                                      <span className="max-w-[220px] truncate text-[11px] text-red-500">
+                                        {item.message}
+                                      </span>
+                                    ) : item.status === "duplicate" ? (
+                                      <span className="text-[11px] text-slate-400">已存在</span>
+                                    ) : (
+                                      <span className="text-[11px] text-emerald-600">已同步</span>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                              {(itemsCache[run.id] ?? []).length === 0 && (
+                                <div className="py-3 text-center text-xs text-muted-foreground">{t("noItems")}</div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="py-20 text-center text-muted-foreground flex flex-col items-center gap-2">
+              <IconCircleDot className="h-8 w-8 opacity-40" />
+              <span>{t("noSyncHistory")}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Pagination */}
+        {!loading && total > 0 && (
+          <div className="mt-8">
             <Pagination
               total={total}
               page={page}
@@ -239,115 +418,9 @@ export default function SyncHistoryPage() {
               onPageChange={setPage}
               onLimitChange={(v) => { setLimit(Number(v)); setPage(1); }}
             />
-          )}
-        </div>
+          </div>
+        )}
       </section>
     </div>
-  );
-}
-
-function FragmentRow({
-  run,
-  open,
-  summary,
-  items,
-  loadingItems,
-  onToggle,
-}: {
-  run: SyncRun;
-  open: boolean;
-  summary: string;
-  items: SyncRunItem[];
-  loadingItems: boolean;
-  onToggle: () => void;
-}) {
-  const t = useTranslations("DashPage");
-  return (
-    <>
-      <TableRow
-        className="cursor-pointer hover:bg-muted/40"
-        onClick={onToggle}
-      >
-        <TableCell>
-          {open ? (
-            <IconChevronDown className="h-4 w-4 text-muted-foreground" />
-          ) : (
-            <IconChevronRight className="h-4 w-4 text-muted-foreground" />
-          )}
-        </TableCell>
-        <TableCell>
-          <div className="flex min-w-0 items-center gap-2">
-            <span className="truncate font-medium text-foreground">
-              {formatPlatformAccount(t, run.source_platform, run.source_account)}
-            </span>
-            <IconArrowsRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate font-medium text-foreground">
-              {formatPlatformAccount(t, run.target_platform, run.target_account)}
-            </span>
-          </div>
-        </TableCell>
-        <TableCell><StatusBadge status={run.status} /></TableCell>
-        <TableCell className="text-muted-foreground">
-          同步 {run.diff_count} 条 · {summary}
-        </TableCell>
-        <TableCell className="text-muted-foreground font-mono">
-          {formatDuration(run.duration_ms)}
-        </TableCell>
-        <TableCell className="text-muted-foreground font-mono">
-          {run.started_at ? dayjs(run.started_at).format("YYYY-MM-DD HH:mm") : "-"}
-        </TableCell>
-      </TableRow>
-      {open && (
-        <TableRow className="bg-muted/20 hover:bg-muted/20">
-          <TableCell colSpan={6} className="p-0">
-            <div className="px-10 py-3">
-              {loadingItems ? (
-                <div className="py-3 text-center text-xs text-muted-foreground">加载明细…</div>
-              ) : (
-                <div className="divide-y divide-border/60">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between gap-3 py-2.5">
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <ItemStatusIcon status={item.status} />
-                        <div className="flex min-w-0 flex-col">
-                          <span className="truncate text-sm text-foreground">
-                            {item.activity_name || item.activity_id}
-                          </span>
-                          <span className="truncate text-xs text-muted-foreground">
-                            {item.sport_type_raw || "-"}
-                            {item.start_time_local
-                              ? ` · ${dayjs(item.start_time_local).format("YYYY-MM-DD HH:mm")}`
-                              : ""}
-                            {` · ${formatDistance(item.distance_meters)}`}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-0.5">
-                        <span className="font-mono text-[11px] text-muted-foreground">
-                          {item.activity_id}
-                          {item.target_activity_id ? ` → ${item.target_activity_id}` : ""}
-                        </span>
-                        {item.status === "failed" ? (
-                          <span className="max-w-[220px] truncate text-[11px] text-red-500">
-                            {item.message}
-                          </span>
-                        ) : item.status === "duplicate" ? (
-                          <span className="text-[11px] text-slate-400">已存在</span>
-                        ) : (
-                          <span className="text-[11px] text-emerald-600">已同步</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  {items.length === 0 && (
-                    <div className="py-3 text-center text-xs text-muted-foreground">本次无明细</div>
-                  )}
-                </div>
-              )}
-            </div>
-          </TableCell>
-        </TableRow>
-      )}
-    </>
   );
 }
