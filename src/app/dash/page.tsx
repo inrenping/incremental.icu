@@ -20,6 +20,7 @@ import {
   IconListDetails,
   IconActivity,
   IconBolt,
+  IconHistory,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -31,6 +32,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SyncLogs } from "@/components/dash/sync-logs";
+import { SyncRuns } from "@/components/dash/sync-runs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import dayjs from "dayjs";
@@ -596,6 +598,12 @@ export default function DashPage() {
               </Button>
             </div>
             <div className="flex shrink-0 items-center gap-3">
+              <Button variant="outline" size="lg" className="h-12 rounded-full px-6 text-lg shadow-sm" asChild>
+                <Link href="/dash/sync-history">
+                  <IconHistory className="h-5 w-5" />
+                  {t("syncHistory")}
+                </Link>
+              </Button>
               <Button
                 variant="outline"
                 size="lg"
@@ -613,7 +621,8 @@ export default function DashPage() {
 
       {/* Bottom Row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-2 space-y-4">
+          <SyncRuns limit={10} />
           <SyncLogs limit={10} />
         </div>
         <SecurityNotice />
