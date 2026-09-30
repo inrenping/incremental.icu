@@ -1,7 +1,7 @@
 'use client';
 
 import { useLayout } from "@/hooks/use-layout";
-import { cn } from "@/lib/utils";
+import { cn, formatPlatformAccount } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Pagination } from "@/components/dash/pagination";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import {
   IconHistory,
@@ -260,6 +261,7 @@ function FragmentRow({
   loadingItems: boolean;
   onToggle: () => void;
 }) {
+  const t = useTranslations("DashPage");
   return (
     <>
       <TableRow
@@ -274,10 +276,14 @@ function FragmentRow({
           )}
         </TableCell>
         <TableCell>
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-foreground">{run.source_account}</span>
+          <div className="flex min-w-0 items-center gap-2">
+            <span className="truncate font-medium text-foreground">
+              {formatPlatformAccount(t, run.source_platform, run.source_account)}
+            </span>
             <IconArrowsRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-            <span className="font-medium text-foreground">{run.target_account}</span>
+            <span className="truncate font-medium text-foreground">
+              {formatPlatformAccount(t, run.target_platform, run.target_account)}
+            </span>
           </div>
         </TableCell>
         <TableCell><StatusBadge status={run.status} /></TableCell>

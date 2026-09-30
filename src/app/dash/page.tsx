@@ -31,7 +31,6 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { SyncLogs } from "@/components/dash/sync-logs";
 import { SyncRuns } from "@/components/dash/sync-runs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -623,7 +622,6 @@ export default function DashPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
           <SyncRuns limit={10} />
-          <SyncLogs limit={10} />
         </div>
         <SecurityNotice />
       </div>
