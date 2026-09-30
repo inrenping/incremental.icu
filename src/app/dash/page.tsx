@@ -595,14 +595,14 @@ export default function DashPage() {
                   定时执行任务
                 </Link>
               </Button>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <Button variant="outline" size="lg" className="h-12 rounded-full px-6 text-lg shadow-sm" asChild>
+              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
                 <Link href="/dash/sync-history">
                   <IconHistory className="h-5 w-5" />
                   {t("syncHistory")}
                 </Link>
               </Button>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
               <Button
                 variant="outline"
                 size="lg"
