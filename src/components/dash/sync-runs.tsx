@@ -12,6 +12,9 @@ import {
   IconCopy,
 } from "@tabler/icons-react";
 import { authFetch } from "@/lib/api";
+import { formatPlatformAccount } from "@/lib/utils";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
 import dayjs from "dayjs";
 
 interface SyncRun {
@@ -81,6 +84,7 @@ function formatDistance(meters: number | null): string {
 }
 
 export function SyncRuns({ limit = 10 }: SyncRunsProps) {
+  const t = useTranslations("DashPage");
   const [runs, setRuns] = useState<SyncRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -152,13 +156,22 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
             <IconClock className="h-4 w-4 text-muted-foreground" />
             <CardTitle className="text-base">同步记录</CardTitle>
           </div>
-          <button
-            onClick={fetchRuns}
-            className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-          >
-            <IconRefresh className="h-3.5 w-3.5" />
-            刷新
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={fetchRuns}
+              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <IconRefresh className="h-3.5 w-3.5" />
+              刷新
+            </button>
+            <Link
+              href="/dash/sync-history"
+              className="flex items-center gap-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            >
+              {t("viewMore")}
+              <IconChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-0">
@@ -184,11 +197,11 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
                     )}
                     <div className="flex min-w-0 items-center gap-2">
                       <span className="truncate text-sm font-medium text-foreground">
-                        {run.source_account}
+                        {formatPlatformAccount(t, run.source_platform, run.source_account)}
                       </span>
                       <IconArrowsRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                       <span className="truncate text-sm font-medium text-foreground">
-                        {run.target_account}
+                        {formatPlatformAccount(t, run.target_platform, run.target_account)}
                       </span>
                     </div>
                   </div>
