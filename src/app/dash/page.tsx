@@ -621,7 +621,7 @@ export default function DashPage() {
       {/* Bottom Row */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-4">
-          <SyncRuns limit={10} />
+          <SyncRuns limit={3} />
         </div>
         <SecurityNotice />
       </div>
