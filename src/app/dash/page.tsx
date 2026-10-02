@@ -617,9 +617,13 @@ export default function DashPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <SyncRuns limit={10} />
-          <SecurityNotice />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <SyncRuns limit={10} />
+          </div>
+          <div className="lg:col-span-2">
+            <SecurityNotice />
+          </div>
         </div>
       </TabsContent>
 
