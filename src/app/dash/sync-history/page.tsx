@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Pagination } from "@/components/dash/pagination";
 import { useTranslations } from "next-intl";
-import Link from "next/link";
 import {
   IconHistory,
   IconArrowsRight,
@@ -218,9 +217,6 @@ export default function SyncHistoryPage() {
             <IconHistory className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-lg font-semibold tracking-tight">{t("syncHistory")}</h2>
           </div>
-          <Link href="/dash" className="text-sm text-blue-500 hover:text-blue-600 hover:underline transition-colors">
-            ← {t("backToDash")}
-          </Link>
         </div>
         <div className="flex items-center justify-end">
           <Button onClick={() => fetchRuns()} size="sm" variant="outline" className="gap-2 rounded-full">

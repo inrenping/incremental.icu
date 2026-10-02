@@ -144,10 +144,8 @@
     "records": "Records",
     "edit": "Edit",
     "fetchTasksError": "Failed to fetch task list",
-    "syncHistory": "Sync History",
     "backToDash": "Back to Dashboard",
     "refresh": "Refresh",
-    "loading": "Loading...",
     "noSyncHistory": "No sync records yet",
     "syncPath": "Sync Path",
     "syncStats": "Sync Stats",
@@ -159,7 +157,15 @@
     "autoSync": "Auto",
     "syncType": "Sync Type",
     "noItems": "No details for this run",
-    "loadingItems": "Loading details..."
+    "loadingItems": "Loading details...",
+    "tabConsole": "Console",
+    "tabSync": "Sync",
+    "tabSleep": "Sleep",
+    "tabHeart": "Heart Rate",
+    "sleepNotAvailable": "Sleep data not available yet",
+    "sleepNotAvailableDesc": "The backend does not expose a sleep data endpoint yet. This module will show daily sleep duration, deep/light sleep breakdown and sleep score once connected.",
+    "heartUnderConstruction": "Heart rate module under construction",
+    "heartUnderConstructionDesc": "The heart rate display is not finalized yet and is temporarily hidden. Once connected it will show daily heart rate trends, resting / max / min heart rate and more."
   },
   "ListPage": {
     "loadingActivity": "Loading activity data...",
