@@ -116,53 +116,45 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
     return `${name}${region ? ` (${region})` : ''}`;
   };
 
-  const handleAddPair = () => {
-    if (!pendingSource || !pendingTarget) {
+  // 校验并提交一条同步配置（源 -> 目标）。返回是否提交成功。
+  // 关键修复：提交不再依赖单独的「+」点击。只要源和目标都选好就立即自动提交，
+  // 避免 Radix Select 关闭弹层时「吃掉」紧随其后的那次点击，导致前面的同步配置漏存。
+  // 之前未提交的选项只存在单个 pendingSource/pendingTarget 槽位、每次新选择都会覆盖上一条，
+  // 于是只有最后一次选择能被保存时兜底加入 —— 这就是「配置了多条却只存了一条」的根因。
+  const commitPair = (source: string, target: string): boolean => {
+    if (!source || !target) {
       toast.error('请先选择源账号和目标账号');
-      return;
+      return false;
     }
-    if (pendingSource === pendingTarget) {
+    if (source === target) {
       toast.error('源账号与目标账号不能相同');
-      return;
+      return false;
     }
-    if (pairs.some((p) => p.connect_source_id.toString() === pendingSource && p.connect_target_id.toString() === pendingTarget)) {
+    if (pairs.some((p) => p.connect_source_id.toString() === source && p.connect_target_id.toString() === target)) {
       toast.error('该同步配置已存在');
-      return;
+      return false;
     }
-    if (!canAddPairNow) {
+    if ((pairs.length + 1) * Math.max(hours.length, 1) > MAX_EXECUTIONS_PER_DAY) {
       toast.error(`同步配置数 × 执行时间数不能超过 ${MAX_EXECUTIONS_PER_DAY} 次/天`);
-      return;
+      return false;
     }
     setPairs([
       ...pairs,
-      { connect_source_id: parseInt(pendingSource), connect_target_id: parseInt(pendingTarget) },
+      { connect_source_id: parseInt(source), connect_target_id: parseInt(target) },
     ]);
     setPendingSource('');
     setPendingTarget('');
+    return true;
+  };
+
+  // 保留「+」按钮作为显式兜底（多数情况下选完源和目标已自动加入）
+  const handleAddPair = () => {
+    commitPair(pendingSource, pendingTarget);
   };
 
   const handleRemovePair = (index: number) => {
     setPairs(pairs.filter((_, i) => i !== index));
   };
-
-  // 已选好但还没点「+」添加的同步对
-  const pendingPair =
-    pendingSource && pendingTarget && pendingSource !== pendingTarget
-      ? {
-          source: parseInt(pendingSource),
-          target: parseInt(pendingTarget),
-        }
-      : null;
-  const pendingDuplicate =
-    pendingPair !== null &&
-    pairs.some(
-      (p) =>
-        p.connect_source_id === pendingPair.source &&
-        p.connect_target_id === pendingPair.target
-    );
-  const pendingFitsQuota =
-    pendingPair !== null &&
-    (pairs.length + 1) * Math.max(hours.length, 1) <= MAX_EXECUTIONS_PER_DAY;
 
   const toggleHour = (hour: number) => {
     if (hours.includes(hour)) {
@@ -177,31 +169,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
   };
 
   const handleSave = async () => {
-    // 选好了但没点「+」的同步对（下拉层会吃掉紧随其后的那一次点击），这里兜底自动加入
-    let finalPairs = pairs;
-    if (pendingPair && !pendingDuplicate) {
-      if (!pendingFitsQuota) {
-        toast.error(
-          `待添加的同步配置会超出每日上限（${MAX_EXECUTIONS_PER_DAY} 次/天），请先减少执行时间`
-        );
-        return;
-      }
-      finalPairs = [
-        ...pairs,
-        {
-          connect_source_id: pendingPair.source,
-          connect_target_id: pendingPair.target,
-        },
-      ];
-      setPairs(finalPairs);
-      setPendingSource('');
-      setPendingTarget('');
-      toast.info(
-        `已自动添加未确认的同步配置：${getAppShort(pendingPair.source)} → ${getAppShort(pendingPair.target)}`
-      );
-    }
-
-    if (finalPairs.length === 0) {
+    if (pairs.length === 0) {
       toast.error('请至少添加一条同步配置（源 -> 目标）');
       return;
     }
@@ -215,7 +183,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
       const payload = {
         id: task?.id || undefined,
         hours,
-        items: finalPairs.map((p) => ({
+        items: pairs.map((p) => ({
           connect_source_id: p.connect_source_id,
           connect_target_id: p.connect_target_id,
         })),
@@ -312,7 +280,17 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               </div>
             )}
             <div className="flex items-center gap-2">
-              <Select value={pendingSource} onValueChange={setPendingSource} disabled={loading || !canAddPairNow}>
+              <Select
+                value={pendingSource}
+                onValueChange={(val) => {
+                  setPendingSource(val);
+                  // 源、目标都选好后立即自动加入列表，无需再点「+」
+                  if (pendingTarget && val && val !== pendingTarget) {
+                    commitPair(val, pendingTarget);
+                  }
+                }}
+                disabled={loading || !canAddPairNow}
+              >
                 <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
                   <SelectValue placeholder="选择源账号" />
                 </SelectTrigger>
@@ -325,7 +303,17 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 </SelectContent>
               </Select>
               <IconArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <Select value={pendingTarget} onValueChange={setPendingTarget} disabled={loading || !canAddPairNow}>
+              <Select
+                value={pendingTarget}
+                onValueChange={(val) => {
+                  setPendingTarget(val);
+                  // 源、目标都选好后立即自动加入列表，无需再点「+」
+                  if (pendingSource && val && val !== pendingSource) {
+                    commitPair(pendingSource, val);
+                  }
+                }}
+                disabled={loading || !canAddPairNow}
+              >
                 <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
                   <SelectValue placeholder="选择目标账号" />
                 </SelectTrigger>
@@ -356,14 +344,10 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 已达每日执行上限（{MAX_EXECUTIONS_PER_DAY} 次/天），减少执行时间后才能继续添加同步配置
               </p>
             )}
-            {pendingPair && !pendingDuplicate && (
-              <p className="text-xs text-amber-600 dark:text-amber-500">
-                已选择 {getAppShort(pendingPair.source)} → {getAppShort(pendingPair.target)}
-                ，记得点「+」加入（保存时会自动加入）
+            {pendingSource && pendingTarget && pendingSource !== pendingTarget && (
+              <p className="text-xs text-muted-foreground">
+                选择后同步配置会自动加入下方列表；如需调整可点右侧「×」移除
               </p>
-            )}
-            {pendingDuplicate && (
-              <p className="text-xs text-muted-foreground">该同步配置已在列表中</p>
             )}
           </div>
 
