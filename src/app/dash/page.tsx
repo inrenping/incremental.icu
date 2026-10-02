@@ -32,6 +32,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SyncRuns } from "@/components/dash/sync-runs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import dayjs from "dayjs";
@@ -450,6 +451,17 @@ export default function DashPage() {
         </Button>
       </section>
 
+      {/* Module tabs: 控制台 / 同步 / 睡眠 / 心率 */}
+      <Tabs defaultValue="console" className="flex flex-col gap-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
+          <TabsTrigger value="console">{t("tabConsole")}</TabsTrigger>
+          <TabsTrigger value="sync">{t("tabSync")}</TabsTrigger>
+          <TabsTrigger value="sleep">{t("tabSleep")}</TabsTrigger>
+          <TabsTrigger value="heart">{t("tabHeart")}</TabsTrigger>
+        </TabsList>
+
+        {/* 控制台 */}
+        <TabsContent value="console" className="flex flex-col gap-6">
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard
@@ -527,104 +539,125 @@ export default function DashPage() {
         ) : null}
       </div>
 
-      {/* Data Sync Card */}
-      <Card className="gap-0 py-0 shadow-sm">
-        <CardHeader className="border-b px-5 py-4">
-          <div className="flex items-start justify-between gap-4">
-            <div className="space-y-1">
-              <CardTitle className="text-base">{t("dataSync")}</CardTitle>
-              <CardDescription>{t("dataSyncDesc")}</CardDescription>
-            </div>
-            <Button variant="outline" size="lg" className="h-10 shrink-0 rounded-full px-4 text-sm" asChild>
-              <a
-                href="https://status.incremental.icu"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <IconActivity className="h-5 w-5" />
-                {t("serviceStatus")}
-              </a>
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent className="space-y-5 px-5 py-5">
-          <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
-            <div className="flex-1">
-              <PlatformSelect
-                apps={activeApps}
-                value={sourceId}
-                onValueChange={setSourceId}
-                placeholder={t("selectPlatform")}
-              />
-            </div>
+      </TabsContent>
 
-            <div className="flex shrink-0 items-center justify-center">
-              <div className="rounded-full bg-muted p-2">
-                <IconArrowsLeftRight className="h-4 w-4 text-muted-foreground" />
+      {/* 同步 */}
+      <TabsContent value="sync" className="flex flex-col gap-6">
+        {/* Data Sync Card */}
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardHeader className="border-b px-5 py-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="space-y-1">
+                <CardTitle className="text-base">{t("dataSync")}</CardTitle>
+                <CardDescription>{t("dataSyncDesc")}</CardDescription>
+              </div>
+              <Button variant="outline" size="lg" className="h-10 shrink-0 rounded-full px-4 text-sm" asChild>
+                <a
+                  href="https://status.incremental.icu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <IconActivity className="h-5 w-5" />
+                  {t("serviceStatus")}
+                </a>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-5 px-5 py-5">
+            <div className="flex flex-col items-stretch gap-3 md:flex-row md:items-center">
+              <div className="flex-1">
+                <PlatformSelect
+                  apps={activeApps}
+                  value={sourceId}
+                  onValueChange={setSourceId}
+                  placeholder={t("selectPlatform")}
+                />
+              </div>
+
+              <div className="flex shrink-0 items-center justify-center">
+                <div className="rounded-full bg-muted p-2">
+                  <IconArrowsLeftRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+
+              <div className="flex-1">
+                <PlatformSelect
+                  apps={activeApps}
+                  value={targetId}
+                  onValueChange={setTargetId}
+                  placeholder={t("selectPlatform")}
+                  disabledIds={sourceId ? [sourceId] : []}
+                />
               </div>
             </div>
 
-            <div className="flex-1">
-              <PlatformSelect
-                apps={activeApps}
-                value={targetId}
-                onValueChange={setTargetId}
-                placeholder={t("selectPlatform")}
-                disabledIds={sourceId ? [sourceId] : []}
-              />
+            <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
+                  <Link href="/dash/accounts">
+                    <IconUserCog className="h-5 w-5" />
+                    {t("platformAccountMgmt")}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
+                  <Link href="/dash/activities">
+                    <IconListDetails className="h-5 w-5" />
+                    {t("detailedDataQuery")}
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
+                  <Link href="/dash/task">
+                    <IconClock className="h-5 w-5" />
+                    定时执行任务
+                  </Link>
+                </Button>
+                <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
+                  <Link href="/dash/sync-history">
+                    <IconHistory className="h-5 w-5" />
+                    {t("syncHistory")}
+                  </Link>
+                </Button>
+              </div>
+              <div className="flex shrink-0 items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="h-12 rounded-full px-8 text-lg shadow-sm"
+                  onClick={handleQuickSync}
+                  disabled={isQuickSyncing || !sourceId || !targetId}
+                >
+                  <IconBolt className={cn("h-5 w-5", isQuickSyncing && "animate-pulse")} />
+                  {isQuickSyncing ? t("quickSyncing") : t("quickSync")}
+                </Button>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
-                <Link href="/dash/accounts">
-                  <IconUserCog className="h-5 w-5" />
-                  {t("platformAccountMgmt")}
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
-                <Link href="/dash/activities">
-                  <IconListDetails className="h-5 w-5" />
-                  {t("detailedDataQuery")}
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
-                <Link href="/dash/task">
-                  <IconClock className="h-5 w-5" />
-                  定时执行任务
-                </Link>
-              </Button>
-              <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
-                <Link href="/dash/sync-history">
-                  <IconHistory className="h-5 w-5" />
-                  {t("syncHistory")}
-                </Link>
-              </Button>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <Button
-                variant="outline"
-                size="lg"
-                className="h-12 rounded-full px-8 text-lg shadow-sm"
-                onClick={handleQuickSync}
-                disabled={isQuickSyncing || !sourceId || !targetId}
-              >
-                <IconBolt className={cn("h-5 w-5", isQuickSyncing && "animate-pulse")} />
-                {isQuickSyncing ? t("quickSyncing") : t("quickSync")}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Bottom Row */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          <SyncRuns limit={3} />
-        </div>
+        <SyncRuns limit={10} />
         <SecurityNotice />
-      </div>
+      </TabsContent>
+
+      {/* 睡眠 */}
+      <TabsContent value="sleep" className="flex flex-col gap-6">
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="flex flex-col items-center gap-2 px-5 py-12 text-center">
+            <p className="text-base font-medium">{t("sleepNotAvailable")}</p>
+            <p className="max-w-md text-sm text-muted-foreground">{t("sleepNotAvailableDesc")}</p>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      {/* 心率 */}
+      <TabsContent value="heart" className="flex flex-col gap-6">
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="flex flex-col items-center gap-2 px-5 py-12 text-center">
+            <p className="text-base font-medium">{t("heartUnderConstruction")}</p>
+            <p className="max-w-md text-sm text-muted-foreground">{t("heartUnderConstructionDesc")}</p>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
     </div>
   );
 }
