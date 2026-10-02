@@ -116,29 +116,40 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
     return `${name}${region ? ` (${region})` : ''}`;
   };
 
-  const handleAddPair = () => {
-    if (!pendingSource || !pendingTarget) {
+  // 校验并提交一条同步配置（源 -> 目标）。返回是否提交成功。
+  // 关键修复：提交不再依赖单独的「+」点击。只要源和目标都选好就立即自动提交，
+  // 避免 Radix Select 关闭弹层时「吃掉」紧随其后的那次点击，导致前面的同步配置漏存。
+  // 之前未提交的选项只存在单个 pendingSource/pendingTarget 槽位、每次新选择都会覆盖上一条，
+  // 于是只有最后一次选择能被保存时兜底加入 —— 这就是「配置了多条却只存了一条」的根因。
+  const commitPair = (source: string, target: string): boolean => {
+    if (!source || !target) {
       toast.error('请先选择源账号和目标账号');
-      return;
+      return false;
     }
-    if (pendingSource === pendingTarget) {
+    if (source === target) {
       toast.error('源账号与目标账号不能相同');
-      return;
+      return false;
     }
-    if (pairs.some((p) => p.connect_source_id.toString() === pendingSource && p.connect_target_id.toString() === pendingTarget)) {
+    if (pairs.some((p) => p.connect_source_id.toString() === source && p.connect_target_id.toString() === target)) {
       toast.error('该同步配置已存在');
-      return;
+      return false;
     }
-    if (!canAddPairNow) {
+    if ((pairs.length + 1) * Math.max(hours.length, 1) > MAX_EXECUTIONS_PER_DAY) {
       toast.error(`同步配置数 × 执行时间数不能超过 ${MAX_EXECUTIONS_PER_DAY} 次/天`);
-      return;
+      return false;
     }
     setPairs([
       ...pairs,
-      { connect_source_id: parseInt(pendingSource), connect_target_id: parseInt(pendingTarget) },
+      { connect_source_id: parseInt(source), connect_target_id: parseInt(target) },
     ]);
     setPendingSource('');
     setPendingTarget('');
+    return true;
+  };
+
+  // 保留「+」按钮作为显式兜底（多数情况下选完源和目标已自动加入）
+  const handleAddPair = () => {
+    commitPair(pendingSource, pendingTarget);
   };
 
   const handleRemovePair = (index: number) => {
@@ -220,7 +231,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         if (!v) resetState();
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{task ? '编辑任务' : '新建任务'}</DialogTitle>
           <DialogDescription>
@@ -250,11 +261,11 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 {pairs.map((pair, index) => (
                   <div
                     key={`${pair.connect_source_id}-${pair.connect_target_id}-${index}`}
-                    className="flex items-center gap-2 rounded-md border bg-muted/30 px-2.5 py-1.5 text-sm"
+                    className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-muted/30 px-2.5 py-1.5 text-sm"
                   >
-                    <span className="font-medium">{getAppShort(pair.connect_source_id)}</span>
+                    <span className="font-medium break-all">{getAppShort(pair.connect_source_id)}</span>
                     <IconArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="font-medium">{getAppShort(pair.connect_target_id)}</span>
+                    <span className="font-medium break-all">{getAppShort(pair.connect_target_id)}</span>
                     <button
                       type="button"
                       className="ml-auto rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -269,8 +280,18 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               </div>
             )}
             <div className="flex items-center gap-2">
-              <Select value={pendingSource} onValueChange={setPendingSource} disabled={loading || !canAddPairNow}>
-                <SelectTrigger className="min-w-0 flex-1">
+              <Select
+                value={pendingSource}
+                onValueChange={(val) => {
+                  setPendingSource(val);
+                  // 源、目标都选好后立即自动加入列表，无需再点「+」
+                  if (pendingTarget && val && val !== pendingTarget) {
+                    commitPair(val, pendingTarget);
+                  }
+                }}
+                disabled={loading || !canAddPairNow}
+              >
+                <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
                   <SelectValue placeholder="选择源账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -282,8 +303,18 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 </SelectContent>
               </Select>
               <IconArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <Select value={pendingTarget} onValueChange={setPendingTarget} disabled={loading || !canAddPairNow}>
-                <SelectTrigger className="min-w-0 flex-1">
+              <Select
+                value={pendingTarget}
+                onValueChange={(val) => {
+                  setPendingTarget(val);
+                  // 源、目标都选好后立即自动加入列表，无需再点「+」
+                  if (pendingSource && val && val !== pendingSource) {
+                    commitPair(pendingSource, val);
+                  }
+                }}
+                disabled={loading || !canAddPairNow}
+              >
+                <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
                   <SelectValue placeholder="选择目标账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -313,6 +344,11 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 已达每日执行上限（{MAX_EXECUTIONS_PER_DAY} 次/天），减少执行时间后才能继续添加同步配置
               </p>
             )}
+            {pendingSource && pendingTarget && pendingSource !== pendingTarget && (
+              <p className="text-xs text-muted-foreground">
+                选择后同步配置会自动加入下方列表；如需调整可点右侧「×」移除
+              </p>
+            )}
           </div>
 
           {/* 触发时间（0-23 小时网格多选） */}
@@ -324,7 +360,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               </Label>
               <span className="text-xs text-muted-foreground">点击小时可调整，每天最多 2 个时间点推荐</span>
             </div>
-            <div className="grid grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
               {Array.from({ length: 24 }, (_, hour) => {
                 const selected = hours.includes(hour);
                 const disabled = !selected && !canAddHour;
