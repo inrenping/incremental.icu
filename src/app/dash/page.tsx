@@ -31,6 +31,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SyncRuns } from "@/components/dash/sync-runs";
+import { HeartRatePanel } from "@/components/dash/heart-rate-panel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -617,9 +618,13 @@ export default function DashPage() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <SyncRuns limit={10} />
-          <SecurityNotice />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+          <div className="lg:col-span-3">
+            <SyncRuns limit={10} />
+          </div>
+          <div className="lg:col-span-2">
+            <SecurityNotice />
+          </div>
         </div>
       </TabsContent>
 
@@ -635,12 +640,7 @@ export default function DashPage() {
 
       {/* 心率 */}
       <TabsContent value="heart" className="flex flex-col gap-6">
-        <Card className="gap-0 py-0 shadow-sm">
-          <CardContent className="flex flex-col items-center gap-3 px-5 py-12 text-center">
-            <IconCrane className="h-10 w-10 text-amber-500" />
-            <p className="text-base font-medium">{t("underConstruction")}</p>
-          </CardContent>
-        </Card>
+        <HeartRatePanel />
       </TabsContent>
     </Tabs>
     </div>

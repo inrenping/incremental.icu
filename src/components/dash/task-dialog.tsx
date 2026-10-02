@@ -77,6 +77,19 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
 
   const totalExecutions = pairs.length * hours.length;
   const canAddPairNow = (pairs.length + 1) * Math.max(hours.length, 1) <= MAX_EXECUTIONS_PER_DAY;
+  // 待选配置是否已构成「源=目标」或「与已有配置重复」，用于内联提示 + 禁用「+」
+  const pendingSame =
+    pendingSource !== '' && pendingTarget !== '' && pendingSource === pendingTarget;
+  const pendingDuplicate =
+    pendingSource !== '' &&
+    pendingTarget !== '' &&
+    pendingSource !== pendingTarget &&
+    pairs.some(
+      (p) =>
+        p.connect_source_id.toString() === pendingSource &&
+        p.connect_target_id.toString() === pendingTarget
+    );
+  const pendingInvalid = pendingSame || pendingDuplicate;
   const canAddHour = (hours.length + 1) * Math.max(pairs.length, 1) <= MAX_EXECUTIONS_PER_DAY;
 
   useEffect(() => {
@@ -291,7 +304,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 }}
                 disabled={loading || !canAddPairNow}
               >
-                <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
+                <SelectTrigger className={cn("min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left", pendingInvalid && "border-destructive text-destructive")}>
                   <SelectValue placeholder="选择源账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -314,7 +327,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 }}
                 disabled={loading || !canAddPairNow}
               >
-                <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
+                <SelectTrigger className={cn("min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left", pendingInvalid && "border-destructive text-destructive")}>
                   <SelectValue placeholder="选择目标账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -333,7 +346,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 size="icon"
                 className="shrink-0"
                 onClick={handleAddPair}
-                disabled={loading || !pendingSource || !pendingTarget || !canAddPairNow}
+                disabled={loading || !pendingSource || !pendingTarget || !canAddPairNow || pendingInvalid}
                 aria-label="添加同步配置"
               >
                 <IconPlus className="h-4 w-4" />
@@ -344,11 +357,21 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 已达每日执行上限（{MAX_EXECUTIONS_PER_DAY} 次/天），减少执行时间后才能继续添加同步配置
               </p>
             )}
-            {pendingSource && pendingTarget && pendingSource !== pendingTarget && (
-              <p className="text-xs text-muted-foreground">
-                选择后同步配置会自动加入下方列表；如需调整可点右侧「×」移除
+            {pendingInvalid && (
+              <p className="text-xs text-destructive">
+                {pendingSame
+                  ? '源账号与目标账号不能相同'
+                  : '该同步配置已存在，无法重复添加'}
               </p>
             )}
+            {pendingSource !== '' &&
+              pendingTarget !== '' &&
+              pendingSource !== pendingTarget &&
+              !pendingDuplicate && (
+                <p className="text-xs text-muted-foreground">
+                  选择后同步配置会自动加入下方列表；如需调整可点右侧「×」移除
+                </p>
+              )}
           </div>
 
           {/* 触发时间（0-23 小时网格多选） */}
