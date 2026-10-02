@@ -317,7 +317,7 @@ export default function TasksPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => router.push(`/dash/task/${task.id}`)}
+                          onClick={() => router.push('/dash/sync-history')}
                         >
                           <IconHistory className="h-4 w-4 mr-1" />
                           {t('records')}
