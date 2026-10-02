@@ -165,10 +165,7 @@
     "tabSync": "同步",
     "tabSleep": "睡眠",
     "tabHeart": "心率",
-    "sleepNotAvailable": "睡眠数据暂未接入",
-    "sleepNotAvailableDesc": "当前后端尚未提供睡眠数据接口，该模块将在接入后自动展示每日睡眠时长、深睡/浅睡分布与睡眠质量评分。",
-    "heartUnderConstruction": "心率模块施工中",
-    "heartUnderConstructionDesc": "心率的展示方式尚未确定，暂时隐藏。接入后这里会展示每日心率趋势，以及静息 / 最高 / 最低心率等指标。"
+    "underConstruction": "施工中"
   },
   "ListPage": {
     "loadingActivity": "正在加载运动数据...",

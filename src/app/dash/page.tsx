@@ -12,8 +12,6 @@ import {
   IconArrowsLeftRight,
   IconInfinity,
   IconClock,
-  IconChevronDown,
-  IconChevronUp,
   IconShieldCheck,
   IconUser,
   IconUserCog,
@@ -21,6 +19,7 @@ import {
   IconActivity,
   IconBolt,
   IconHistory,
+  IconCrane,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -251,8 +250,6 @@ function StatCard({
 
 function SecurityNotice() {
   const t = useTranslations('DashPage');
-  const [expanded, setExpanded] = useState(false);
-
   return (
     <Card className="h-full gap-0 py-0 shadow-sm">
       <CardHeader className="border-b px-5 py-4">
@@ -269,26 +266,12 @@ function SecurityNotice() {
           </Link>
           {t("dataSecuritySummaryEnd")}
         </p>
-        {expanded && (
-          <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
-            <p>{t("dataSecurityDetail1")}</p>
-            <p>{t("dataSecurityDetail2")}</p>
-            <p>{t("dataSecurityDetail3")}</p>
-            <p>{t("dataSecurityDetail4")}</p>
-          </div>
-        )}
-        <button
-          type="button"
-          onClick={() => setExpanded(!expanded)}
-          className="inline-flex items-center gap-1.5 text-lg text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {t("viewDetailedTerms")}
-          {expanded ? (
-            <IconChevronUp className="h-5 w-5" />
-          ) : (
-            <IconChevronDown className="h-5 w-5" />
-          )}
-        </button>
+        <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+          <p>{t("dataSecurityDetail1")}</p>
+          <p>{t("dataSecurityDetail2")}</p>
+          <p>{t("dataSecurityDetail3")}</p>
+          <p>{t("dataSecurityDetail4")}</p>
+        </div>
       </CardContent>
     </Card>
   );
@@ -463,7 +446,7 @@ export default function DashPage() {
         {/* 控制台 */}
         <TabsContent value="console" className="flex flex-col gap-6">
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4">
         <StatCard
           title={t("connectedPlatforms")}
           value={loading ? '—' : String(stats.connectedCount)}
@@ -481,7 +464,7 @@ export default function DashPage() {
       </div>
 
       {/* Running Stats */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4">
         {runningDataLoading ? (
           <>
             <Card className="gap-0 py-0 shadow-sm">
@@ -634,16 +617,18 @@ export default function DashPage() {
           </CardContent>
         </Card>
 
-        <SyncRuns limit={10} />
-        <SecurityNotice />
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <SyncRuns limit={10} />
+          <SecurityNotice />
+        </div>
       </TabsContent>
 
       {/* 睡眠 */}
       <TabsContent value="sleep" className="flex flex-col gap-6">
         <Card className="gap-0 py-0 shadow-sm">
-          <CardContent className="flex flex-col items-center gap-2 px-5 py-12 text-center">
-            <p className="text-base font-medium">{t("sleepNotAvailable")}</p>
-            <p className="max-w-md text-sm text-muted-foreground">{t("sleepNotAvailableDesc")}</p>
+          <CardContent className="flex flex-col items-center gap-3 px-5 py-12 text-center">
+            <IconCrane className="h-10 w-10 text-amber-500" />
+            <p className="text-base font-medium">{t("underConstruction")}</p>
           </CardContent>
         </Card>
       </TabsContent>
@@ -651,9 +636,9 @@ export default function DashPage() {
       {/* 心率 */}
       <TabsContent value="heart" className="flex flex-col gap-6">
         <Card className="gap-0 py-0 shadow-sm">
-          <CardContent className="flex flex-col items-center gap-2 px-5 py-12 text-center">
-            <p className="text-base font-medium">{t("heartUnderConstruction")}</p>
-            <p className="max-w-md text-sm text-muted-foreground">{t("heartUnderConstructionDesc")}</p>
+          <CardContent className="flex flex-col items-center gap-3 px-5 py-12 text-center">
+            <IconCrane className="h-10 w-10 text-amber-500" />
+            <p className="text-base font-medium">{t("underConstruction")}</p>
           </CardContent>
         </Card>
       </TabsContent>
