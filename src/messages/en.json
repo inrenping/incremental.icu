@@ -130,6 +130,7 @@
     "targetAccount": "Target Account",
     "executionTime": "Execution Time",
     "dailyAtHour": "Daily at {hour}:00",
+    "dailyExecutions": "{count} executions/day",
     "createdAt": "Created At",
     "records": "Records",
     "edit": "Edit",

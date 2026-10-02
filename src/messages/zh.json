@@ -133,6 +133,7 @@
     "targetAccount": "目标账号",
     "executionTime": "执行时间",
     "dailyAtHour": "每天 {hour} 点",
+    "dailyExecutions": "共 {count} 次/天",
     "createdAt": "创建时间",
     "records": "记录",
     "edit": "编辑",
