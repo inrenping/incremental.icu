@@ -211,15 +211,21 @@ export default function TasksPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-xl font-semibold">{t('taskTitle')}</h1>
-              <Button
-                onClick={() => {
-                  setCurrentTask(null);
-                  setDialogOpen(true);
-                }}
-              >
-                <IconPlus className="h-4 w-4 mr-2" />
-                {t('createTask')}
-              </Button>
+              {tasks.length === 0 ? (
+                <Button
+                  onClick={() => {
+                    setCurrentTask(null);
+                    setDialogOpen(true);
+                  }}
+                >
+                  <IconPlus className="h-4 w-4 mr-2" />
+                  {t('createTask')}
+                </Button>
+              ) : (
+                <span className="text-xs text-muted-foreground">
+                  {t('singleTaskHint')}
+                </span>
+              )}
             </div>
             <p className="text-muted-foreground text-sm">
               {t('taskDescription')}
