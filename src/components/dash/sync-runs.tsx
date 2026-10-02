@@ -2,7 +2,6 @@ import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  IconRefresh,
   IconChevronDown,
   IconChevronRight,
   IconArrowsRight,
@@ -157,13 +156,6 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
             <CardTitle className="text-base">同步记录</CardTitle>
           </div>
           <div className="flex items-center gap-3">
-            <button
-              onClick={fetchRuns}
-              className="flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <IconRefresh className="h-3.5 w-3.5" />
-              刷新
-            </button>
             <Link
               href="/dash/sync-history"
               className="flex items-center gap-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
