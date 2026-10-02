@@ -145,6 +145,25 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
     setPairs(pairs.filter((_, i) => i !== index));
   };
 
+  // 已选好但还没点「+」添加的同步对
+  const pendingPair =
+    pendingSource && pendingTarget && pendingSource !== pendingTarget
+      ? {
+          source: parseInt(pendingSource),
+          target: parseInt(pendingTarget),
+        }
+      : null;
+  const pendingDuplicate =
+    pendingPair !== null &&
+    pairs.some(
+      (p) =>
+        p.connect_source_id === pendingPair.source &&
+        p.connect_target_id === pendingPair.target
+    );
+  const pendingFitsQuota =
+    pendingPair !== null &&
+    (pairs.length + 1) * Math.max(hours.length, 1) <= MAX_EXECUTIONS_PER_DAY;
+
   const toggleHour = (hour: number) => {
     if (hours.includes(hour)) {
       setHours(hours.filter((h) => h !== hour).sort((a, b) => a - b));
@@ -158,7 +177,31 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
   };
 
   const handleSave = async () => {
-    if (pairs.length === 0) {
+    // 选好了但没点「+」的同步对（下拉层会吃掉紧随其后的那一次点击），这里兜底自动加入
+    let finalPairs = pairs;
+    if (pendingPair && !pendingDuplicate) {
+      if (!pendingFitsQuota) {
+        toast.error(
+          `待添加的同步配置会超出每日上限（${MAX_EXECUTIONS_PER_DAY} 次/天），请先减少执行时间`
+        );
+        return;
+      }
+      finalPairs = [
+        ...pairs,
+        {
+          connect_source_id: pendingPair.source,
+          connect_target_id: pendingPair.target,
+        },
+      ];
+      setPairs(finalPairs);
+      setPendingSource('');
+      setPendingTarget('');
+      toast.info(
+        `已自动添加未确认的同步配置：${getAppShort(pendingPair.source)} → ${getAppShort(pendingPair.target)}`
+      );
+    }
+
+    if (finalPairs.length === 0) {
       toast.error('请至少添加一条同步配置（源 -> 目标）');
       return;
     }
@@ -172,7 +215,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
       const payload = {
         id: task?.id || undefined,
         hours,
-        items: pairs.map((p) => ({
+        items: finalPairs.map((p) => ({
           connect_source_id: p.connect_source_id,
           connect_target_id: p.connect_target_id,
         })),
@@ -312,6 +355,15 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               <p className="text-xs text-muted-foreground">
                 已达每日执行上限（{MAX_EXECUTIONS_PER_DAY} 次/天），减少执行时间后才能继续添加同步配置
               </p>
+            )}
+            {pendingPair && !pendingDuplicate && (
+              <p className="text-xs text-amber-600 dark:text-amber-500">
+                已选择 {getAppShort(pendingPair.source)} → {getAppShort(pendingPair.target)}
+                ，记得点「+」加入（保存时会自动加入）
+              </p>
+            )}
+            {pendingDuplicate && (
+              <p className="text-xs text-muted-foreground">该同步配置已在列表中</p>
             )}
           </div>
 
