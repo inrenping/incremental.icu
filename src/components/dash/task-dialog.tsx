@@ -189,6 +189,13 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
 
       const result = await response.json();
       if (result.status === 'success') {
+        // 回读校验：服务端保存的条数与提交不一致时明确提示，避免"看着成功了实际少存"
+        const savedCount = Array.isArray(result.data?.items) ? result.data.items.length : -1;
+        if (savedCount >= 0 && savedCount !== payload.items.length) {
+          toast.warning(
+            `服务端只保存了 ${savedCount} 条同步配置（本次提交 ${payload.items.length} 条），请刷新页面确认`
+          );
+        }
         toast.success(task ? '任务已更新' : '任务已创建');
         // 先刷新列表再关闭，避免关闭后列表仍是旧数据
         await onSuccess();

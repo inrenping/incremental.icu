@@ -127,18 +127,11 @@ export default function TasksPage() {
       prev.map((t) => (t.id === task.id ? { ...t, is_active: nextActive } : t))
     );
     try {
-      const response = await authFetch('/api/v1/task', {
-        method: 'POST',
+      // 只改 is_active，不回传同步配置/触发时间，避免用客户端过期数据覆盖服务端
+      const response = await authFetch(`/api/v1/task/${task.id}/status`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: task.id,
-          hours: getTaskHours(task),
-          items: task.items.map((it) => ({
-            connect_source_id: it.connect_source_id,
-            connect_target_id: it.connect_target_id,
-          })),
-          is_active: nextActive,
-        }),
+        body: JSON.stringify({ is_active: nextActive }),
       });
       const result = await response.json();
       if (result.status !== 'success') {
