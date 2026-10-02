@@ -178,6 +178,8 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         })),
         is_active: isActive,
       };
+      // 排查用：确认提交时到底带了几条同步配置
+      console.debug('[task-dialog] save payload', JSON.stringify(payload));
 
       const response = await authFetch('/api/v1/task', {
         method: 'POST',
