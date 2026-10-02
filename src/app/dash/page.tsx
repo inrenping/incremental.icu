@@ -415,7 +415,7 @@ export default function DashPage() {
 
   return (
     <div className={cn(
-      "mx-auto flex flex-1 flex-col gap-6 bg-background p-6 text-sm transition-all duration-300",
+      "mx-auto flex w-full flex-1 flex-col gap-6 bg-background p-6 text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
       {/* Welcome */}
@@ -446,7 +446,7 @@ export default function DashPage() {
         {/* 控制台 */}
         <TabsContent value="console" className="flex flex-col gap-6">
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <StatCard
           title={t("connectedPlatforms")}
           value={loading ? '—' : String(stats.connectedCount)}
@@ -464,7 +464,7 @@ export default function DashPage() {
       </div>
 
       {/* Running Stats */}
-      <div className="grid grid-cols-1 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {runningDataLoading ? (
           <>
             <Card className="gap-0 py-0 shadow-sm">
