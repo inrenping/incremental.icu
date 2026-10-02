@@ -28,14 +28,20 @@ interface TaskResult {
   created_at: string;
 }
 
+interface TaskItemData {
+  id: number;
+  connect_source_id: number;
+  connect_target_id: number;
+}
+
 interface TaskItem {
   id: number;
   user_id: number;
-  connect_source_id: number;
-  connect_target_id: number;
-  hour: number;
+  hours: number[] | null;
+  hour?: number;
   is_active: boolean;
   created_at: string;
+  items: TaskItemData[];
 }
 
 interface AppConfig {
@@ -130,6 +136,9 @@ export default function TaskResultsPage() {
     return `${name}${region ? ` (${region})` : ''}`;
   };
 
+  const getTaskHours = (t: TaskItem): number[] =>
+    t.hours ?? (t.hour != null ? [t.hour] : []);
+
   const getStatusBadge = (status: string) => {
     switch (status?.toLowerCase()) {
       case 'success':
@@ -178,14 +187,18 @@ export default function TaskResultsPage() {
         {/* 任务信息摘要 */}
         {task && (
           <div className="px-2 py-3 bg-background rounded-md border text-sm flex flex-wrap gap-x-6 gap-y-2 text-muted-foreground">
+            {task.items.map((item, idx) => (
+              <span key={item.id ?? idx}>
+                同步：<span className="font-medium text-foreground">{getAppDisplay(item.connect_source_id)}</span>
+                {' → '}
+                <span className="font-medium text-foreground">{getAppDisplay(item.connect_target_id)}</span>
+              </span>
+            ))}
             <span>
-              源账号：<span className="font-medium text-foreground">{getAppDisplay(task.connect_source_id)}</span>
-            </span>
-            <span>
-              目标账号：<span className="font-medium text-foreground">{getAppDisplay(task.connect_target_id)}</span>
-            </span>
-            <span>
-              执行时间：<span className="font-medium text-foreground">每天 {task.hour} 点</span>
+              执行时间：
+              <span className="font-medium text-foreground">
+                {getTaskHours(task).map((h) => h.toString().padStart(2, '0')).join('、')} 点
+              </span>
             </span>
             <span>
               状态：

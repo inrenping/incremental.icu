@@ -10,7 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import {
@@ -22,6 +22,12 @@ import {
 } from '@/components/ui/select';
 import { authFetch } from '@/lib/api';
 import { toast } from 'sonner';
+import {
+  IconArrowRight,
+  IconPlus,
+  IconX,
+  IconClock,
+} from '@tabler/icons-react';
 
 interface AppConfig {
   id: number;
@@ -32,60 +38,133 @@ interface AppConfig {
   master: boolean;
 }
 
-interface TaskItem {
-  id: number;
-  user_id: number;
+interface TaskItemData {
+  id?: number;
   connect_source_id: number;
   connect_target_id: number;
-  hour: number;
+}
+
+interface TaskData {
+  id: number;
+  user_id: number;
+  hours: number[] | null;
+  hour?: number;
   is_active: boolean;
   created_at: string;
+  items: TaskItemData[];
 }
 
 interface TaskDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  task: TaskItem | null;
+  task: TaskData | null;
   apps: AppConfig[];
   onSuccess: () => void;
 }
 
+// 单任务执行次数上限：同步对数 × 触发小时数（与后端约定一致）
+const MAX_EXECUTIONS_PER_DAY = 8;
+
+// 每天最多展示的推荐小时（与截图交互一致：默认预选 08 / 20）
+const DEFAULT_HOURS = [8, 20];
+
 export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDialogProps) {
-  const [sourceId, setSourceId] = useState('');
-  const [targetId, setTargetId] = useState('');
-  const [hour, setHour] = useState('1');
+  const [pairs, setPairs] = useState<TaskItemData[]>([]);
+  const [hours, setHours] = useState<number[]>([]);
   const [isActive, setIsActive] = useState(true);
+  const [pendingSource, setPendingSource] = useState('');
+  const [pendingTarget, setPendingTarget] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const totalExecutions = pairs.length * hours.length;
+  const canAddPairNow = (pairs.length + 1) * Math.max(hours.length, 1) <= MAX_EXECUTIONS_PER_DAY;
+  const canAddHour = (hours.length + 1) * Math.max(pairs.length, 1) <= MAX_EXECUTIONS_PER_DAY;
+
   useEffect(() => {
-    if (open && task) {
-      setSourceId(task.connect_source_id.toString());
-      setTargetId(task.connect_target_id.toString());
-      setHour(task.hour.toString());
+    if (!open) return;
+    if (task) {
+      setPairs(task.items.map((it) => ({ ...it })));
+      setHours(task.hours ?? (task.hour != null ? [task.hour] : []));
       setIsActive(task.is_active);
-    } else if (open && !task) {
-      setSourceId('');
-      setTargetId('');
-      setHour('1');
+    } else {
+      setPairs([]);
+      setHours([...DEFAULT_HOURS]);
       setIsActive(true);
     }
+    setPendingSource('');
+    setPendingTarget('');
   }, [open, task]);
 
   const resetState = () => {
-    setSourceId('');
-    setTargetId('');
-    setHour('1');
+    setPairs([]);
+    setHours([]);
     setIsActive(true);
+    setPendingSource('');
+    setPendingTarget('');
+  };
+
+  const getAppLabel = (app: AppConfig) => {
+    const name = app.source_type.toUpperCase();
+    const region = app.region === 'cn' ? 'CN' : app.region === 'gobal' ? 'Global' : app.region;
+    return `${name}${region ? ` (${region})` : ''} - ${app.account || `ID: ${app.id}`}`;
+  };
+
+  const getAppShort = (id: number) => {
+    const app = apps.find((a) => a.id === id);
+    if (!app) return `ID: ${id}`;
+    const name = app.source_type.toUpperCase();
+    const region = app.region === 'cn' ? 'CN' : app.region === 'gobal' ? 'Global' : app.region;
+    return `${name}${region ? ` (${region})` : ''}`;
+  };
+
+  const handleAddPair = () => {
+    if (!pendingSource || !pendingTarget) {
+      toast.error('请先选择源账号和目标账号');
+      return;
+    }
+    if (pendingSource === pendingTarget) {
+      toast.error('源账号与目标账号不能相同');
+      return;
+    }
+    if (pairs.some((p) => p.connect_source_id.toString() === pendingSource && p.connect_target_id.toString() === pendingTarget)) {
+      toast.error('该同步配置已存在');
+      return;
+    }
+    if (!canAddPairNow) {
+      toast.error(`同步配置数 × 执行时间数不能超过 ${MAX_EXECUTIONS_PER_DAY} 次/天`);
+      return;
+    }
+    setPairs([
+      ...pairs,
+      { connect_source_id: parseInt(pendingSource), connect_target_id: parseInt(pendingTarget) },
+    ]);
+    setPendingSource('');
+    setPendingTarget('');
+  };
+
+  const handleRemovePair = (index: number) => {
+    setPairs(pairs.filter((_, i) => i !== index));
+  };
+
+  const toggleHour = (hour: number) => {
+    if (hours.includes(hour)) {
+      setHours(hours.filter((h) => h !== hour).sort((a, b) => a - b));
+    } else {
+      if (!canAddHour) {
+        toast.error(`同步配置数 × 执行时间数不能超过 ${MAX_EXECUTIONS_PER_DAY} 次/天`);
+        return;
+      }
+      setHours([...hours, hour].sort((a, b) => a - b));
+    }
   };
 
   const handleSave = async () => {
-    if (!sourceId || !targetId || !hour) {
-      toast.error('请填写完整信息');
+    if (pairs.length === 0) {
+      toast.error('请至少添加一条同步配置（源 -> 目标）');
       return;
     }
-
-    if (sourceId === targetId) {
-      toast.error('数据源和目标不能相同');
+    if (hours.length === 0) {
+      toast.error('请至少选择一个执行时间');
       return;
     }
 
@@ -93,9 +172,11 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
     try {
       const payload = {
         id: task?.id || undefined,
-        connect_source_id: parseInt(sourceId),
-        connect_target_id: parseInt(targetId),
-        hour: parseInt(hour),
+        hours,
+        items: pairs.map((p) => ({
+          connect_source_id: p.connect_source_id,
+          connect_target_id: p.connect_target_id,
+        })),
         is_active: isActive,
       };
 
@@ -120,11 +201,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
     }
   };
 
-  const getAppLabel = (app: AppConfig) => {
-    const name = app.source_type.toUpperCase();
-    const region = app.region === 'cn' ? 'CN' : app.region === 'gobal' ? 'Global' : app.region;
-    return `${name}${region ? ` (${region})` : ''} - ${app.account || `ID: ${app.id}`}`;
-  };
+  const activeApps = apps.filter((a) => a.is_active);
 
   return (
     <Dialog
@@ -134,65 +211,133 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         if (!v) resetState();
       }}
     >
-      <DialogContent>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{task ? '编辑任务' : '新建任务'}</DialogTitle>
           <DialogDescription>
-            {task ? '修改定时任务的配置参数' : '创建一个新的数据同步定时任务'}
+            {task ? '修改定时任务的同步配置与触发时间' : '创建一个多账号、多时间点的数据同步定时任务'}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
+
+        <div className="grid gap-5 py-2">
+          {/* 执行次数提示 */}
+          <div
+            className={cn(
+              'rounded-lg border px-3 py-2 text-xs',
+              totalExecutions > MAX_EXECUTIONS_PER_DAY
+                ? 'border-destructive/30 bg-destructive/10 text-destructive'
+                : 'bg-muted/50 text-muted-foreground'
+            )}
+          >
+            每日执行额度：{pairs.length || 0} 条同步 × {hours.length || 0} 个时间 = {totalExecutions} 次
+            （上限 {MAX_EXECUTIONS_PER_DAY} 次）
+          </div>
+
+          {/* 同步配置（源 -> 目标） */}
           <div className="grid gap-2">
-            <Label>账号</Label>
-            <Select
-              value={sourceId}
-              onValueChange={setSourceId}
-              disabled={loading}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="选择数据源" />
-              </SelectTrigger>
-              <SelectContent>
-                {apps.filter(a => a.is_active).map((app) => (
-                  <SelectItem key={app.id} value={app.id.toString()}>
-                    {getAppLabel(app)}
-                  </SelectItem>
+            <Label>同步配置（{pairs.length}）</Label>
+            {pairs.length > 0 && (
+              <div className="flex flex-col gap-1.5">
+                {pairs.map((pair, index) => (
+                  <div
+                    key={`${pair.connect_source_id}-${pair.connect_target_id}-${index}`}
+                    className="flex items-center gap-2 rounded-md border bg-muted/30 px-2.5 py-1.5 text-sm"
+                  >
+                    <span className="font-medium">{getAppShort(pair.connect_source_id)}</span>
+                    <IconArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="font-medium">{getAppShort(pair.connect_target_id)}</span>
+                    <button
+                      type="button"
+                      className="ml-auto rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => handleRemovePair(index)}
+                      disabled={loading}
+                      aria-label="删除同步配置"
+                    >
+                      <IconX className="h-4 w-4" />
+                    </button>
+                  </div>
                 ))}
-              </SelectContent>
-            </Select>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Select value={pendingSource} onValueChange={setPendingSource} disabled={loading || !canAddPairNow}>
+                <SelectTrigger className="min-w-0 flex-1">
+                  <SelectValue placeholder="选择源账号" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeApps.map((app) => (
+                    <SelectItem key={app.id} value={app.id.toString()}>
+                      {getAppLabel(app)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <IconArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+              <Select value={pendingTarget} onValueChange={setPendingTarget} disabled={loading || !canAddPairNow}>
+                <SelectTrigger className="min-w-0 flex-1">
+                  <SelectValue placeholder="选择目标账号" />
+                </SelectTrigger>
+                <SelectContent>
+                  {activeApps
+                    .filter((app) => app.id.toString() !== pendingSource)
+                    .map((app) => (
+                      <SelectItem key={app.id} value={app.id.toString()}>
+                        {getAppLabel(app)}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                onClick={handleAddPair}
+                disabled={loading || !pendingSource || !pendingTarget || !canAddPairNow}
+                aria-label="添加同步配置"
+              >
+                <IconPlus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
+
+          {/* 触发时间（0-23 小时网格多选） */}
           <div className="grid gap-2">
-            <Label>账号（Target）</Label>
-            <Select
-              value={targetId}
-              onValueChange={setTargetId}
-              disabled={loading}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="选择目标" />
-              </SelectTrigger>
-              <SelectContent>
-                {apps.filter(a => a.is_active && a.id.toString() !== sourceId).map((app) => (
-                  <SelectItem key={app.id} value={app.id.toString()}>
-                    {getAppLabel(app)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex items-center justify-between">
+              <Label className="flex items-center gap-1.5">
+                <IconClock className="h-3.5 w-3.5 text-muted-foreground" />
+                执行时间（{hours.length}）
+              </Label>
+              <span className="text-xs text-muted-foreground">点击小时可调整，每天最多 2 个时间点推荐</span>
+            </div>
+            <div className="grid grid-cols-6 gap-1.5">
+              {Array.from({ length: 24 }, (_, hour) => {
+                const selected = hours.includes(hour);
+                const disabled = !selected && !canAddHour;
+                return (
+                  <button
+                    key={hour}
+                    type="button"
+                    disabled={disabled || loading}
+                    onClick={() => toggleHour(hour)}
+                    aria-pressed={selected}
+                    className={cn(
+                      'h-9 rounded-md border text-sm font-medium tabular-nums transition-colors',
+                      selected
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : disabled
+                          ? 'cursor-not-allowed border-border/50 bg-muted/30 text-muted-foreground/40'
+                          : 'border-border bg-background hover:border-primary/50 hover:bg-primary/5'
+                    )}
+                  >
+                    {hour.toString().padStart(2, '0')}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="hour">执行时间</Label>
-            <Input
-              id="hour"
-              type="number"
-              min={1}
-              max={168}
-              placeholder="请输入执行时间"
-              value={hour}
-              onChange={(e) => setHour(e.target.value)}
-              disabled={loading}
-            />
-          </div>
+
+          {/* 启用开关 */}
           <div className="flex items-center gap-3">
             <button
               type="button"
@@ -201,14 +346,14 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               disabled={loading}
               onClick={() => setIsActive(!isActive)}
               className={cn(
-                "relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50",
-                isActive ? "bg-primary" : "bg-input"
+                'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+                isActive ? 'bg-primary' : 'bg-input'
               )}
             >
               <span
                 className={cn(
-                  "pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform",
-                  isActive ? "translate-x-4" : "translate-x-0"
+                  'pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform',
+                  isActive ? 'translate-x-4' : 'translate-x-0'
                 )}
               />
             </button>
@@ -217,12 +362,17 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
             </Label>
           </div>
         </div>
+
         <DialogFooter>
-          <Button onClick={handleSave} disabled={loading || !sourceId || !targetId || !hour} className="w-full sm:w-auto">
+          <Button
+            onClick={handleSave}
+            disabled={loading || pairs.length === 0 || hours.length === 0 || totalExecutions > MAX_EXECUTIONS_PER_DAY}
+            className="w-full sm:w-auto"
+          >
             {loading ? '保存中...' : '保存'}
           </Button>
         </DialogFooter>
-      </DialogContent >
-    </Dialog >
+      </DialogContent>
+    </Dialog>
   );
 }

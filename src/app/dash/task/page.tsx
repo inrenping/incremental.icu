@@ -32,15 +32,21 @@ interface AppConfig {
   master: boolean;
 }
 
+interface TaskItemData {
+  id: number;
+  connect_source_id: number;
+  connect_target_id: number;
+}
+
 interface TaskItem {
   id: number;
   user_id: number;
-  connect_source_id: number;
-  connect_target_id: number;
-  hour: number;
+  hours: number[] | null;
+  hour?: number;
   is_active: boolean;
   created_at: string;
   updated_at?: string;
+  items: TaskItemData[];
 }
 
 export default function TasksPage() {
@@ -93,6 +99,45 @@ export default function TasksPage() {
     const name = app.source_type.toUpperCase();
     const region = app.region === 'cn' ? 'CN' : app.region === 'gobal' ? 'Global' : app.region;
     return `${name}${region ? ` (${region})` : ''}`;
+  };
+
+  const getTaskHours = (task: TaskItem): number[] =>
+    task.hours ?? (task.hour != null ? [task.hour] : []);
+
+  const getTaskExecutions = (task: TaskItem): number =>
+    task.items.length * getTaskHours(task).length;
+
+  const handleToggleActive = async (task: TaskItem) => {
+    const nextActive = !task.is_active;
+    // 乐观更新，失败后回滚
+    setTasks((prev) =>
+      prev.map((t) => (t.id === task.id ? { ...t, is_active: nextActive } : t))
+    );
+    try {
+      const response = await authFetch('/api/v1/task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: task.id,
+          hours: getTaskHours(task),
+          items: task.items.map((it) => ({
+            connect_source_id: it.connect_source_id,
+            connect_target_id: it.connect_target_id,
+          })),
+          is_active: nextActive,
+        }),
+      });
+      const result = await response.json();
+      if (result.status !== 'success') {
+        throw new Error(result.message || '操作失败');
+      }
+      toast.success(nextActive ? t('taskEnabled') : t('taskDisabled'));
+    } catch (err: unknown) {
+      setTasks((prev) =>
+        prev.map((t) => (t.id === task.id ? { ...t, is_active: !nextActive } : t))
+      );
+      toast.error(err instanceof Error ? err.message : t('fetchTasksError'));
+    }
   };
 
   return (
@@ -166,6 +211,25 @@ export default function TasksPage() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-3 mb-2">
                           <CardTitle className="text-lg">{t('taskCardTitle', { id: task.id })}</CardTitle>
+                          {/* 启用开关：任务名右侧 */}
+                          <button
+                            type="button"
+                            role="switch"
+                            aria-checked={task.is_active}
+                            aria-label={task.is_active ? t('taskEnabled') : t('taskDisabled')}
+                            onClick={() => handleToggleActive(task)}
+                            className={cn(
+                              'relative inline-flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                              task.is_active ? 'bg-primary' : 'bg-input'
+                            )}
+                          >
+                            <span
+                              className={cn(
+                                'pointer-events-none block h-4 w-4 rounded-full bg-white shadow-lg ring-0 transition-transform',
+                                task.is_active ? 'translate-x-4' : 'translate-x-0'
+                              )}
+                            />
+                          </button>
                           <Badge
                             variant="secondary"
                             className={cn(
@@ -182,24 +246,36 @@ export default function TasksPage() {
                             {task.is_active ? t('taskEnabled') : t('taskDisabled')}
                           </Badge>
                         </div>
-                        <div className="flex flex-wrap gap-x-6 gap-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <IconSourceCode className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground">{t('sourceAccount')}</span>
-                            <span className="font-medium">{getAppDisplay(task.connect_source_id)}</span>
+                        <div className="flex flex-col gap-2">
+                          {/* 同步配置列表（源 -> 目标） */}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                            {task.items.map((item, idx) => (
+                              <div key={`${item.id ?? idx}`} className="flex items-center gap-1.5 text-sm">
+                                <IconSourceCode className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                <span className="font-medium">{getAppDisplay(item.connect_source_id)}</span>
+                                <span className="text-muted-foreground">→</span>
+                                <span className="font-medium">{getAppDisplay(item.connect_target_id)}</span>
+                              </div>
+                            ))}
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <IconSourceCode className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <span className="text-muted-foreground">{t('targetAccount')}</span>
-                            <span className="font-medium">{getAppDisplay(task.connect_target_id)}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-muted-foreground">{t('executionTime')}</span>
-                            <span className="font-medium">{t('dailyAtHour', { hour: task.hour })}</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-muted-foreground">{t('createdAt')}</span>
-                            <span className="font-medium font-mono">{dayjs(task.created_at).format('YYYY-MM-DD HH:mm')}</span>
+                          <div className="flex flex-wrap gap-x-6 gap-y-2">
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground">{t('executionTime')}</span>
+                              <span className="flex flex-wrap gap-1">
+                                {getTaskHours(task).map((hour) => (
+                                  <Badge key={hour} variant="outline" className="font-mono tabular-nums">
+                                    {hour.toString().padStart(2, '0')}:00
+                                  </Badge>
+                                ))}
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {t('dailyExecutions', { count: getTaskExecutions(task) })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-sm">
+                              <span className="text-muted-foreground">{t('createdAt')}</span>
+                              <span className="font-medium font-mono">{dayjs(task.created_at).format('YYYY-MM-DD HH:mm')}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
