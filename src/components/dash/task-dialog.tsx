@@ -263,7 +263,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         if (!v) resetState();
       }}
     >
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-md">
+      <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>{task ? '编辑任务' : '新建任务'}</DialogTitle>
           <DialogDescription>
@@ -293,11 +293,11 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 {pairs.map((pair, index) => (
                   <div
                     key={`${pair.connect_source_id}-${pair.connect_target_id}-${index}`}
-                    className="flex items-center gap-2 rounded-md border bg-muted/30 px-2.5 py-1.5 text-sm"
+                    className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-muted/30 px-2.5 py-1.5 text-sm"
                   >
-                    <span className="font-medium">{getAppShort(pair.connect_source_id)}</span>
+                    <span className="font-medium break-all">{getAppShort(pair.connect_source_id)}</span>
                     <IconArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="font-medium">{getAppShort(pair.connect_target_id)}</span>
+                    <span className="font-medium break-all">{getAppShort(pair.connect_target_id)}</span>
                     <button
                       type="button"
                       className="ml-auto rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
@@ -313,7 +313,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
             )}
             <div className="flex items-center gap-2">
               <Select value={pendingSource} onValueChange={setPendingSource} disabled={loading || !canAddPairNow}>
-                <SelectTrigger className="min-w-0 flex-1">
+                <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
                   <SelectValue placeholder="选择源账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -326,7 +326,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               </Select>
               <IconArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
               <Select value={pendingTarget} onValueChange={setPendingTarget} disabled={loading || !canAddPairNow}>
-                <SelectTrigger className="min-w-0 flex-1">
+                <SelectTrigger className="min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left">
                   <SelectValue placeholder="选择目标账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -376,7 +376,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               </Label>
               <span className="text-xs text-muted-foreground">点击小时可调整，每天最多 2 个时间点推荐</span>
             </div>
-            <div className="grid grid-cols-6 gap-1.5">
+            <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
               {Array.from({ length: 24 }, (_, hour) => {
                 const selected = hours.includes(hour);
                 const disabled = !selected && !canAddHour;
