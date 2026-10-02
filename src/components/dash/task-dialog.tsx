@@ -188,7 +188,8 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
       const result = await response.json();
       if (result.status === 'success') {
         toast.success(task ? '任务已更新' : '任务已创建');
-        onSuccess();
+        // 先刷新列表再关闭，避免关闭后列表仍是旧数据
+        await onSuccess();
         onOpenChange(false);
       } else {
         toast.error(result.message || '操作失败');
@@ -298,6 +299,11 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 <IconPlus className="h-4 w-4" />
               </Button>
             </div>
+            {!canAddPairNow && (
+              <p className="text-xs text-muted-foreground">
+                已达每日执行上限（{MAX_EXECUTIONS_PER_DAY} 次/天），减少执行时间后才能继续添加同步配置
+              </p>
+            )}
           </div>
 
           {/* 触发时间（0-23 小时网格多选） */}
