@@ -75,7 +75,7 @@ export default function TasksPage() {
   const fetchTasks = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await authFetch('/api/v1/task');
+      const response = await authFetch('/api/v1/task', { cache: 'no-store' });
       if (!response.ok) throw new Error('Failed to fetch tasks');
       const result = await response.json();
       if (result.status === "success") {
