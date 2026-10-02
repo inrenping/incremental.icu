@@ -18,8 +18,19 @@ import {
   IconClock,
   IconSourceCode,
   IconHistory,
+  IconTrash,
 } from "@tabler/icons-react";
 import { TaskDialog } from "@/components/dash/task-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface AppConfig {
   id: number;
@@ -58,6 +69,8 @@ export default function TasksPage() {
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<TaskItem | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<TaskItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchTasks = useCallback(async () => {
     setLoading(true);
@@ -137,6 +150,28 @@ export default function TasksPage() {
         prev.map((t) => (t.id === task.id ? { ...t, is_active: !nextActive } : t))
       );
       toast.error(err instanceof Error ? err.message : t('fetchTasksError'));
+    }
+  };
+
+  const handleDeleteTask = async () => {
+    if (!pendingDelete) return;
+    const target = pendingDelete;
+    setDeleting(true);
+    try {
+      const response = await authFetch(`/api/v1/task/${target.id}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      if (result.status !== 'success') {
+        throw new Error(result.message || '删除失败');
+      }
+      setTasks((prev) => prev.filter((t) => t.id !== target.id));
+      toast.success(t('deleteSuccess'));
+      setPendingDelete(null);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : t('deleteError'));
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -298,6 +333,15 @@ export default function TasksPage() {
                         >
                           {t('edit')}
                         </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => setPendingDelete(task)}
+                        >
+                          <IconTrash className="h-4 w-4 mr-1" />
+                          {t('delete')}
+                        </Button>
                       </div>
                     </div>
                   </Card>
@@ -316,6 +360,37 @@ export default function TasksPage() {
             apps={apps}
             onSuccess={fetchTasks}
           />
+
+          <AlertDialog
+            open={pendingDelete !== null}
+            onOpenChange={(val) => {
+              if (!val && !deleting) setPendingDelete(null);
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>
+                  {t('deleteConfirmTitle', { id: pendingDelete?.id ?? 0 })}
+                </AlertDialogTitle>
+                <AlertDialogDescription>
+                  {t('deleteConfirmDesc')}
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>{t('cancel')}</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleDeleteTask();
+                  }}
+                  disabled={deleting}
+                  className="bg-destructive text-white hover:bg-destructive/90"
+                >
+                  {deleting ? t('deleting') : t('confirmDelete')}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </div>
     </div>
