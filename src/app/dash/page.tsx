@@ -20,7 +20,7 @@ import {
   IconBolt,
   IconHistory,
   IconCrane,
-  IconLayoutGrid,
+  IconRun,
   IconMoon,
   IconHeart,
 } from "@tabler/icons-react";
@@ -442,7 +442,7 @@ export default function DashPage() {
         </Button>
       </section>
 
-      {/* Module tabs: 控制台 / 同步 / 睡眠 / 心率 */}
+      {/* Module tabs: 跑量 / 同步 / 睡眠 / 心率 */}
       <Tabs
         value={activeTab}
         onValueChange={setActiveTab}
@@ -450,7 +450,7 @@ export default function DashPage() {
       >
         <TabsList className="grid h-11 w-full grid-cols-4 sm:h-9">
           <TabsTrigger value="console" aria-label={t("tabConsole")} className="px-1 sm:px-2">
-            <IconLayoutGrid className="h-4 w-4" />
+            <IconRun className="h-4 w-4" />
             <span className={cn("sm:inline", activeTab === "console" ? "inline" : "hidden")}>
               {t("tabConsole")}
             </span>
@@ -475,7 +475,7 @@ export default function DashPage() {
           </TabsTrigger>
         </TabsList>
 
-        {/* 控制台 */}
+        {/* 跑量 */}
         <TabsContent value="console" className="flex flex-col gap-6">
       {/* Stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
