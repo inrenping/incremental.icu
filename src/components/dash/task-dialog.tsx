@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -54,16 +54,18 @@ interface TaskDialogProps {
   task: TaskData | null;
   apps: AppConfig[];
   onSuccess: () => void;
+  /** 当前用户已有的全部任务，用于校验「不同任务的同步配置不能重复」 */
+  tasks?: TaskData[];
 }
 
-// 每个任务只允许一条同步配置，因此每日执行次数 = 触发小时数
+// 每个任务只允许一条同步配置，因此单个任务的每日执行次数 = 触发小时数
 const MAX_EXECUTIONS_PER_DAY = 3;
 const MAX_HOURS = MAX_EXECUTIONS_PER_DAY;
 
 // 新建任务时预选的时间点
 const DEFAULT_HOURS = [8, 20];
 
-export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDialogProps) {
+export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = [] }: TaskDialogProps) {
   // 单个任务只允许一条「源 -> 目标」同步配置
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
@@ -72,9 +74,26 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
   const [loading, setLoading] = useState(false);
 
   const totalExecutions = hours.length;
+  const overLimit = hours.length > MAX_HOURS;
   const sameAccount = source !== '' && target !== '' && source === target;
   const pairReady = source !== '' && target !== '' && !sameAccount;
   const canAddHour = hours.length < MAX_HOURS;
+
+  // 同一用户下，不同任务的「源 -> 目标」同步配置不能重复（编辑自身时排除自己）
+  const conflictTaskId = useMemo(() => {
+    if (!source || !target || source === target) return null;
+    const sourceId = parseInt(source, 10);
+    const targetId = parseInt(target, 10);
+    const hit = tasks.find(
+      (item) =>
+        item.id !== task?.id &&
+        item.items.some(
+          (pair) =>
+            pair.connect_source_id === sourceId && pair.connect_target_id === targetId
+        )
+    );
+    return hit ? hit.id : null;
+  }, [tasks, source, target, task?.id]);
 
   useEffect(() => {
     if (!open) return;
@@ -131,7 +150,11 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
       return;
     }
     if (hours.length > MAX_HOURS) {
-      toast.error(`每个任务每天最多执行 ${MAX_EXECUTIONS_PER_DAY} 次`);
+      toast.error(`每个任务每天最多执行 ${MAX_EXECUTIONS_PER_DAY} 次，请取消多余的时间点`);
+      return;
+    }
+    if (conflictTaskId !== null) {
+      toast.error(`该同步配置已在任务 #${conflictTaskId} 中配置过，不能重复`);
       return;
     }
 
@@ -190,18 +213,18 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         </DialogHeader>
 
         <div className="grid gap-5 py-2">
-          {/* 执行次数提示 */}
-          <div
-            className={cn(
-              'rounded-lg border px-3 py-2 text-xs',
-              totalExecutions > MAX_EXECUTIONS_PER_DAY
-                ? 'border-destructive/30 bg-destructive/10 text-destructive'
-                : 'bg-muted/50 text-muted-foreground'
-            )}
-          >
-            每日执行额度：1 条同步配置 × {hours.length || 0} 个时间 = {totalExecutions} 次
-            （每个任务上限 {MAX_EXECUTIONS_PER_DAY} 次/天）
-          </div>
+          {/* 执行额度提示 */}
+          {overLimit ? (
+            <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              当前选了 {hours.length} 个时间点，已超过单个任务 {MAX_EXECUTIONS_PER_DAY} 次/天的上限，
+              请取消多余的时间点后再保存。
+            </div>
+          ) : (
+            <div className="rounded-lg border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+              本任务额度：1 条同步配置 × {hours.length || 0} 个时间 = {totalExecutions} 次/天
+              （每个任务上限 {MAX_EXECUTIONS_PER_DAY} 次）
+            </div>
+          )}
 
           {/* 同步配置（源 -> 目标），每个任务只允许一条 */}
           <div className="grid gap-2">
@@ -250,10 +273,15 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
               </Select>
             </div>
             <p className="text-xs text-muted-foreground">
-              每个任务仅支持一条「源 → 目标」同步配置，更多同步方向请新建任务。
+              每个任务仅支持一条「源 → 目标」同步配置，且不能与其它任务的配置重复；更多同步方向请新建任务。
             </p>
             {sameAccount && (
               <p className="text-xs text-destructive">源账号与目标账号不能相同</p>
+            )}
+            {conflictTaskId !== null && (
+              <p className="text-xs text-destructive">
+                该同步配置已在任务 #{conflictTaskId} 中配置过，请换个方向，或去编辑任务 #{conflictTaskId}。
+              </p>
             )}
           </div>
 
@@ -327,7 +355,13 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         <DialogFooter>
           <Button
             onClick={handleSave}
-            disabled={loading || !pairReady || hours.length === 0 || hours.length > MAX_HOURS}
+            disabled={
+              loading ||
+              !pairReady ||
+              hours.length === 0 ||
+              hours.length > MAX_HOURS ||
+              conflictTaskId !== null
+            }
             className="w-full sm:w-auto"
           >
             {loading ? '保存中...' : '保存'}

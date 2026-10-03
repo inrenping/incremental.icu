@@ -310,7 +310,14 @@ export default function TasksPage() {
                                   </Badge>
                                 ))}
                               </span>
-                              <span className="text-xs text-muted-foreground">
+                              <span
+                                className={cn(
+                                  'text-xs',
+                                  getTaskExecutions(task) > MAX_EXECUTIONS_PER_DAY
+                                    ? 'text-destructive'
+                                    : 'text-muted-foreground'
+                                )}
+                              >
                                 {t('dailyExecutions', { count: getTaskExecutions(task), max: MAX_EXECUTIONS_PER_DAY })}
                               </span>
                             </div>
@@ -365,6 +372,7 @@ export default function TasksPage() {
             }}
             task={currentTask}
             apps={apps}
+            tasks={tasks}
             onSuccess={fetchTasks}
           />
 
