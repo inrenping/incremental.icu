@@ -49,6 +49,10 @@ interface TaskItemData {
   connect_target_id: number;
 }
 
+// 与后端约定保持一致：每个用户最多 10 个任务，每个任务 1 条同步配置、每天最多执行 3 次
+const MAX_TASKS_PER_USER = 10;
+const MAX_EXECUTIONS_PER_DAY = 3;
+
 interface TaskItem {
   id: number;
   user_id: number;
@@ -202,23 +206,23 @@ export default function TasksPage() {
       <div className="flex-1 min-w-0">
         <div className="flex flex-col gap-8 py-4 md:gap-6 md:py-6">
           <div>
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center justify-between mb-2 gap-3">
               <h1 className="text-xl font-semibold">{t('taskTitle')}</h1>
-              {tasks.length === 0 ? (
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="text-xs text-muted-foreground">
+                  {t('taskQuotaHint', { used: tasks.length, total: MAX_TASKS_PER_USER })}
+                </span>
                 <Button
                   onClick={() => {
                     setCurrentTask(null);
                     setDialogOpen(true);
                   }}
+                  disabled={tasks.length >= MAX_TASKS_PER_USER}
                 >
                   <IconPlus className="h-4 w-4 mr-2" />
                   {t('createTask')}
                 </Button>
-              ) : (
-                <span className="text-xs text-muted-foreground">
-                  {t('singleTaskHint')}
-                </span>
-              )}
+              </div>
             </div>
             <p className="text-muted-foreground text-sm">
               {t('taskDescription')}
@@ -281,8 +285,9 @@ export default function TasksPage() {
                           </Badge>
                         </div>
                         <div className="flex flex-col gap-2">
-                          {/* 同步配置列表（源 -> 目标） */}
-                          <div className="flex flex-wrap gap-x-4 gap-y-1.5">
+                          {/* 同步配置（源 -> 目标），每个任务仅一条 */}
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+                            <span className="text-xs text-muted-foreground">{t('syncConfig')}</span>
                             {task.items.map((item, idx) => (
                               <div key={`${item.id ?? idx}`} className="flex items-center gap-1.5 text-sm">
                                 <IconSourceCode className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
@@ -291,6 +296,9 @@ export default function TasksPage() {
                                 <span className="font-medium">{getAppDisplay(item.connect_target_id)}</span>
                               </div>
                             ))}
+                            {task.items.length === 0 && (
+                              <span className="text-sm text-muted-foreground">-</span>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-x-6 gap-y-2">
                             <div className="flex items-center gap-2 text-sm">
@@ -303,7 +311,7 @@ export default function TasksPage() {
                                 ))}
                               </span>
                               <span className="text-xs text-muted-foreground">
-                                {t('dailyExecutions', { count: getTaskExecutions(task) })}
+                                {t('dailyExecutions', { count: getTaskExecutions(task), max: MAX_EXECUTIONS_PER_DAY })}
                               </span>
                             </div>
                             <div className="flex items-center gap-2 text-sm">
