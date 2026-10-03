@@ -11,6 +11,7 @@ import {
   CardTitle,
   CardAction,
 } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Dialog,
   DialogContent,
@@ -558,6 +559,21 @@ function DayChart({
 
 // ==================== 日历视图：月历 + 点击弹窗看当日详情 ====================
 
+/** ISO 时刻 → HH:MM */
+function formatClock(iso?: string | null): string {
+  if (!iso) return '--';
+  const t = dayjs(iso);
+  return t.isValid() ? t.format('HH:mm') : '--';
+}
+
+/** 睡眠得分分色：≥80 绿 / 65–79 中性 / 55–64 琥珀 / <55 红（橙只留给「今天」，不参与分色） */
+function scoreClass(score: number): string {
+  if (score >= 80) return 'bg-green-100 text-green-600';
+  if (score >= 65) return 'bg-zinc-200 text-zinc-900';
+  if (score >= 55) return 'bg-amber-100 text-amber-600';
+  return 'bg-red-100 text-red-600';
+}
+
 function SleepCalendar({
   monthStr,
   days,
@@ -606,7 +622,6 @@ function SleepCalendar({
             );
           const d = byDate.get(dateStr);
           const dayNo = Number(dateStr.slice(8, 10));
-          const isToday = dateStr === today;
           const isFuture = dateStr > today;
           const hasData = !!d && (d.sleep_time_seconds ?? 0) > 0;
 
@@ -634,27 +649,41 @@ function SleepCalendar({
                 !d && 'text-muted-foreground'
               )}
             >
-              <span className="flex items-center gap-1 text-xs">
-                <span
-                  className={cn(
-                    'inline-flex h-5 w-5 items-center justify-center rounded-full',
-                    isToday && 'bg-orange-500 font-medium text-white'
+                {/* 顶行：日期号 + 右上得分徽章 */}
+                <span className="flex items-start justify-between gap-1">
+                  <span className="inline-flex h-5 w-5 items-center justify-center text-xs">
+                    {dayNo}
+                  </span>
+                  {hasData && d?.sleep_score != null && (
+                    <span
+                      className={cn(
+                        'inline-flex h-[26px] min-w-[46px] items-center justify-center rounded-full px-2 text-[15px] font-bold leading-none tabular-nums',
+                        scoreClass(d.sleep_score)
+                      )}
+                    >
+                      {d.sleep_score}
+                    </span>
                   )}
-                >
-                  {dayNo}
                 </span>
-                {hasData && (
-                  <span className="ml-auto tabular-nums text-[10px] text-muted-foreground">
-                    {formatDuration(d?.sleep_time_seconds)}
+
+                {/* 主信息：时长；副信息：入睡 → 醒来 */}
+                {hasData ? (
+                  <>
+                    <span className="flex flex-1 items-center justify-center text-xl font-bold leading-none tabular-nums text-foreground">
+                      {formatShort(d?.sleep_time_seconds)}
+                    </span>
+                    <span className="text-center text-[10px] leading-none tabular-nums text-muted-foreground">
+                      {formatClock(d?.sleep_start_at)} → {formatClock(d?.sleep_end_at)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="flex flex-1 items-center justify-center text-xs text-muted-foreground/70">
+                    无数据
                   </span>
                 )}
-              </span>
-              {hasData && d?.sleep_score != null && (
-                <span className="flex flex-1 items-center justify-center text-4xl font-bold leading-none tabular-nums text-foreground">
-                  {d.sleep_score}
-                </span>
-              )}
-              {hasData && secsSum > 0 && (
+
+                {/* 阶段占比条（深/浅/REM/清醒） */}
+                {hasData && secsSum > 0 && (
                 <span className="mt-auto flex h-1.5 w-full overflow-hidden rounded-full">
                   {secs
                     .filter((s) => s.v > 0)
@@ -685,6 +714,8 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
   const [monthDays, setMonthDays] = useState<MonthDay[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  // 日历 / 环形图 切换（不进 URL，纯本地状态）
+  const [tab, setTab] = useState('cal');
 
   // 日详情弹窗
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -744,9 +775,14 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
 
   return (
     <div className={cn('space-y-6 w-full', className)}>
-      <Card>
-        <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
-          <CardAction className="col-start-1 row-span-2 row-start-1 self-center justify-self-start">
+      <Tabs value={tab} onValueChange={setTab} className="w-full">
+        <Card>
+          <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
+            <TabsList className="col-start-1 row-start-1 self-center justify-self-start">
+              <TabsTrigger value="cal">日历</TabsTrigger>
+              <TabsTrigger value="rad">环形图</TabsTrigger>
+            </TabsList>
+            <CardAction className="col-start-2 row-start-1 self-center justify-self-end">
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -799,17 +835,30 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
               加载中…
             </div>
           ) : (
-            <div className="flex flex-col gap-8">
-              {/* 日历（上） */}
-              <SleepCalendar
-                monthStr={monthStr}
-                days={monthDays}
-                today={today}
-                onPick={openDay}
-              />
+            <>
+              {/* 日历视图 */}
+              <TabsContent value="cal" className="mt-0">
+                <SleepCalendar
+                  monthStr={monthStr}
+                  days={monthDays}
+                  today={today}
+                  onPick={openDay}
+                />
+                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                  {[...ROW_ORDER].reverse().map((stage) => (
+                    <span key={stage} className="inline-flex items-center gap-1.5">
+                      <span
+                        className="inline-block h-[3px] w-4 rounded-full"
+                        style={{ background: STAGE_META[stage].color }}
+                      />
+                      {STAGE_META[stage].label}
+                    </span>
+                  ))}
+                </div>
+              </TabsContent>
 
-              {/* 月报环形（下） */}
-              <div>
+              {/* 月报环形视图（保持原版） */}
+              <TabsContent value="rad" className="mt-0">
                 <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
                   {[...ROW_ORDER].reverse().map((stage) => (
                     <span key={stage} className="inline-flex items-center gap-1.5">
@@ -832,11 +881,12 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
                 <div className="mx-auto w-full max-w-4xl">
                   <MonthChart monthStr={monthStr} days={monthDays} />
                 </div>
-              </div>
-            </div>
+              </TabsContent>
+            </>
           )}
         </CardContent>
       </Card>
+      </Tabs>
 
       {/* 当日睡眠详情弹窗 */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
