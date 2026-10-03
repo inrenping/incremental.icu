@@ -587,7 +587,7 @@ function SleepCalendar({
   ];
 
   return (
-    <div className="mx-auto w-full max-w-3xl">
+    <div className="w-full">
       <div className="grid grid-cols-7 border-b">
         {WEEKDAY_HEADERS.map((d) => (
           <div key={d} className="py-2 text-center text-xs text-muted-foreground">
