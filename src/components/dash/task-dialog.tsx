@@ -21,12 +21,7 @@ import {
 } from '@/components/ui/select';
 import { authFetch } from '@/lib/api';
 import { toast } from 'sonner';
-import {
-  IconArrowRight,
-  IconPlus,
-  IconX,
-  IconClock,
-} from '@tabler/icons-react';
+import { IconArrowRight, IconClock } from '@tabler/icons-react';
 
 interface AppConfig {
   id: number;
@@ -61,58 +56,47 @@ interface TaskDialogProps {
   onSuccess: () => void;
 }
 
-// 单任务执行次数上限：同步对数 × 触发小时数（与后端约定一致）
-const MAX_EXECUTIONS_PER_DAY = 8;
+// 每个任务只允许一条同步配置，因此每日执行次数 = 触发小时数
+const MAX_EXECUTIONS_PER_DAY = 3;
+const MAX_HOURS = MAX_EXECUTIONS_PER_DAY;
 
-// 每天最多展示的推荐小时（与截图交互一致：默认预选 08 / 20）
+// 新建任务时预选的时间点
 const DEFAULT_HOURS = [8, 20];
 
 export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDialogProps) {
-  const [pairs, setPairs] = useState<TaskItemData[]>([]);
+  // 单个任务只允许一条「源 -> 目标」同步配置
+  const [source, setSource] = useState('');
+  const [target, setTarget] = useState('');
   const [hours, setHours] = useState<number[]>([]);
   const [isActive, setIsActive] = useState(true);
-  const [pendingSource, setPendingSource] = useState('');
-  const [pendingTarget, setPendingTarget] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const totalExecutions = pairs.length * hours.length;
-  const canAddPairNow = (pairs.length + 1) * Math.max(hours.length, 1) <= MAX_EXECUTIONS_PER_DAY;
-  // 待选配置是否已构成「源=目标」或「与已有配置重复」，用于内联提示 + 禁用「+」
-  const pendingSame =
-    pendingSource !== '' && pendingTarget !== '' && pendingSource === pendingTarget;
-  const pendingDuplicate =
-    pendingSource !== '' &&
-    pendingTarget !== '' &&
-    pendingSource !== pendingTarget &&
-    pairs.some(
-      (p) =>
-        p.connect_source_id.toString() === pendingSource &&
-        p.connect_target_id.toString() === pendingTarget
-    );
-  const pendingInvalid = pendingSame || pendingDuplicate;
-  const canAddHour = (hours.length + 1) * Math.max(pairs.length, 1) <= MAX_EXECUTIONS_PER_DAY;
+  const totalExecutions = hours.length;
+  const sameAccount = source !== '' && target !== '' && source === target;
+  const pairReady = source !== '' && target !== '' && !sameAccount;
+  const canAddHour = hours.length < MAX_HOURS;
 
   useEffect(() => {
     if (!open) return;
     if (task) {
-      setPairs(task.items.map((it) => ({ ...it })));
+      const first = task.items?.[0];
+      setSource(first ? first.connect_source_id.toString() : '');
+      setTarget(first ? first.connect_target_id.toString() : '');
       setHours(task.hours ?? (task.hour != null ? [task.hour] : []));
       setIsActive(task.is_active);
     } else {
-      setPairs([]);
+      setSource('');
+      setTarget('');
       setHours([...DEFAULT_HOURS]);
       setIsActive(true);
     }
-    setPendingSource('');
-    setPendingTarget('');
   }, [open, task]);
 
   const resetState = () => {
-    setPairs([]);
+    setSource('');
+    setTarget('');
     setHours([]);
     setIsActive(true);
-    setPendingSource('');
-    setPendingTarget('');
   };
 
   const getAppLabel = (app: AppConfig) => {
@@ -121,73 +105,33 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
     return `${name}${region ? ` (${region})` : ''} - ${app.account || `ID: ${app.id}`}`;
   };
 
-  const getAppShort = (id: number) => {
-    const app = apps.find((a) => a.id === id);
-    if (!app) return `ID: ${id}`;
-    const name = app.source_type.toUpperCase();
-    const region = app.region === 'cn' ? 'CN' : app.region === 'gobal' ? 'Global' : app.region;
-    return `${name}${region ? ` (${region})` : ''}`;
-  };
-
-  // 校验并提交一条同步配置（源 -> 目标）。返回是否提交成功。
-  // 关键修复：提交不再依赖单独的「+」点击。只要源和目标都选好就立即自动提交，
-  // 避免 Radix Select 关闭弹层时「吃掉」紧随其后的那次点击，导致前面的同步配置漏存。
-  // 之前未提交的选项只存在单个 pendingSource/pendingTarget 槽位、每次新选择都会覆盖上一条，
-  // 于是只有最后一次选择能被保存时兜底加入 —— 这就是「配置了多条却只存了一条」的根因。
-  const commitPair = (source: string, target: string): boolean => {
-    if (!source || !target) {
-      toast.error('请先选择源账号和目标账号');
-      return false;
-    }
-    if (source === target) {
-      toast.error('源账号与目标账号不能相同');
-      return false;
-    }
-    if (pairs.some((p) => p.connect_source_id.toString() === source && p.connect_target_id.toString() === target)) {
-      toast.error('该同步配置已存在');
-      return false;
-    }
-    if ((pairs.length + 1) * Math.max(hours.length, 1) > MAX_EXECUTIONS_PER_DAY) {
-      toast.error(`同步配置数 × 执行时间数不能超过 ${MAX_EXECUTIONS_PER_DAY} 次/天`);
-      return false;
-    }
-    setPairs([
-      ...pairs,
-      { connect_source_id: parseInt(source), connect_target_id: parseInt(target) },
-    ]);
-    setPendingSource('');
-    setPendingTarget('');
-    return true;
-  };
-
-  // 保留「+」按钮作为显式兜底（多数情况下选完源和目标已自动加入）
-  const handleAddPair = () => {
-    commitPair(pendingSource, pendingTarget);
-  };
-
-  const handleRemovePair = (index: number) => {
-    setPairs(pairs.filter((_, i) => i !== index));
-  };
-
   const toggleHour = (hour: number) => {
     if (hours.includes(hour)) {
       setHours(hours.filter((h) => h !== hour).sort((a, b) => a - b));
-    } else {
-      if (!canAddHour) {
-        toast.error(`同步配置数 × 执行时间数不能超过 ${MAX_EXECUTIONS_PER_DAY} 次/天`);
-        return;
-      }
-      setHours([...hours, hour].sort((a, b) => a - b));
+      return;
     }
+    if (!canAddHour) {
+      toast.error(`每个任务每天最多执行 ${MAX_EXECUTIONS_PER_DAY} 次，请先取消一个时间点`);
+      return;
+    }
+    setHours([...hours, hour].sort((a, b) => a - b));
   };
 
   const handleSave = async () => {
-    if (pairs.length === 0) {
-      toast.error('请至少添加一条同步配置（源 -> 目标）');
+    if (!source || !target) {
+      toast.error('请选择源账号和目标账号');
+      return;
+    }
+    if (source === target) {
+      toast.error('源账号与目标账号不能相同');
       return;
     }
     if (hours.length === 0) {
       toast.error('请至少选择一个执行时间');
+      return;
+    }
+    if (hours.length > MAX_HOURS) {
+      toast.error(`每个任务每天最多执行 ${MAX_EXECUTIONS_PER_DAY} 次`);
       return;
     }
 
@@ -196,14 +140,14 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
       const payload = {
         id: task?.id || undefined,
         hours,
-        items: pairs.map((p) => ({
-          connect_source_id: p.connect_source_id,
-          connect_target_id: p.connect_target_id,
-        })),
+        items: [
+          {
+            connect_source_id: parseInt(source, 10),
+            connect_target_id: parseInt(target, 10),
+          },
+        ],
         is_active: isActive,
       };
-      // 排查用：确认提交时到底带了几条同步配置
-      console.debug('[task-dialog] save payload', JSON.stringify(payload));
 
       const response = await authFetch('/api/v1/task', {
         method: 'POST',
@@ -213,13 +157,6 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
 
       const result = await response.json();
       if (result.status === 'success') {
-        // 回读校验：服务端保存的条数与提交不一致时明确提示，避免"看着成功了实际少存"
-        const savedCount = Array.isArray(result.data?.items) ? result.data.items.length : -1;
-        if (savedCount >= 0 && savedCount !== payload.items.length) {
-          toast.warning(
-            `服务端只保存了 ${savedCount} 条同步配置（本次提交 ${payload.items.length} 条），请刷新页面确认`
-          );
-        }
         toast.success(task ? '任务已更新' : '任务已创建');
         // 先刷新列表再关闭，避免关闭后列表仍是旧数据
         await onSuccess();
@@ -248,7 +185,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         <DialogHeader>
           <DialogTitle>{task ? '编辑任务' : '新建任务'}</DialogTitle>
           <DialogDescription>
-            {task ? '修改定时任务的同步配置与触发时间' : '创建一个多账号、多时间点的数据同步定时任务'}
+            {task ? '修改该任务的同步配置与触发时间' : '创建一个定时数据同步任务'}
           </DialogDescription>
         </DialogHeader>
 
@@ -262,49 +199,25 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 : 'bg-muted/50 text-muted-foreground'
             )}
           >
-            每日执行额度：{pairs.length || 0} 条同步 × {hours.length || 0} 个时间 = {totalExecutions} 次
-            （上限 {MAX_EXECUTIONS_PER_DAY} 次）
+            每日执行额度：1 条同步配置 × {hours.length || 0} 个时间 = {totalExecutions} 次
+            （每个任务上限 {MAX_EXECUTIONS_PER_DAY} 次/天）
           </div>
 
-          {/* 同步配置（源 -> 目标） */}
+          {/* 同步配置（源 -> 目标），每个任务只允许一条 */}
           <div className="grid gap-2">
-            <Label>同步配置（{pairs.length}）</Label>
-            {pairs.length > 0 && (
-              <div className="flex flex-col gap-1.5">
-                {pairs.map((pair, index) => (
-                  <div
-                    key={`${pair.connect_source_id}-${pair.connect_target_id}-${index}`}
-                    className="flex flex-wrap items-center gap-x-2 gap-y-1 rounded-md border bg-muted/30 px-2.5 py-1.5 text-sm"
-                  >
-                    <span className="font-medium break-all">{getAppShort(pair.connect_source_id)}</span>
-                    <IconArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                    <span className="font-medium break-all">{getAppShort(pair.connect_target_id)}</span>
-                    <button
-                      type="button"
-                      className="ml-auto rounded-sm p-0.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => handleRemovePair(index)}
-                      disabled={loading}
-                      aria-label="删除同步配置"
-                    >
-                      <IconX className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <Label>同步配置</Label>
             <div className="flex items-center gap-2">
               <Select
-                value={pendingSource}
-                onValueChange={(val) => {
-                  setPendingSource(val);
-                  // 源、目标都选好后立即自动加入列表，无需再点「+」
-                  if (pendingTarget && val && val !== pendingTarget) {
-                    commitPair(val, pendingTarget);
-                  }
-                }}
-                disabled={loading || !canAddPairNow}
+                value={source}
+                onValueChange={setSource}
+                disabled={loading}
               >
-                <SelectTrigger className={cn("min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left", pendingInvalid && "border-destructive text-destructive")}>
+                <SelectTrigger
+                  className={cn(
+                    'min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left',
+                    sameAccount && 'border-destructive text-destructive'
+                  )}
+                >
                   <SelectValue placeholder="选择源账号" />
                 </SelectTrigger>
                 <SelectContent>
@@ -316,23 +229,18 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 </SelectContent>
               </Select>
               <IconArrowRight className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <Select
-                value={pendingTarget}
-                onValueChange={(val) => {
-                  setPendingTarget(val);
-                  // 源、目标都选好后立即自动加入列表，无需再点「+」
-                  if (pendingSource && val && val !== pendingSource) {
-                    commitPair(pendingSource, val);
-                  }
-                }}
-                disabled={loading || !canAddPairNow}
-              >
-                <SelectTrigger className={cn("min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left", pendingInvalid && "border-destructive text-destructive")}>
+              <Select value={target} onValueChange={setTarget} disabled={loading}>
+                <SelectTrigger
+                  className={cn(
+                    'min-w-0 flex-1 overflow-hidden [&>span]:truncate [&>span]:text-left',
+                    sameAccount && 'border-destructive text-destructive'
+                  )}
+                >
                   <SelectValue placeholder="选择目标账号" />
                 </SelectTrigger>
                 <SelectContent>
                   {activeApps
-                    .filter((app) => app.id.toString() !== pendingSource)
+                    .filter((app) => app.id.toString() !== source)
                     .map((app) => (
                       <SelectItem key={app.id} value={app.id.toString()}>
                         {getAppLabel(app)}
@@ -340,48 +248,25 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                     ))}
                 </SelectContent>
               </Select>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className="shrink-0"
-                onClick={handleAddPair}
-                disabled={loading || !pendingSource || !pendingTarget || !canAddPairNow || pendingInvalid}
-                aria-label="添加同步配置"
-              >
-                <IconPlus className="h-4 w-4" />
-              </Button>
             </div>
-            {!canAddPairNow && (
-              <p className="text-xs text-muted-foreground">
-                已达每日执行上限（{MAX_EXECUTIONS_PER_DAY} 次/天），减少执行时间后才能继续添加同步配置
-              </p>
+            <p className="text-xs text-muted-foreground">
+              每个任务仅支持一条「源 → 目标」同步配置，更多同步方向请新建任务。
+            </p>
+            {sameAccount && (
+              <p className="text-xs text-destructive">源账号与目标账号不能相同</p>
             )}
-            {pendingInvalid && (
-              <p className="text-xs text-destructive">
-                {pendingSame
-                  ? '源账号与目标账号不能相同'
-                  : '该同步配置已存在，无法重复添加'}
-              </p>
-            )}
-            {pendingSource !== '' &&
-              pendingTarget !== '' &&
-              pendingSource !== pendingTarget &&
-              !pendingDuplicate && (
-                <p className="text-xs text-muted-foreground">
-                  选择后同步配置会自动加入下方列表；如需调整可点右侧「×」移除
-                </p>
-              )}
           </div>
 
-          {/* 触发时间（0-23 小时网格多选） */}
+          {/* 触发时间（0-23 小时网格多选，最多 3 个） */}
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-1.5">
                 <IconClock className="h-3.5 w-3.5 text-muted-foreground" />
-                执行时间（{hours.length}）
+                执行时间（{hours.length}/{MAX_HOURS}）
               </Label>
-              <span className="text-xs text-muted-foreground">点击小时可调整，每天最多 2 个时间点推荐</span>
+              <span className="text-xs text-muted-foreground">
+                每天最多 {MAX_HOURS} 个时间点，即最多执行 {MAX_EXECUTIONS_PER_DAY} 次
+              </span>
             </div>
             <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
               {Array.from({ length: 24 }, (_, hour) => {
@@ -430,7 +315,10 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
                 )}
               />
             </button>
-            <Label className="text-sm font-medium leading-none cursor-pointer" onClick={() => !loading && setIsActive(!isActive)}>
+            <Label
+              className="text-sm font-medium leading-none cursor-pointer"
+              onClick={() => !loading && setIsActive(!isActive)}
+            >
               {isActive ? '已启用' : '已停用'}
             </Label>
           </div>
@@ -439,7 +327,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess }: TaskDi
         <DialogFooter>
           <Button
             onClick={handleSave}
-            disabled={loading || pairs.length === 0 || hours.length === 0 || totalExecutions > MAX_EXECUTIONS_PER_DAY}
+            disabled={loading || !pairReady || hours.length === 0 || hours.length > MAX_HOURS}
             className="w-full sm:w-auto"
           >
             {loading ? '保存中...' : '保存'}
