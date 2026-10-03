@@ -777,12 +777,32 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
     <div className={cn('space-y-6 w-full', className)}>
       <Tabs value={tab} onValueChange={setTab} className="w-full">
         <Card>
-          <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
+          <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr_auto]">
             <TabsList className="col-start-1 row-start-1 self-center justify-self-start">
               <TabsTrigger value="cal">日历</TabsTrigger>
               <TabsTrigger value="rad">环形图</TabsTrigger>
             </TabsList>
-            <CardAction className="col-start-2 row-start-1 self-center justify-self-end">
+            {/* 统一图例：放在 tabs 与月份控件之间 */}
+            <div className="col-start-2 row-start-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 self-center text-xs text-muted-foreground">
+              {[...ROW_ORDER].reverse().map((stage) => (
+                <span key={stage} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="inline-block h-[3px] w-4 rounded-full"
+                    style={{ background: STAGE_META[stage].color }}
+                  />
+                  {STAGE_META[stage].label}
+                </span>
+              ))}
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground" />
+                入睡时间
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                睡醒时间
+              </span>
+            </div>
+            <CardAction className="col-start-3 row-start-1 self-center justify-self-end">
             <div className="flex items-center gap-1">
               <button
                 type="button"
@@ -844,40 +864,10 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
                   today={today}
                   onPick={openDay}
                 />
-                <div className="mt-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
-                  {[...ROW_ORDER].reverse().map((stage) => (
-                    <span key={stage} className="inline-flex items-center gap-1.5">
-                      <span
-                        className="inline-block h-[3px] w-4 rounded-full"
-                        style={{ background: STAGE_META[stage].color }}
-                      />
-                      {STAGE_META[stage].label}
-                    </span>
-                  ))}
-                </div>
               </TabsContent>
 
-              {/* 月报环形视图（保持原版） */}
+              {/* 月报环形视图（保持原版，图例已提到卡片头部） */}
               <TabsContent value="rad" className="mt-0">
-                <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
-                  {[...ROW_ORDER].reverse().map((stage) => (
-                    <span key={stage} className="inline-flex items-center gap-1.5">
-                      <span
-                        className="inline-block h-[3px] w-4 rounded-full"
-                        style={{ background: STAGE_META[stage].color }}
-                      />
-                      {STAGE_META[stage].label}
-                    </span>
-                  ))}
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground" />
-                    入睡时间
-                  </span>
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                    睡醒时间
-                  </span>
-                </div>
                 <div className="mx-auto w-full max-w-4xl">
                   <MonthChart monthStr={monthStr} days={monthDays} />
                 </div>
