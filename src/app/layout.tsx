@@ -4,7 +4,6 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import { ClerkProvider } from "@clerk/nextjs";
 
 import { Providers } from "@/components/providers";
-import { TokenProvider } from "@/components/token-provider";
 import { LayoutProvider } from "@/hooks/use-layout"
 import "./globals.css";
 import { getLocale, getMessages } from "next-intl/server";
@@ -45,16 +44,14 @@ export default async function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ClerkProvider>
-          <TokenProvider>
-            <LayoutProvider>
-              <NextIntlClientProvider messages={messages}>
-                <Providers>
-                  {children}
-                  <Toaster richColors position="top-center" />
-                </Providers>
-              </NextIntlClientProvider>
-            </LayoutProvider>
-          </TokenProvider>
+          <LayoutProvider>
+            <NextIntlClientProvider messages={messages}>
+              <Providers>
+                {children}
+                <Toaster richColors position="top-center" />
+              </Providers>
+            </NextIntlClientProvider>
+          </LayoutProvider>
         </ClerkProvider>
       </body>
       <GoogleAnalytics gaId="G-10K4P7GLF3" />

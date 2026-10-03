@@ -1,24 +1,20 @@
 import { toast } from 'sonner';
 
-import { getClerkToken } from '@/lib/token-manager';
+import { getAuthToken } from '@/lib/token-manager';
 
 let lastAuthErrorToastAt = 0;
 const AUTH_ERROR_TOAST_INTERVAL_MS = 5000;
 
-function buildHeaders(existingHeaders?: HeadersInit) {
+/**
+ * 每次发起请求时实时取 token（Clerk 内部有缓存，开销可忽略），
+ * 不再读任何自维护的全局缓存 —— 那种缓存会在过期边界上返回 null，
+ * 导致请求不带 Authorization 头而被后端判 401。
+ */
+async function buildHeaders(existingHeaders?: HeadersInit) {
   const headers = new Headers(existingHeaders);
-  // 优先使用 Clerk JWT，fallback 到旧 localStorage token（过渡期兼容）
-  const clerkToken = getClerkToken();
-  if (clerkToken) {
-    headers.set('Authorization', `Bearer ${clerkToken}`);
-  } else {
-    // 旧 localStorage token（过渡期兼容，后续可移除）
-    if (typeof window !== 'undefined') {
-      const legacyToken = localStorage.getItem('accessToken');
-      if (legacyToken) {
-        headers.set('Authorization', `Bearer ${legacyToken}`);
-      }
-    }
+  const token = await getAuthToken();
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
   }
   return headers;
 }
@@ -29,7 +25,7 @@ function buildHeaders(existingHeaders?: HeadersInit) {
  * instead of redirecting, so users can decide when to sign in again.
  */
 export async function clerkFetch(input: RequestInfo, init?: RequestInit) {
-  const headers = buildHeaders(init?.headers);
+  const headers = await buildHeaders(init?.headers);
   const requestInit: RequestInit = { ...init, headers };
 
   const response = await fetch(input, requestInit);
@@ -41,8 +37,20 @@ export async function clerkFetch(input: RequestInfo, init?: RequestInit) {
     const now = Date.now();
     if (now - lastAuthErrorToastAt > AUTH_ERROR_TOAST_INTERVAL_MS) {
       lastAuthErrorToastAt = now;
+      // 带上后端返回的原因：
+      // "Not authenticated" = 请求根本没带 Authorization 头；
+      // "无效的认证凭据"     = 带了头但 token 校验失败（过期/签名/用户未绑定）。
+      const detail = await response
+        .clone()
+        .json()
+        .then((body: unknown) =>
+          body && typeof body === 'object' && 'detail' in body
+            ? String((body as { detail: unknown }).detail)
+            : undefined
+        )
+        .catch(() => undefined);
       toast.error(
-        `授权可能已失效（${response.status} ${response.statusText}），请重新登录。如果多次出现此提示，重新登录即可。`
+        `授权可能已失效（${response.status}${detail ? ` · ${detail}` : ''}），请重新登录。如果多次出现此提示，重新登录即可。`
       );
     }
   }
