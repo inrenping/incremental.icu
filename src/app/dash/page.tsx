@@ -19,7 +19,6 @@ import {
   IconActivity,
   IconBolt,
   IconHistory,
-  IconCrane,
   IconRun,
   IconMoon,
   IconHeart,
@@ -35,6 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { SyncRuns } from "@/components/dash/sync-runs";
 import { HeartRatePanel } from "@/components/dash/heart-rate-panel";
+import { SleepPanel } from "@/components/dash/sleep-panel";
 import { Running30dChart } from "@/components/dash/running-30d-chart";
 import { RecentActivities } from "@/components/dash/recent-activities";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -687,12 +687,7 @@ export default function DashPage() {
 
       {/* 睡眠 */}
       <TabsContent value="sleep" className="flex flex-col gap-6">
-        <Card className="gap-0 py-0 shadow-sm">
-          <CardContent className="flex flex-col items-center gap-3 px-5 py-12 text-center">
-            <IconCrane className="h-10 w-10 text-amber-500" />
-            <p className="text-base font-medium">{t("underConstruction")}</p>
-          </CardContent>
-        </Card>
+        <SleepPanel />
       </TabsContent>
 
       {/* 心率 */}
