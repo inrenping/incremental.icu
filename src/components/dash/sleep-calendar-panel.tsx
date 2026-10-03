@@ -9,7 +9,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardAction,
 } from '@/components/ui/card';
 import {
@@ -440,9 +439,6 @@ export function SleepCalendarPanel({ className }: { className?: string }) {
             </div>
           </CardAction>
           <CardTitle className="sr-only">睡眠日历</CardTitle>
-          <CardDescription className="self-center text-right">
-            点击日期查看当日睡眠详情；日期按佳明口径 = 起床那天（10/3 表示 10/2 夜间那一觉）
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -462,15 +458,12 @@ export function SleepCalendarPanel({ className }: { className?: string }) {
 
       {/* 当日睡眠详情弹窗 */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="sm:max-w-5xl">
           <DialogHeader>
             <DialogTitle>
               {dialogDate
                 ? `${dayjs(dialogDate).format('YYYY年M月D日')} 睡眠详情`
                 : '睡眠详情'}
-              <span className="ml-2 text-xs font-normal text-muted-foreground">
-                佳明口径 = 起床那天
-              </span>
             </DialogTitle>
           </DialogHeader>
           {dialogLoading ? (

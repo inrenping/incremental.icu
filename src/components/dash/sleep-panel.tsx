@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import Link from 'next/link';
 import { authFetch } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import {
@@ -10,7 +9,6 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardAction,
 } from '@/components/ui/card';
 import { IconChevronLeft, IconChevronRight, IconRefresh } from '@tabler/icons-react';
@@ -474,13 +472,6 @@ export function SleepPanel({ className }: { className?: string }) {
         <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr]">
           <CardAction className="col-start-1 row-span-2 row-start-1 self-center justify-self-start">
             <div className="flex items-center gap-1">
-              <Link
-                href="/sleep"
-                className="inline-flex h-9 items-center rounded-md border border-input bg-background px-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
-                日历
-              </Link>
-
               <button
                 type="button"
                 onClick={() =>
@@ -525,15 +516,6 @@ export function SleepPanel({ className }: { className?: string }) {
             </div>
           </CardAction>
           <CardTitle className="sr-only">睡眠月报</CardTitle>
-          <CardDescription className="self-center text-right">
-            当前月份共 {monthDays.length} 天有记录，缺失的日期保持空白 ·{' '}
-            <Link
-              href="/sleep/calendar"
-              className="underline underline-offset-2 hover:text-foreground"
-            >
-              查看日历视图
-            </Link>
-          </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
