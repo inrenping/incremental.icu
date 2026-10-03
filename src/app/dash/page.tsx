@@ -35,6 +35,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { SyncRuns } from "@/components/dash/sync-runs";
 import { HeartRatePanel } from "@/components/dash/heart-rate-panel";
+import { Running30dChart } from "@/components/dash/running-30d-chart";
+import { RecentActivities } from "@/components/dash/recent-activities";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -551,6 +553,32 @@ export default function DashPage() {
           </>
         ) : null}
       </div>
+
+      {/* 近 30 天跑量 + 主数据源最近记录（7 : 3） */}
+      {loading ? null : masterApp ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+          <div className="lg:col-span-7">
+            <Running30dChart connectId={masterApp.id} />
+          </div>
+          <div className="lg:col-span-3">
+            <RecentActivities connectId={masterApp.id} />
+          </div>
+        </div>
+      ) : (
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardContent className="flex flex-col items-center gap-3 px-5 py-12 text-center">
+            <IconActivity className="h-10 w-10 text-emerald-600" />
+            <p className="text-base font-medium">{t("noMasterSource")}</p>
+            <p className="text-sm text-muted-foreground">{t("noMasterSourceDesc")}</p>
+            <Button variant="outline" size="lg" className="mt-1 h-10 rounded-full px-4 text-sm" asChild>
+              <Link href="/dash/accounts">
+                <IconUserCog className="h-5 w-5" />
+                {t("platformAccountMgmt")}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       </TabsContent>
 

@@ -163,7 +163,16 @@
     "tabSync": "Sync",
     "tabSleep": "Sleep",
     "tabHeart": "Heart",
-    "underConstruction": "Under construction"
+    "underConstruction": "Under construction",
+    "runningLast30Days": "Last 30 days running",
+    "running30dSummary": "Total {total} km · {count} runs · {avg} km/day",
+    "recentActivities": "Latest from primary source",
+    "viewAll": "View all",
+    "noMasterSource": "No primary data source set",
+    "noMasterSourceDesc": "The 30-day chart and recent activities both read from your primary data source — pick one in account management first",
+    "chartLoadFailed": "Failed to load running data",
+    "listLoadFailed": "Failed to load recent activities",
+    "noActivityData": "No activities yet"
   },
   "ListPage": {
     "loadingActivity": "Loading activity data...",
