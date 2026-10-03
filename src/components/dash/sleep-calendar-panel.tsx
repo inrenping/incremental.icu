@@ -268,7 +268,7 @@ function SleepCalendar({
               disabled={isFuture}
               onClick={() => onPick(dateStr)}
               className={cn(
-                'flex min-h-24 flex-col items-stretch gap-1 border-b border-r p-1.5 text-left transition-colors [&:nth-child(7n)]:border-r-0',
+                'flex min-h-28 flex-col items-stretch gap-1 border-b border-r p-1.5 text-left transition-colors [&:nth-child(7n)]:border-r-0',
                 'hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 isFuture && 'cursor-not-allowed opacity-40 hover:bg-transparent',
                 !d && 'text-muted-foreground'
@@ -284,18 +284,16 @@ function SleepCalendar({
                   {dayNo}
                 </span>
                 {hasData && (
-                  <span className="ml-auto flex flex-col items-end gap-0.5">
-                    {d?.sleep_score != null && (
-                      <span className="rounded bg-muted px-1 text-[10px] font-medium tabular-nums text-foreground">
-                        {d.sleep_score}分
-                      </span>
-                    )}
-                    <span className="tabular-nums text-[10px] text-muted-foreground">
-                      {formatDuration(d?.sleep_time_seconds)}
-                    </span>
+                  <span className="ml-auto tabular-nums text-[10px] text-muted-foreground">
+                    {formatDuration(d?.sleep_time_seconds)}
                   </span>
                 )}
               </span>
+              {hasData && d?.sleep_score != null && (
+                <span className="flex flex-1 items-center justify-center text-4xl font-bold leading-none tabular-nums text-foreground">
+                  {d.sleep_score}
+                </span>
+              )}
               {hasData && secsSum > 0 && (
                 <span className="mt-auto flex h-1.5 w-full overflow-hidden rounded-full">
                   {secs
