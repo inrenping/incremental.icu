@@ -274,16 +274,80 @@ function DayChart({
   );
 }
 
-// ==================== 月视图：当月睡眠报告（环形） ====================
+// ==================== 月视图：当月睡眠报告（时钟环形 · 参考小米风格） ====================
 
-const MONTH_W = 760;
-const MONTH_H = 700;
-const MONTH_CX = 380;
-const MONTH_CY = 330;
-const MONTH_R_INNER = 112;
-const MONTH_R_OUTER = 292;
-// 角度窗口：前一天 18:00 → 当天 12:00，共 18 小时映射一圈
-const MONTH_WINDOW_SECONDS = 18 * 3600;
+const MONTH_W = 880;
+const MONTH_H = 760;
+const MONTH_CX = 470;
+const MONTH_CY = 392;
+const MONTH_R_INNER = 128;
+const MONTH_R_OUTER = 318;
+
+/** 时钟角：0:00 在正上方、6:00 在正下方，顺时针每小时 30°（polar 的 0° 即正上方） */
+function clockAngle(iso: string): number {
+  const t = dayjs(iso);
+  return (30 * ((t.hour() + t.minute() / 60) % 12) + 360) % 360;
+}
+
+/** 分钟数（自 0:00 起）转时钟角 */
+function minutesToClockAngle(minutes: number): number {
+  return (30 * ((minutes / 60) % 12) + 360) % 360;
+}
+
+/** 平均时刻显示：23:53 */
+function formatHM(minutes: number): string {
+  const m = ((Math.round(minutes) % 1440) + 1440) % 1440;
+  return `${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
+}
+
+/** 中心大字用的简短时长：7时36分 */
+function formatShort(seconds?: number | null): string {
+  if (!seconds || seconds <= 0) return '--';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  if (h <= 0) return `${m}分`;
+  return m > 0 ? `${h}时${String(m).padStart(2, '0')}分` : `${h}时`;
+}
+
+/** 细环线弧段路径 */
+function arcStroke(
+  cx: number,
+  cy: number,
+  r: number,
+  a1: number,
+  a2: number
+): string {
+  const [x1, y1] = polar(cx, cy, r, a1);
+  const [x2, y2] = polar(cx, cy, r, a2);
+  const large = a2 - a1 > 180 ? 1 : 0;
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+}
+
+/** 弯曲文字路径：cw=true 顺时针（弧顶文字可读），false 逆时针（弧底可读） */
+function arcTextPath(
+  cx: number,
+  cy: number,
+  r: number,
+  a1: number,
+  a2: number,
+  cw: boolean
+): string {
+  const [x1, y1] = polar(cx, cy, r, a1);
+  const [x2, y2] = polar(cx, cy, r, a2);
+  const large = Math.abs(a2 - a1) > 180 ? 1 : 0;
+  return `M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 ${large} ${cw ? 1 : 0} ${x2.toFixed(2)} ${y2.toFixed(2)}`;
+}
+
+/** 圆上一点，转成 circle 的 cx/cy 属性 */
+function polarAttrs(
+  cx: number,
+  cy: number,
+  r: number,
+  deg: number
+): { cx: number; cy: number } {
+  const [x, y] = polar(cx, cy, r, deg);
+  return { cx: x, cy: y };
+}
 
 function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) {
   const daysInMonth = dayjs(monthStr + '-01').daysInMonth();
@@ -293,12 +357,8 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
     let sleepSum = 0;
     let deepSum = 0;
     let count = 0;
-    let bx = 0;
-    let by = 0;
-    let wx = 0;
-    let wy = 0;
-    let bedCount = 0;
-    let wakeCount = 0;
+    const bedMins: number[] = [];
+    const wakeMins: number[] = [];
 
     for (const d of days) {
       if (d.sleep_time_seconds && d.sleep_time_seconds > 0) {
@@ -307,39 +367,38 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
         count += 1;
       }
       if (d.sleep_start_at) {
-        const deg = angleOfDay(d.sleep_start_at, d.calendar_date);
-        const rad = (deg * Math.PI) / 180;
-        bx += Math.cos(rad);
-        by += Math.sin(rad);
-        bedCount += 1;
+        const t = dayjs(d.sleep_start_at);
+        let m = t.hour() * 60 + t.minute();
+        if (m < 12 * 60) m += 24 * 60; // 凌晨入睡视作前一夜
+        bedMins.push(m);
       }
       if (d.sleep_end_at) {
-        const deg = angleOfDay(d.sleep_end_at, d.calendar_date);
-        const rad = (deg * Math.PI) / 180;
-        wx += Math.cos(rad);
-        wy += Math.sin(rad);
-        wakeCount += 1;
+        const t = dayjs(d.sleep_end_at);
+        wakeMins.push(t.hour() * 60 + t.minute());
       }
     }
 
-    const meanDeg = (x: number, y: number, n: number) => {
-      if (n === 0) return null;
-      let deg = (Math.atan2(y / n, x / n) * 180) / Math.PI;
-      if (deg < 0) deg += 360;
-      return deg;
-    };
+    const avg = (arr: number[]) =>
+      arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null;
 
     return {
       daysWithData: count,
       avgSleep: count ? sleepSum / count : null,
       avgDeep: count ? deepSum / count : null,
-      avgBedDeg: meanDeg(bx, by, bedCount),
-      avgWakeDeg: meanDeg(wx, wy, wakeCount),
+      avgBedMin: avg(bedMins),
+      avgWakeMin: avg(wakeMins),
     };
   }, [days]);
 
-  const avgBedLabel = stats.avgBedDeg === null ? '--:--' : timeFromAngle(stats.avgBedDeg);
-  const avgWakeLabel = stats.avgWakeDeg === null ? '--:--' : timeFromAngle(stats.avgWakeDeg);
+  const bedLabel =
+    stats.avgBedMin === null ? null : `日均入睡 ${formatHM(stats.avgBedMin)}`;
+  const wakeLabel =
+    stats.avgWakeMin === null ? null : `日均醒来 ${formatHM(stats.avgWakeMin)}`;
+  const bedAngle =
+    stats.avgBedMin === null ? null : minutesToClockAngle(stats.avgBedMin);
+  const wakeAngle =
+    stats.avgWakeMin === null ? null : minutesToClockAngle(stats.avgWakeMin);
+  const monthNo = dayjs(monthStr + '-01').month() + 1;
 
   if (stats.daysWithData === 0) {
     return (
@@ -358,96 +417,199 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
     >
       <title>{monthStr} 睡眠报告</title>
 
+      {/* 标题（右上） */}
+      <text
+        x={MONTH_W - 28}
+        y={46}
+        textAnchor="end"
+        fontSize={22}
+        fontWeight={600}
+        fill="var(--foreground)"
+      >
+        {dayjs(monthStr + '-01').format('YYYY[年]M[月]')} 睡眠报告
+      </text>
+
+      {/* 图例（左上，竖排） */}
+      {[...ROW_ORDER].reverse().map((stage, idx) => (
+        <g key={`legend-${stage}`}>
+          <line
+            x1={24}
+            y1={38 + idx * 24}
+            x2={48}
+            y2={38 + idx * 24}
+            stroke={STAGE_META[stage].color}
+            strokeWidth={3.5}
+          />
+          <text x={56} y={38 + idx * 24 + 4} fontSize={12} fill="var(--muted-foreground)">
+            {STAGE_META[stage].label}
+          </text>
+        </g>
+      ))}
+      <circle cx={36} cy={38 + 4 * 24} r={3.5} fill="var(--foreground)" />
+      <text x={56} y={38 + 4 * 24 + 4} fontSize={12} fill="var(--muted-foreground)">
+        入睡时间
+      </text>
+      <circle cx={36} cy={38 + 5 * 24} r={3.5} fill="var(--muted-foreground)" />
+      <text x={56} y={38 + 5 * 24 + 4} fontSize={12} fill="var(--muted-foreground)">
+        睡醒时间
+      </text>
+
+      {/* 月份水印（参考图 SEPTEMBER） */}
+      <text
+        x={MONTH_CX}
+        y={MONTH_CY + 18}
+        textAnchor="middle"
+        fontSize={54}
+        fontWeight={600}
+        letterSpacing={4}
+        fill="var(--muted-foreground)"
+        opacity={0.12}
+      >
+        {dayjs(monthStr + '-01').format('MMMM').toUpperCase()}
+      </text>
+
+      {/* 每天一条细环线：从入睡时刻顺时针画到醒来时刻 */}
       {days.map((d) => {
         const dayIndex = Number(d.calendar_date.slice(8, 10)) - 1;
-        const r1 = MONTH_R_INNER + dayIndex * thickness + 0.8;
-        const r2 = MONTH_R_INNER + (dayIndex + 1) * thickness - 0.8;
-        if (r2 <= r1) return null;
-
-        const ws = windowStartOf(d.calendar_date);
+        if (dayIndex < 0 || dayIndex >= daysInMonth) return null;
+        const r = MONTH_R_INNER + (dayIndex + 0.5) * thickness;
+        const w = Math.max(thickness * 0.55, 2);
 
         const segments =
           d.levels && d.levels.length > 0
-            ? d.levels.map((lv) => ({
-                level: lv.activity_level,
-                a1: angleOf(lv.start_at, ws),
-                a2: angleOf(lv.end_at, ws),
-              }))
-            : proportionalSegments(d, ws);
+            ? d.levels.map((lv) => {
+                const a1 = clockAngle(lv.start_at);
+                let a2 = clockAngle(lv.end_at);
+                while (a2 <= a1) a2 += 360;
+                return {
+                  level: lv.activity_level,
+                  a1,
+                  a2: Math.min(a2, a1 + 359.9),
+                };
+              })
+            : proportionalSegments(d);
+        if (segments.length === 0) return null;
 
         return (
           <g key={d.calendar_date}>
             {segments.map((seg, idx) => {
-              const a2 = Math.max(seg.a2, seg.a1 + 0.4);
+              const a2 = Math.max(seg.a2, seg.a1 + 0.3);
               return (
                 <path
                   key={idx}
-                  d={arcPath(MONTH_CX, MONTH_CY, r1, r2, seg.a1, a2)}
-                  fill={STAGE_META[seg.level]?.color ?? 'var(--muted)'}
+                  d={arcStroke(MONTH_CX, MONTH_CY, r, seg.a1, a2)}
+                  stroke={STAGE_META[seg.level]?.color ?? 'var(--muted)'}
+                  strokeWidth={w}
+                  fill="none"
+                  strokeLinecap="butt"
                 />
               );
             })}
 
             {d.sleep_start_at && (
               <circle
-                {...(() => {
-                  const [x, y] = polar(
-                    MONTH_CX,
-                    MONTH_CY,
-                    r2 + 3,
-                    angleOf(d.sleep_start_at, ws)
-                  );
-                  return { cx: x, cy: y };
-                })()}
-                r={1.8}
-                fill="var(--muted-foreground)"
+                {...polarAttrs(MONTH_CX, MONTH_CY, r, clockAngle(d.sleep_start_at))}
+                r={2}
+                fill="var(--foreground)"
               />
             )}
             {d.sleep_end_at && (
               <circle
-                {...(() => {
-                  const [x, y] = polar(
-                    MONTH_CX,
-                    MONTH_CY,
-                    r2 + 3,
-                    angleOf(d.sleep_end_at, ws)
-                  );
-                  return { cx: x, cy: y };
-                })()}
-                r={1.8}
-                fill="var(--foreground)"
+                {...polarAttrs(MONTH_CX, MONTH_CY, r, clockAngle(d.sleep_end_at))}
+                r={2}
+                fill="var(--muted-foreground)"
               />
             )}
           </g>
         );
       })}
 
-      {/* 日号刻度 */}
-      {[1, 5, 10, 15, 20, 25, daysInMonth].map((dayNo) => {
-        if (dayNo > daysInMonth) return null;
-        const r =
-          MONTH_R_INNER +
-          (dayNo - 1 + 0.5) * thickness;
-        const [x, y] = polar(MONTH_CX, MONTH_CY, r, 180);
+      {/* 外圈日间色带：醒来 → 入睡 之间的空档（日均） */}
+      {bedAngle !== null && wakeAngle !== null && (() => {
+        let a2 = bedAngle;
+        while (a2 <= wakeAngle) a2 += 360;
         return (
-          <text
-            key={dayNo}
-            x={x}
-            y={y}
-            fontSize={10}
-            fill="var(--muted-foreground)"
-            textAnchor="middle"
-            dominantBaseline="central"
-          >
-            {dayNo}
-          </text>
+          <path
+            d={arcPath(MONTH_CX, MONTH_CY, MONTH_R_OUTER + 2, MONTH_R_OUTER + 30, wakeAngle, a2)}
+            fill="var(--secondary)"
+          />
+        );
+      })()}
+
+      {/* 内圈时钟表盘：0:00 在正上方 */}
+      <circle
+        cx={MONTH_CX}
+        cy={MONTH_CY}
+        r={MONTH_R_INNER}
+        fill="none"
+        stroke="var(--border)"
+        strokeWidth={1}
+      />
+      {Array.from({ length: 12 }, (_, h) => {
+        const a = 30 * h;
+        const major = h % 3 === 0;
+        const [x1, y1] = polar(MONTH_CX, MONTH_CY, MONTH_R_INNER, a);
+        const [x2, y2] = polar(MONTH_CX, MONTH_CY, MONTH_R_INNER - (major ? 10 : 5), a);
+        const [tx, ty] = polar(MONTH_CX, MONTH_CY, MONTH_R_INNER - 26, a);
+        return (
+          <g key={`clock-${h}`}>
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="var(--border)" strokeWidth={1} />
+            <text
+              x={tx}
+              y={ty}
+              fontSize={12}
+              fill="var(--muted-foreground)"
+              textAnchor="middle"
+              dominantBaseline="central"
+            >
+              {h === 0 ? 12 : h}
+            </text>
+          </g>
         );
       })}
+
+      {/* 日期标线：N/1（最内圈）→ N/末（最外圈），落在 9:00 方向的空档 */}
+      <line
+        x1={MONTH_CX - MONTH_R_OUTER - 6}
+        y1={MONTH_CY}
+        x2={MONTH_CX - MONTH_R_INNER + 2}
+        y2={MONTH_CY}
+        stroke="var(--border)"
+        strokeWidth={1}
+      />
+      <text
+        x={MONTH_CX - MONTH_R_INNER - 8}
+        y={MONTH_CY - 8}
+        fontSize={12}
+        fill="var(--muted-foreground)"
+        textAnchor="end"
+      >
+        {monthNo}/1
+      </text>
+      <text
+        x={MONTH_CX - MONTH_R_OUTER - 10}
+        y={MONTH_CY - 8}
+        fontSize={12}
+        fill="var(--muted-foreground)"
+        textAnchor="end"
+      >
+        {monthNo}/{daysInMonth}
+      </text>
 
       {/* 中心统计 */}
       <text
         x={MONTH_CX}
-        y={MONTH_CY - 26}
+        y={MONTH_CY - 30}
+        fontSize={30}
+        fontWeight={600}
+        fill="var(--foreground)"
+        textAnchor="middle"
+      >
+        {formatShort(stats.avgSleep ? Math.round(stats.avgSleep) : null)}
+      </text>
+      <text
+        x={MONTH_CX}
+        y={MONTH_CY - 4}
         fontSize={12}
         fill="var(--muted-foreground)"
         textAnchor="middle"
@@ -456,103 +618,72 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
       </text>
       <text
         x={MONTH_CX}
-        y={MONTH_CY + 6}
-        fontSize={26}
+        y={MONTH_CY + 34}
+        fontSize={24}
         fontWeight={500}
         fill="var(--foreground)"
         textAnchor="middle"
       >
-        {formatDuration(stats.avgSleep ? Math.round(stats.avgSleep) : null)}
+        {formatShort(stats.avgDeep ? Math.round(stats.avgDeep) : null)}
       </text>
       <text
         x={MONTH_CX}
-        y={MONTH_CY + 34}
+        y={MONTH_CY + 58}
         fontSize={12}
         fill="var(--muted-foreground)"
         textAnchor="middle"
       >
-        日均深睡 {formatDuration(stats.avgDeep ? Math.round(stats.avgDeep) : null)}
-      </text>
-      <text
-        x={MONTH_CX}
-        y={MONTH_CY + 56}
-        fontSize={11}
-        fill="var(--muted-foreground)"
-        textAnchor="middle"
-      >
-        {stats.daysWithData} / {daysInMonth} 天有记录
+        日均深睡
       </text>
 
-      {/* 外圈：日均入睡 / 日均醒来 */}
-      {stats.avgBedDeg !== null && (
-        <AngleLabel deg={stats.avgBedDeg} text={`日均入睡 ${avgBedLabel}`} />
+      {/* 外圈弧形标签：日均入睡 / 日均醒来（沿色带弯曲排布） */}
+      {bedAngle !== null && bedLabel !== null && (
+        <CurvedAngleLabel deg={bedAngle} text={bedLabel} idPrefix={`${monthStr}-bed`} />
       )}
-      {stats.avgWakeDeg !== null && (
-        <AngleLabel deg={stats.avgWakeDeg} text={`日均醒来 ${avgWakeLabel}`} />
+      {wakeAngle !== null && wakeLabel !== null && (
+        <CurvedAngleLabel deg={wakeAngle} text={wakeLabel} idPrefix={`${monthStr}-wake`} />
       )}
-
-      {/* 图例 */}
-      {ROW_ORDER.map((stage, idx) => {
-        const x = MONTH_CX - 200 + idx * 110;
-        const y = MONTH_H - 34;
-        return (
-          <g key={stage}>
-            <circle cx={x} cy={y - 4} r={5} fill={STAGE_META[stage].color} />
-            <text x={x + 12} y={y} fontSize={12} fill="var(--muted-foreground)">
-              {STAGE_META[stage].label}
-            </text>
-          </g>
-        );
-      })}
     </svg>
   );
 }
 
-function AngleLabel({ deg, text }: { deg: number; text: string }) {
-  const [x, y] = polar(MONTH_CX, MONTH_CY, MONTH_R_OUTER + 22, deg);
-  const rad = (deg * Math.PI) / 180;
-  const anchor = Math.sin(rad) < -0.2 ? 'end' : Math.sin(rad) > 0.2 ? 'start' : 'middle';
+/** 沿外圈色带弯曲排布的标签（弧顶顺时针可读、弧底逆时针可读） */
+function CurvedAngleLabel({
+  deg,
+  text,
+  idPrefix,
+}: {
+  deg: number;
+  text: string;
+  idPrefix: string;
+}) {
+  const n = ((deg % 360) + 360) % 360;
+  const bottom = n > 92 && n < 268;
+  const r = bottom ? MONTH_R_OUTER + 22 : MONTH_R_OUTER + 10;
+  const a1 = bottom ? deg + 64 : deg - 64;
+  const a2 = bottom ? deg + 6 : deg - 6;
+  const id = `${idPrefix}-${Math.round(n)}`;
   return (
-    <text
-      x={x}
-      y={y}
-      fontSize={12}
-      fill="var(--muted-foreground)"
-      textAnchor={anchor}
-      dominantBaseline="central"
-    >
-      {text}
-    </text>
+    <g>
+      <defs>
+        <path id={id} d={arcTextPath(MONTH_CX, MONTH_CY, r, a1, a2, !bottom)} />
+      </defs>
+      <text fontSize={13} fill="var(--secondary-foreground)">
+        <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">
+          {text}
+        </textPath>
+      </text>
+    </g>
   );
 }
 
-function windowStartOf(calendarDate: string): dayjs.Dayjs {
-  return dayjs(calendarDate).subtract(1, 'day').hour(18).minute(0).second(0);
-}
-
-function angleOf(iso: string, ws: dayjs.Dayjs): number {
-  const t = dayjs(iso);
-  const seconds = t.diff(ws, 'second');
-  const deg = (seconds / MONTH_WINDOW_SECONDS) * 360;
-  return Math.min(Math.max(deg, 0), 360);
-}
-
-function angleOfDay(iso: string, calendarDate: string): number {
-  return angleOf(iso, windowStartOf(calendarDate));
-}
-
-function timeFromAngle(deg: number): string {
-  const seconds = (deg / 360) * MONTH_WINDOW_SECONDS;
-  const base = dayjs().startOf('day').hour(18).minute(0).second(0);
-  return base.add(Math.round(seconds), 'second').format('HH:mm');
-}
-
 /** 没有阶段片段时，按各阶段时长比例顺序排布（视觉等价） */
-function proportionalSegments(d: MonthDay, ws: dayjs.Dayjs) {
+function proportionalSegments(d: MonthDay) {
   if (!d.sleep_start_at || !d.sleep_end_at) return [];
-  const a1 = angleOf(d.sleep_start_at, ws);
-  const a2 = angleOf(d.sleep_end_at, ws);
-  const total = Math.max(a2 - a1, 1);
+  const a1 = clockAngle(d.sleep_start_at);
+  let a2 = clockAngle(d.sleep_end_at);
+  while (a2 <= a1) a2 += 360;
+  const total = Math.min(Math.max(a2 - a1, 1), 359.9);
   const parts: { level: number; seconds: number }[] = [
     { level: STAGE_LIGHT, seconds: d.light_sleep_seconds || 0 },
     { level: STAGE_DEEP, seconds: d.deep_sleep_seconds || 0 },
