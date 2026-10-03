@@ -20,6 +20,9 @@ import {
   IconBolt,
   IconHistory,
   IconCrane,
+  IconLayoutGrid,
+  IconMoon,
+  IconHeart,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -281,6 +284,8 @@ function SecurityNotice() {
 export default function DashPage() {
   const t = useTranslations('DashPage');
   const { layout } = useLayout();
+  // 移动端四等分下未选中项只显示图标，选中项才补回文字，需要受控的当前 tab。
+  const [activeTab, setActiveTab] = useState("console");
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
@@ -436,12 +441,36 @@ export default function DashPage() {
       </section>
 
       {/* Module tabs: 控制台 / 同步 / 睡眠 / 心率 */}
-      <Tabs defaultValue="console" className="flex flex-col gap-6">
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-          <TabsTrigger value="console">{t("tabConsole")}</TabsTrigger>
-          <TabsTrigger value="sync">{t("tabSync")}</TabsTrigger>
-          <TabsTrigger value="sleep">{t("tabSleep")}</TabsTrigger>
-          <TabsTrigger value="heart">{t("tabHeart")}</TabsTrigger>
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="flex flex-col gap-6"
+      >
+        <TabsList className="grid h-11 w-full grid-cols-4 sm:h-9">
+          <TabsTrigger value="console" aria-label={t("tabConsole")} className="px-1 sm:px-2">
+            <IconLayoutGrid className="h-4 w-4" />
+            <span className={cn("sm:inline", activeTab === "console" ? "inline" : "hidden")}>
+              {t("tabConsole")}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="sync" aria-label={t("tabSync")} className="px-1 sm:px-2">
+            <IconRefresh className="h-4 w-4" />
+            <span className={cn("sm:inline", activeTab === "sync" ? "inline" : "hidden")}>
+              {t("tabSync")}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="sleep" aria-label={t("tabSleep")} className="px-1 sm:px-2">
+            <IconMoon className="h-4 w-4" />
+            <span className={cn("sm:inline", activeTab === "sleep" ? "inline" : "hidden")}>
+              {t("tabSleep")}
+            </span>
+          </TabsTrigger>
+          <TabsTrigger value="heart" aria-label={t("tabHeart")} className="px-1 sm:px-2">
+            <IconHeart className="h-4 w-4" />
+            <span className={cn("sm:inline", activeTab === "heart" ? "inline" : "hidden")}>
+              {t("tabHeart")}
+            </span>
+          </TabsTrigger>
         </TabsList>
 
         {/* 控制台 */}
