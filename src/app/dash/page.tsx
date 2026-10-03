@@ -34,7 +34,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Progress } from "@/components/ui/progress";
 import { SyncRuns } from "@/components/dash/sync-runs";
 import { HeartRatePanel } from "@/components/dash/heart-rate-panel";
-import { SleepPanel } from "@/components/dash/sleep-panel";
+import { SleepCombinedPanel } from "@/components/dash/sleep-combined-panel";
 import { Running30dChart } from "@/components/dash/running-30d-chart";
 import { RecentActivities } from "@/components/dash/recent-activities";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -687,7 +687,7 @@ export default function DashPage() {
 
       {/* 睡眠 */}
       <TabsContent value="sleep" className="flex flex-col gap-6">
-        <SleepPanel />
+        <SleepCombinedPanel />
       </TabsContent>
 
       {/* 心率 */}
