@@ -150,20 +150,6 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
     >
       <title>{monthStr} 睡眠报告</title>
 
-      {/* 月份水印 */}
-      <text
-        x={MONTH_CX}
-        y={MONTH_CY + 14}
-        textAnchor="middle"
-        fontSize={46}
-        fontWeight={600}
-        letterSpacing={3}
-        fill="var(--muted-foreground)"
-        opacity={0.12}
-      >
-        {dayjs(monthStr + '-01').format('MMMM').toUpperCase()}
-      </text>
-
       {/* 外圈日间色带：整圈闭合的圆环 */}
       <circle
         cx={MONTH_CX}
