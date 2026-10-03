@@ -18,12 +18,12 @@ import { MonthDay, STAGE_META, ROW_ORDER, polar } from './sleep-shared';
 
 // ==================== 月视图：当月睡眠报告（时钟环形） ====================
 
-const MONTH_W = 720;
-const MONTH_H = 600;
-const MONTH_CX = 372;
-const MONTH_CY = 300;
-const MONTH_R_INNER = 86;
-const MONTH_R_OUTER = 226;
+const MONTH_W = 960;
+const MONTH_H = 640;
+const MONTH_CX = 490;
+const MONTH_CY = 330;
+const MONTH_R_INNER = 110;
+const MONTH_R_OUTER = 270;
 
 /** 时钟角：0:00 在正上方、6:00 在正下方，顺时针每小时 30°（polar 的 0° 即正上方） */
 function clockAngle(iso: string): number {
@@ -333,7 +333,7 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
       <text
         x={MONTH_CX}
         y={MONTH_CY - 6}
-        fontSize={26}
+        fontSize={30}
         fontWeight={600}
         fill="var(--foreground)"
         textAnchor="middle"
@@ -342,8 +342,8 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
       </text>
       <text
         x={MONTH_CX}
-        y={MONTH_CY + 18}
-        fontSize={12}
+        y={MONTH_CY + 22}
+        fontSize={13}
         fill="var(--muted-foreground)"
         textAnchor="middle"
       >
@@ -527,7 +527,10 @@ export function SleepPanel({ className }: { className?: string }) {
           <CardTitle className="sr-only">睡眠月报</CardTitle>
           <CardDescription className="self-center text-right">
             当前月份共 {monthDays.length} 天有记录，缺失的日期保持空白 ·{' '}
-            <Link href="/sleep" className="underline underline-offset-2 hover:text-foreground">
+            <Link
+              href="/sleep/calendar"
+              className="underline underline-offset-2 hover:text-foreground"
+            >
               查看日历视图
             </Link>
           </CardDescription>

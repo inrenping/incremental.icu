@@ -285,8 +285,15 @@ function SleepCalendar({
                   {dayNo}
                 </span>
                 {hasData && (
-                  <span className="ml-auto tabular-nums text-[10px] text-muted-foreground">
-                    {formatDuration(d?.sleep_time_seconds)}
+                  <span className="ml-auto flex flex-col items-end gap-0.5">
+                    {d?.sleep_score != null && (
+                      <span className="rounded bg-muted px-1 text-[10px] font-medium tabular-nums text-foreground">
+                        {d.sleep_score}分
+                      </span>
+                    )}
+                    <span className="tabular-nums text-[10px] text-muted-foreground">
+                      {formatDuration(d?.sleep_time_seconds)}
+                    </span>
                   </span>
                 )}
               </span>

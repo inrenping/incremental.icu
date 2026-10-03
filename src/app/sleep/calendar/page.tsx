@@ -2,10 +2,10 @@
 
 import { useLayout } from '@/hooks/use-layout';
 import { cn } from '@/lib/utils';
-import { SleepPanel } from '@/components/dash/sleep-panel';
+import { SleepCalendarPanel } from '@/components/dash/sleep-calendar-panel';
 
-// /sleep：当月睡眠统计（环形月报）独立页面，带站点 banner 与 footer
-export default function SleepMonthPage() {
+// /sleep/calendar：睡眠日历（月历 + 点击弹窗看当日详情）独立页面
+export default function SleepCalendarPage() {
   const { layout } = useLayout();
   return (
     <div
@@ -14,7 +14,7 @@ export default function SleepMonthPage() {
         layout === 'fixed' ? 'max-w-7xl' : ''
       )}
     >
-      <SleepPanel />
+      <SleepCalendarPanel />
     </div>
   );
 }
