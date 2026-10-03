@@ -16,12 +16,12 @@ import { MonthDay, STAGE_META, ROW_ORDER, polar } from './sleep-shared';
 
 // ==================== 月视图：当月睡眠报告（时钟环形） ====================
 
-const MONTH_W = 960;
+const MONTH_W = 640;
 const MONTH_H = 640;
-const MONTH_CX = 490;
-const MONTH_CY = 330;
-const MONTH_R_INNER = 110;
-const MONTH_R_OUTER = 270;
+const MONTH_CX = 320;
+const MONTH_CY = 320;
+const MONTH_R_INNER = 112;
+const MONTH_R_OUTER = 272;
 
 /** 时钟角：0:00 在正上方、6:00 在正下方，顺时针每小时 30°（polar 的 0° 即正上方） */
 function clockAngle(iso: string): number {
@@ -150,49 +150,12 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
     >
       <title>{monthStr} 睡眠报告</title>
 
-      {/* 图例（左上，竖排） */}
-      {[...ROW_ORDER].reverse().map((stage, idx) => (
-        <g key={`legend-${stage}`}>
-          <line
-            x1={20}
-            y1={30 + idx * 22}
-            x2={42}
-            y2={30 + idx * 22}
-            stroke={STAGE_META[stage].color}
-            strokeWidth={3}
-          />
-          <text x={50} y={30 + idx * 22 + 4} fontSize={11} fill="var(--muted-foreground)">
-            {STAGE_META[stage].label}
-          </text>
-        </g>
-      ))}
-      <circle cx={31} cy={30 + 4 * 22} r={3} fill="var(--foreground)" />
-      <text x={50} y={30 + 4 * 22 + 4} fontSize={11} fill="var(--muted-foreground)">
-        入睡时间
-      </text>
-      <circle cx={31} cy={30 + 5 * 22} r={3} fill="var(--muted-foreground)" />
-      <text x={50} y={30 + 5 * 22 + 4} fontSize={11} fill="var(--muted-foreground)">
-        睡醒时间
-      </text>
-
-      {/* 标题（右上） */}
-      <text
-        x={MONTH_W - 20}
-        y={38}
-        textAnchor="end"
-        fontSize={17}
-        fontWeight={600}
-        fill="var(--foreground)"
-      >
-        {dayjs(monthStr + '-01').format('YYYY[年]M[月]')} 睡眠报告
-      </text>
-
       {/* 月份水印 */}
       <text
         x={MONTH_CX}
         y={MONTH_CY + 14}
         textAnchor="middle"
-        fontSize={40}
+        fontSize={46}
         fontWeight={600}
         letterSpacing={3}
         fill="var(--muted-foreground)"
@@ -288,7 +251,7 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
             <text
               x={tx}
               y={ty}
-              fontSize={10}
+              fontSize={11}
               fill="var(--muted-foreground)"
               textAnchor="middle"
               dominantBaseline="central"
@@ -330,8 +293,8 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
       {/* 中心统计：只显示日均睡眠 */}
       <text
         x={MONTH_CX}
-        y={MONTH_CY - 6}
-        fontSize={30}
+        y={MONTH_CY - 8}
+        fontSize={42}
         fontWeight={600}
         fill="var(--foreground)"
         textAnchor="middle"
@@ -340,8 +303,8 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
       </text>
       <text
         x={MONTH_CX}
-        y={MONTH_CY + 22}
-        fontSize={13}
+        y={MONTH_CY + 30}
+        fontSize={16}
         fill="var(--muted-foreground)"
         textAnchor="middle"
       >
@@ -388,7 +351,7 @@ function CurvedAngleLabel({
       <defs>
         <path id={id} d={arcTextPath(MONTH_CX, MONTH_CY, r, a1, a2, !bottom)} />
       </defs>
-      <text fontSize={12} fill="var(--secondary-foreground)">
+      <text fontSize={14} fill="var(--secondary-foreground)">
         <textPath href={`#${id}`} startOffset="50%" textAnchor="middle">
           {text}
         </textPath>
@@ -523,7 +486,26 @@ export function SleepPanel({ className }: { className?: string }) {
               加载中…
             </div>
           ) : (
-            <div className="mx-auto w-full max-w-[640px]">
+            <div className="mx-auto w-full max-w-4xl">
+              <div className="mb-3 flex flex-wrap items-center justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
+                {[...ROW_ORDER].reverse().map((stage) => (
+                  <span key={stage} className="inline-flex items-center gap-1.5">
+                    <span
+                      className="inline-block h-[3px] w-4 rounded-full"
+                      style={{ background: STAGE_META[stage].color }}
+                    />
+                    {STAGE_META[stage].label}
+                  </span>
+                ))}
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground" />
+                  入睡时间
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground" />
+                  睡醒时间
+                </span>
+              </div>
               <MonthChart monthStr={monthStr} days={monthDays} />
             </div>
           )}
