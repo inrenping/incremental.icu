@@ -169,7 +169,7 @@
     "underConstruction": "施工中",
     "runningLast30Days": "近 30 天跑量",
     "running30dSummary": "累计 {total} 公里 · {count} 次 · 日均 {avg} 公里",
-    "recentActivities": "主数据源最近记录",
+    "recentActivities": "最近记录",
     "viewAll": "查看全部",
     "noMasterSource": "未设置主数据源",
     "noMasterSourceDesc": "近 30 天跑量与最近运动记录都取自主数据源，先到账号管理里指定一个",
