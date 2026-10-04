@@ -14,9 +14,22 @@
 
 ## ✨ 主要功能
 
-- **一键同步**：设定两个平台，手动拉取最新 10 条数据，进行差量同步。
-- **手动同步**：在数据列表中找到对应的数据记录，手动推送到指定平台。
-- **定时同步**：设定定时任务，自动执行同步。
+### 数据同步
+
+- **一键同步**：设定源平台与目标平台，手动拉取两端最新 10 条数据，进行差量同步后直接给出结果汇总。
+- **手动同步**：在数据列表中找到对应的数据记录，手动推送到指定平台，也可以下载原始 FIT 文件。
+- **定时同步**：设定定时任务自动执行同步。每用户最多 10 个任务，每个任务一条「源 → 目标」同步配置，每天最多执行 3 次。
+
+### 数据查看
+
+- **跑量统计**：年度 / 月度跑量（次数、距离、时长、目标完成度）与近 30 天跑量柱状图，以「主数据源」账号为准。
+- **运动日历**：按周查看运动分布。
+- **睡眠数据**：佳明平台的月度睡眠报告（日历 + 时钟环形图）与每日分期详情。
+- **心率数据**：佳明平台的每日心率（最高 / 最低 / 静息 / 近 7 日静息均值）与心率曲线对比。
+
+### AI 接入
+
+- **MCP 接口**：通过 GPT Code 页面的授权码，把运动与心率数据接入支持 MCP 的客户端。
 
 ## 🌐 支持平台
 
@@ -26,9 +39,14 @@
 | 佳明 (Garmin) 国际版 | ✅ 已支持 | `.FIT` |
 | 高驰 (Coros) | ✅ 已支持 | `.FIT` |
 
+心率与睡眠数据目前仅支持佳明平台。
+
 ## 🚀 线上版本
 
 访问 **[incremental.icu](https://incremental.icu)** 即可直接注册并开始管理您的运动数据。
+
+- 服务状态：[status.incremental.icu](https://status.incremental.icu)
+- 使用文档：[incremental.icu/doc/guide](https://incremental.icu/doc/guide)（源码位于 `public/docs/`）
 
 ---
 
@@ -38,23 +56,55 @@
 
 ### 技术栈
 
-- **前端框架**: [Next.js (App Router)](https://nextjs.org/)
+- **前端框架**: [Next.js 16 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) + TypeScript
+- **UI**: [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)（基于 Radix）+ Recharts 图表 + [Tabler Icons](https://tabler-icons.io/)
+- **认证**: [Clerk](https://clerk.com/) — 邮箱验证码 / Google / GitHub OAuth
+- **国际化**: [next-intl](https://next-intl.dev/)（中文默认，英文可选）
 - **后端服务**: [FastAPI (Python)](https://fastapi.tiangolo.com/) 提供接口
-- **UI 组件库**: [shadcn/ui](https://ui.shadcn.com/) & [Alpine.js](https://alpinejs.dev/)
 - **数据库**: [Neon (Serverless Postgres)](https://neon.tech/)
+- **对象存储**: Supabase Storage（活动文件）
 - **邮件服务**: [Resend](https://resend.com/)
-- **图标库**: [Tabler Icons](https://tabler-icons.io/)
 - **garth**: 一个模拟佳明客户端的 python 包，目前版本 0.5.17 更高版本支持佳明国内版有问题。
-- **Cerk**: 用于用户身份验证和授权的后端服务，基于 Clerk.js 提供。
+
+> `next-auth`、`@react-oauth/google` 虽仍在依赖清单中，但代码里已无引用，属于迁移到 Clerk 之前的遗留项，新代码不要依赖。
+
+### 目录结构
+
+```
+src/
+  app/
+    dash/        # 仪表盘：跑量 / 同步 / 睡眠 / 心率
+    heart/       # 独立心率页
+    doc/[slug]/  # 文档页，读取 public/docs/*.md
+    sign-in/ sign-up/  # Clerk 登录注册
+    api/         # 少量服务端路由（佳明/高驰）
+  components/    # ui/（shadcn 基础组件）+ dash/（业务组件）
+  hooks/ i18n/ lib/ messages/
+public/docs/     # 站点文档 Markdown（新增文档需同步 src/lib/doc-menu.json）
+```
+
+详细的开发约定见 `public/docs/development.md` 与 `AGENTS.md`。
+
+### 本地开发
+
+```bash
+npm install
+cp .env.example .env.development   # 填写 NEXT_PUBLIC_BACKEND_URL、Clerk Key、OAuth 变量
+npm run dev
+npm run lint                       # 提交前必跑
+```
 
 ### 部署与 CI/CD
 
 1. **代码规范**: 前端部署之前记得先跑一下 `npm run lint`。
 2. **前端部署**: 托管于 [Vercel](https://vercel.com/)。
-    - *注意*: 后端接口地址需要配置在 `/vercel.json` 中。
+    - 分支约定：提交到 `dev` → 合并到 `main`，Vercel 自动部署。
+    - *注意*: 后端接口地址需要配置在 `/vercel.json` 中（开发环境则由 `next.config.ts` 把 `/api/v1/*` 重写到 `NEXT_PUBLIC_BACKEND_URL`）。
 3. **自动化工作流**:
-    - **CI/CD**: 前端通过 Vercel 自动部署，后端通过 [GitHub Actions](https://github.com/features/actions)。
+    - **CI/CD**: 前端通过 Vercel 自动部署，后端通过 [GitHub Actions](https://github.com/features/actions) 部署。
     - **定时任务**: 使用 GitHub Actions 处理定时同步任务。
+
+后端等配合 infra 详见后端仓库 [incremental-serve](https://github.com/inrenping/incremental-serve)。
 
 ### 监控与分析
 
@@ -73,8 +123,8 @@
 
 - **服务地址**: `https://incremental.icu/mcp`（`streamable-http` 传输协议）
 - **鉴权方式**: 支持两种
-  1. **JWT Bearer**: 复用主站签发的 JWT，请求头携带 `Authorization: Bearer <JWT>`（JWT 与主站共享 `SECRET_KEY`，HS256 签名）
-  2. **OAuth 2.1**: Authorization Code + PKCE，支持客户端自动发现授权服务器（`/.well-known/oauth-protected-resource`）
+  1. **JWT Bearer**: 请求头携带 `Authorization: Bearer <JWT>`
+  2. **OAuth 2.1**: Authorization Code + PKCE，支持客户端自动发现授权服务器（`/.well-known/oauth-protected-resource`），主站「GPT Code」页面会给出一次性授权码
 
 ### 可用 Tools
 
@@ -106,7 +156,7 @@ ChatGPT Desktop / Claude Desktop 等支持 MCP 的客户端，可通过 `streama
 }
 ```
 
-> 支持 OAuth 的客户端可省略 `-H` 参数，首次调用时会自动发起 OAuth 授权流程。
+> 支持 OAuth 的客户端可省略 `-H` 参数，首次调用时会自动发起 OAuth 授权流程，配合主站 GPT Code 页面的授权码完成登录。
 
 MCP 服务由独立仓库 [incremental-mcp](https://github.com/inrenping/incremental-mcp) 实现，部署于 Linux 服务器，与主站共享同一 PostgreSQL 数据库。
 

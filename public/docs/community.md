@@ -8,6 +8,10 @@
 
 [我的赛历](https://c.incremental.icu/)：宁波及其周边地区马拉松路跑越野赛等信息汇总标记
 
+## 服务状态
+
+[status.incremental.icu](https://status.incremental.icu)：后端 API 与前端的可用性监控，仪表盘上的「服务状态」按钮即指向此页。同步失败时可先来这里确认服务是否正常。
+
 ## Github Issue
 
 [去 Github 提交 Issue](https://github.com/inrenping/incremental.icu/issues)

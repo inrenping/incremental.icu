@@ -86,8 +86,6 @@
     "syncCompleted": "Sync Completed",
     "refreshFailedTryAgain": "Refresh request failed, please try again later",
     "refreshNotSupported": "This platform does not support refreshing authentication",
-    "welcomeBack": "Welcome back, {name}",
-    "manageSync": "Manage your cross-platform sports data synchronization",
     "userSettings": "User Settings",
     "task": "Task",
     "connectedPlatforms": "Connected Platforms",
