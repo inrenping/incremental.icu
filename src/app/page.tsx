@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
-  IconTrendingUp, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled
+  IconTrendingUp, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled,
+  IconChevronLeft, IconChevronRight, IconX
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
@@ -20,7 +21,7 @@ export default function Home() {
       <SiteHeader />
       <main className="flex-1">
 
-        <section className="py-24 px-4 text-left bg-cover bg-center bg-no-repeat">
+        <section className="py-4 px-4 text-left bg-cover bg-center bg-no-repeat">
           <div className="max-w-6xl mx-auto space-y-6">
             <h1 className="text-6xl font-black tracking-tighter text-foreground flex items-center justify-start gap-4">
               <Image src="/favicon.svg" alt="Logo" width={64} height={64} className="h-16 w-16" />
@@ -71,19 +72,19 @@ export default function Home() {
               </div>
             </div>
           </div>
-          <hr className="max-w-6xl mx-auto border-border/50 mt-8" />
+          <hr className="max-w-6xl mx-auto border-border/50 mt-6" />
         </section>
 
-        {/* Preview Images - 3D Carousel */}
-        <section className="pt-8 pb-6">
-          <div className="max-w-6xl mx-auto px-4">
-            <Carousel3D />
+        {/* Screenshot carousel: 大图单张切换 + 灯箱 */}
+        <section className="pt-4 pb-2">
+          <div className="mx-auto max-w-[1400px] px-4">
+            <ScreenshotCarousel />
           </div>
         </section>
 
-        <hr className="max-w-6xl mx-auto border-border/50 mt-8" />
+        <hr className="max-w-6xl mx-auto border-border/50 mt-4" />
 
-        <section className="py-10 px-0 max-w-6xl mx-auto">
+        <section className="pb-10 pt-8 px-0 max-w-6xl mx-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               { title: t("card1Title"), desc: t("card1Desc"), icon: <IconRepeat className="h-6 w-6" /> },
@@ -119,87 +120,130 @@ function FeatureCard({ title, desc, icon }: { title: string; desc: string; icon:
   )
 }
 
-function Carousel3D() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const images = ['/screenshot/dash_0.webp', '/screenshot/dash_1.webp', '/screenshot/dash_2.webp', '/screenshot/dash_3.webp', '/screenshot/dash_4.webp'];
+const CAROUSEL_IMAGES = [
+  '/screenshot/dash_0.webp',
+  '/screenshot/dash_1.webp',
+  '/screenshot/dash_2.webp',
+  '/screenshot/dash_3.webp',
+  '/screenshot/dash_4.webp',
+];
+
+function ScreenshotCarousel() {
+  const images = CAROUSEL_IMAGES;
+  const count = images.length;
+  const [active, setActive] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+
+  const go = useCallback(
+    (delta: number) => setActive((prev) => (prev + delta + count) % count),
+    [count]
+  );
+
+  // 键盘：左右切换，ESC 关闭灯箱
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') go(-1);
+      else if (e.key === 'ArrowRight') go(1);
+      else if (e.key === 'Escape') setLightboxOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [go]);
+
+  // 灯箱打开时锁定页面滚动
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [lightboxOpen]);
 
   return (
-    <div className="carousel-3d">
-      <div className="carousel-3d-track">
-        {images.map((src, i) => {
-          const offset = ((i - activeIndex + images.length) % images.length);
-          const dist = Math.min(offset, images.length - offset);
-          const dir = offset === 0 ? 0 : (offset <= images.length - offset ? 1 : -1);
-          const isCenter = dist === 0;
+    <div className="w-full">
+      {/* 主图（箭头锚定在图片边缘，而不是容器边缘） */}
+      <div
+        className="flex select-none justify-center"
+        onTouchStart={(e) => { touchStartX.current = e.touches[0].clientX; }}
+        onTouchEnd={(e) => {
+          if (touchStartX.current === null) return;
+          const dx = e.changedTouches[0].clientX - touchStartX.current;
+          if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+          touchStartX.current = null;
+        }}
+      >
+        <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={active}
+            src={images[active]}
+            alt={`Dashboard preview ${active + 1}`}
+            className="carousel-fade block h-auto max-h-[82vh] w-auto max-w-full cursor-zoom-in rounded-xl border border-border/60 bg-card shadow-lg"
+            onClick={() => setLightboxOpen(true)}
+          />
 
-          return (
-            <div
-              key={i}
-              className="carousel-3d-slide"
-              onClick={() => setActiveIndex(i)}
-              style={{
-                transform: isCenter
-                  ? 'translateX(0) scale(1) translateZ(0)'
-                  : `translateX(${dir * (34 + 27 * dist)}%) scale(${(1 - dist * 0.18).toFixed(2)}) translateZ(${-dist * 140}px)`,
-                opacity: 1,
-                zIndex: images.length - dist,
-                overflow: isCenter ? 'visible' : 'hidden',
-                aspectRatio: isCenter ? 'auto' : '16/14',
-                width: isCenter ? 'auto' : '680px',
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={src}
-                alt={`Dashboard preview ${i + 1}`}
-                className={isCenter ? 'carousel-3d-image center' : 'carousel-3d-image'}
-              />
-            </div>
-          );
-        })}
+          <button
+            aria-label="Previous screenshot"
+            onClick={() => go(-1)}
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-1.5 shadow-md backdrop-blur transition-colors hover:bg-background sm:left-3 sm:p-2.5"
+          >
+            <IconChevronLeft className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
+          <button
+            aria-label="Next screenshot"
+            onClick={() => go(1)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-1.5 shadow-md backdrop-blur transition-colors hover:bg-background sm:right-3 sm:p-2.5"
+          >
+            <IconChevronRight className="h-5 w-5 sm:h-6 sm:w-6" />
+          </button>
+        </div>
       </div>
+
+      {/* 全屏灯箱 */}
+      {lightboxOpen && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/85 p-4"
+          onClick={() => setLightboxOpen(false)}
+        >
+          <button
+            aria-label="Close"
+            onClick={() => setLightboxOpen(false)}
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+          >
+            <IconX className="h-5 w-5" />
+          </button>
+          <button
+            aria-label="Previous screenshot"
+            onClick={(e) => { e.stopPropagation(); go(-1); }}
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+          >
+            <IconChevronLeft className="h-6 w-6" />
+          </button>
+          <button
+            aria-label="Next screenshot"
+            onClick={(e) => { e.stopPropagation(); go(1); }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+          >
+            <IconChevronRight className="h-6 w-6" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={active}
+            src={images[active]}
+            alt={`Dashboard preview ${active + 1}`}
+            onClick={(e) => e.stopPropagation()}
+            className="carousel-fade max-h-[90vh] max-w-[95vw] rounded-lg object-contain shadow-2xl"
+          />
+        </div>
+      )}
+
       <style>{`
-        .carousel-3d {
-          perspective: 1600px;
-          width: 100%;
-          padding: 10px 0 60px 0;
+        @keyframes carouselFadeIn {
+          from { opacity: 0; transform: scale(0.985); }
+          to   { opacity: 1; transform: scale(1); }
         }
-        .carousel-3d-track {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-          width: 100%;
-          min-height: 620px;
-        }
-        .carousel-3d-slide {
-          position: absolute;
-          border-radius: 12px;
-          border: 1px solid hsl(var(--border));
-          background: hsl(var(--card));
-          box-shadow: 0 4px 24px rgba(0,0,0,0.1);
-          transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-          cursor: pointer;
-        }
-        .carousel-3d-slide:hover {
-          box-shadow: 0 8px 40px rgba(0,0,0,0.18);
-        }
-        .carousel-3d-image {
-          display: block;
-        }
-        .carousel-3d-image.center {
-          width: 680px;
-          height: auto;
-          border-radius: 12px;
-        }
-        .carousel-3d-image:not(.center) {
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-        }
-        @media (max-width: 768px) {
-          .carousel-3d-image.center { width: 320px; }
-          .carousel-3d-track { min-height: 300px; }
+        .carousel-fade {
+          animation: carouselFadeIn 0.3s ease;
         }
       `}</style>
     </div>
