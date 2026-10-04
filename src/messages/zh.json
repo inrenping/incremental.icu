@@ -89,8 +89,6 @@
     "syncCompleted": "同步已完成",
     "refreshFailedTryAgain": "请求刷新失败，请稍后重试",
     "refreshNotSupported": "该平台暂不支持刷新认证",
-    "welcomeBack": "欢迎回来，{name}",
-    "manageSync": "管理你的跨平台运动数据同步",
     "userSettings": "用户设置",
     "task": "定时任务",
     "connectedPlatforms": "已连接平台",

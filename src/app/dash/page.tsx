@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, useMemo } from "react";
-import { storage } from '@/lib/storage';
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useLayout } from "@/hooks/use-layout";
@@ -13,7 +12,6 @@ import {
   IconInfinity,
   IconClock,
   IconShieldCheck,
-  IconUser,
   IconUserCog,
   IconListDetails,
   IconActivity,
@@ -63,12 +61,6 @@ export interface AppConfig {
   updated_at: string;
   last_synced_at: string | null;
   master: boolean;
-}
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
 }
 
 interface RunningTotalData {
@@ -289,7 +281,6 @@ export default function DashPage() {
   // 移动端四等分下未选中项只显示图标，选中项才补回文字，需要受控的当前 tab。
   const [activeTab, setActiveTab] = useState("console");
   const [apps, setApps] = useState<AppConfig[]>([]);
-  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [isQuickSyncing, setIsQuickSyncing] = useState(false);
   const [sourceId, setSourceId] = useState<string>();
@@ -314,15 +305,6 @@ export default function DashPage() {
   };
 
   useEffect(() => {
-    const userData = storage.get('user');
-    if (userData) {
-      try {
-        const parsedUser = typeof userData === 'string' ? JSON.parse(userData) : userData;
-        setUser(parsedUser);
-      } catch (error) {
-        console.error("Failed to parse user info:", error);
-      }
-    }
     fetchAppsStatus();
     fetchRunningData();
   }, []);
@@ -426,22 +408,6 @@ export default function DashPage() {
       "mx-auto flex w-full flex-1 flex-col gap-6 bg-background p-6 text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
-      {/* Welcome */}
-      <section className="flex items-start justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {t("welcomeBack", { name: user?.username || '...' })}
-          </h1>
-          <p className="text-muted-foreground">{t("manageSync")}</p>
-        </div>
-        <Button variant="outline" size="lg" className="h-10 shrink-0 rounded-full px-4 text-sm" asChild>
-          <Link href="/dash/profile">
-            <IconUser className="h-5 w-5" />
-            {t("userSettings")}
-          </Link>
-        </Button>
-      </section>
-
       {/* Module tabs: 跑量 / 同步 / 睡眠 / 心率 */}
       <Tabs
         value={activeTab}
