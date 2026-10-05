@@ -88,8 +88,6 @@ export function SiteHeader() {
 
   const navItems = [
     { name: t("dash"), href: '/dash' },
-    { name: "体能指标", href: '/dash/fitness' },
-    { name: "定时任务", href: '/dash/task' },
     { name: "快速开始", href: '/doc/guide' },
     { name: "网站状态", href: 'https://status.incremental.icu' },
     { name: "联系作者", href: '/doc/community' }
@@ -193,6 +191,9 @@ export function SiteHeader() {
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/gpt')} className="focus:bg-primary/50">
                   <span>{t("gptCode")}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => router.push('/dash/fitness')} className="focus:bg-primary/50">
+                  <span>体能指标</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/task')} className="focus:bg-primary/50">
                   <span>{t("task")}</span>

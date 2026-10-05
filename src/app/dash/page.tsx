@@ -20,6 +20,7 @@ import {
   IconRun,
   IconMoon,
   IconHeart,
+  IconTrophy,
 } from "@tabler/icons-react";
 import {
   Select,
@@ -81,6 +82,63 @@ interface RunningTotalData {
 interface RunningTotalResponse {
   status: string;
   data: RunningTotalData;
+}
+
+interface PersonalRecord {
+  type_id: number;
+  type_key: string | null;
+  activity_type: string | null;
+  unit: string | null;
+  value: number | null;
+  value_seconds: number | null;
+  value_meters: number | null;
+  activity_name: string | null;
+  achieved_at: string | null;
+  activity_id: number | null;
+}
+
+// 个人纪录：按 type_id 给出中文名（与后端 PR_TYPE_MAP 对应）。
+const PR_LABEL: Record<number, string> = {
+  1: "1 公里最快",
+  2: "1 英里最快",
+  3: "5 公里最快",
+  4: "10 公里最快",
+  5: "半程马拉松最快",
+  6: "全程马拉松最快",
+  7: "最长距离",
+};
+
+const ACTIVITY_LABEL: Record<string, string> = {
+  running: "跑步",
+  cycling: "骑行",
+  swimming: "游泳",
+  walking: "步行",
+  hiking: "徒步",
+  long_distance: "长距离",
+};
+
+function prLabel(record: PersonalRecord): string {
+  return PR_LABEL[record.type_id] ?? record.type_key ?? `type_${record.type_id}`;
+}
+
+function activityLabel(activityType?: string | null): string {
+  if (!activityType) return "";
+  return ACTIVITY_LABEL[activityType] ?? activityType;
+}
+
+function formatPrSeconds(seconds?: number | null): string {
+  if (seconds == null || Number.isNaN(seconds)) return "-";
+  const total = Math.round(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  if (h > 0) return `${h}:${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function formatPrMeters(meters?: number | null): string {
+  if (meters == null || Number.isNaN(meters)) return "-";
+  return `${(meters / 1000).toFixed(2)} km`;
 }
 
 function getPlatformInitials(sourceType: string) {
@@ -287,6 +345,8 @@ export default function DashPage() {
   const [targetId, setTargetId] = useState<string>();
   const [runningData, setRunningData] = useState<RunningTotalData | null>(null);
   const [runningDataLoading, setRunningDataLoading] = useState(true);
+  const [personalRecords, setPersonalRecords] = useState<PersonalRecord[]>([]);
+  const [personalRecordsLoading, setPersonalRecordsLoading] = useState(true);
 
   const fetchRunningData = async () => {
     try {
@@ -304,9 +364,29 @@ export default function DashPage() {
     }
   };
 
+  const fetchPersonalRecords = async () => {
+    try {
+      const response = await authFetch('/api/v1/garmin/getFitnessMetrics');
+      if (response.ok) {
+        const result = await response.json();
+        if (result.status === 'success' && result.data?.personal_records) {
+          const records = (result.data.personal_records as PersonalRecord[])
+            .slice()
+            .sort((a: PersonalRecord, b: PersonalRecord) => a.type_id - b.type_id);
+          setPersonalRecords(records);
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch personal records:", error);
+    } finally {
+      setPersonalRecordsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAppsStatus();
     fetchRunningData();
+    fetchPersonalRecords();
   }, []);
 
   const activeApps = useMemo(() => apps.filter((a) => a.is_active), [apps]);
@@ -542,6 +622,74 @@ export default function DashPage() {
                 {t("platformAccountMgmt")}
               </Link>
             </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* 个人记录 */}
+      {personalRecordsLoading ? (
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardHeader className="px-5 py-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <IconTrophy className="h-4 w-4 text-amber-500" />
+              个人记录
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 px-5 pb-5 pt-1">
+            <div className="h-4 animate-pulse rounded bg-muted" />
+            <div className="h-4 animate-pulse rounded bg-muted" />
+            <div className="h-4 animate-pulse rounded bg-muted" />
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="gap-0 py-0 shadow-sm">
+          <CardHeader className="px-5 py-3">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <IconTrophy className="h-4 w-4 text-amber-500" />
+              个人记录
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="px-0 py-0">
+            {personalRecords.length > 0 ? (
+              <ul className="divide-y">
+                {personalRecords.map((record) => {
+                  const actLabel = activityLabel(record.activity_type);
+                  const time =
+                    record.unit === "meter"
+                      ? formatPrMeters(record.value_meters)
+                      : formatPrSeconds(record.value_seconds);
+                  return (
+                    <li
+                      key={`${record.type_id}-${record.activity_type ?? ""}`}
+                      className="flex items-center justify-between gap-4 px-5 py-3"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{prLabel(record)}</span>
+                          {actLabel ? (
+                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
+                              {actLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-muted-foreground">
+                          {record.achieved_at
+                            ? dayjs(record.achieved_at).format("YYYY-MM-DD HH:mm")
+                            : "-"}
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-base font-semibold tabular-nums">
+                        {time}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+                还没有个人记录数据
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
