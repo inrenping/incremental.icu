@@ -54,33 +54,64 @@
 
 如果您希望参与开发或自行部署本项目，请参考以下技术细节。
 
+### 仓库构成
+
+本项目由三个仓库组成：
+
+| 仓库 | 职责 | 默认分支 |
+| :--- | :--- | :--- |
+| [`incremental.icu`](https://github.com/inrenping/incremental.icu)（本仓库） | Next.js 前端，部署于 Vercel | `main` |
+| [`incremental-serve`](https://github.com/inrenping/incremental-serve) | FastAPI 后端，由 GitHub Actions SSH 部署 | `master` |
+| [`incremental-mcp`](https://github.com/inrenping/incremental-mcp) | MCP 服务端点，与主站共享同一数据库 | — |
+
 ### 技术栈
 
-- **前端框架**: [Next.js 16 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) + TypeScript
-- **UI**: [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)（基于 Radix）+ Recharts 图表 + [Tabler Icons](https://tabler-icons.io/)
-- **认证**: [Clerk](https://clerk.com/) — 邮箱验证码 / Google / GitHub OAuth
-- **国际化**: [next-intl](https://next-intl.dev/)（中文默认，英文可选）
-- **后端服务**: [FastAPI (Python)](https://fastapi.tiangolo.com/) 提供接口
-- **数据库**: [Neon (Serverless Postgres)](https://neon.tech/)
-- **对象存储**: Supabase Storage（活动文件）
-- **邮件服务**: [Resend](https://resend.com/)
-- **garth**: 一个模拟佳明客户端的 python 包，目前版本 0.5.17 更高版本支持佳明国内版有问题。
+**前端（本仓库）**
 
-> `next-auth`、`@react-oauth/google` 虽仍在依赖清单中，但代码里已无引用，属于迁移到 Clerk 之前的遗留项，新代码不要依赖。
+- **框架**: [Next.js 16 (App Router)](https://nextjs.org/) + [React 19](https://react.dev/) + TypeScript
+- **UI**: [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/)（基于 [Radix](https://www.radix-ui.com/)）+ [Recharts](https://recharts.org/) 图表 + [Tabler Icons](https://tabler-icons.io/)
+- **认证**: [Clerk](https://clerk.com/)（`@clerk/nextjs`）— 邮箱验证码 / Google / GitHub OAuth
+- **国际化**: [next-intl](https://next-intl.dev/)（中文默认，英文可选，`localePrefix: 'as-needed'`）
+- **日期处理**: [dayjs](https://dayjs.org/)
+- **佳明登录**: [garmin-connect](https://www.npmjs.com/package/garmin-connect)（仅用于 `src/app/api/garmin` 服务端路由换取 token）
+- **分析**: [Vercel Analytics](https://vercel.com/docs/analytics) + [Google Analytics](https://analytics.google.com/)（`@next/third-parties`）
+
+**后端（[incremental-serve](https://github.com/inrenping/incremental-serve)）**
+
+- **框架**: [FastAPI](https://fastapi.tiangolo.com/) + SQLAlchemy + APScheduler
+- **数据库**: [Neon (Serverless Postgres)](https://neon.tech/)
+- **对象存储**: Supabase Storage（活动文件）、阿里云 OSS / AWS S3（高驰 FIT 上传）
+- **邮件服务**: [Resend](https://resend.com/)
+- **佳明客户端**: [garth](https://github.com/matin/garth) —— 模拟佳明客户端的 Python 包，`requirements.txt` 中锁定版本
 
 ### 目录结构
 
 ```
 src/
   app/
-    dash/        # 仪表盘：跑量 / 同步 / 睡眠 / 心率
-    heart/       # 独立心率页
-    doc/[slug]/  # 文档页，读取 public/docs/*.md
-    sign-in/ sign-up/  # Clerk 登录注册
-    api/         # 少量服务端路由（佳明/高驰）
-  components/    # ui/（shadcn 基础组件）+ dash/（业务组件）
-  hooks/ i18n/ lib/ messages/
-public/docs/     # 站点文档 Markdown（新增文档需同步 src/lib/doc-menu.json）
+    page.tsx          # 首页
+    dash/             # 仪表盘：跑量 / 同步 / 睡眠 / 心率 四个标签
+      fitness/        # 佳明体能指标（训练状态·负荷、体能年龄、个人纪录、成绩预测）
+    heart/            # 独立心率页（复用 HeartRatePanel）
+    doc/[slug]/       # 文档页，浏览器端 fetch /docs/<slug>.md
+    sign-in/ sign-up/ # Clerk 登录注册（catch-all 路由）
+    api/garmin/       # 服务端佳明登录取 token（garmin-connect）
+    api/coros/        # 服务端高驰相关路由
+  components/
+    ui/               # shadcn/ui 基础组件，非必要不改动
+    dash/             # 仪表盘业务组件
+    login/            # 登录页组件
+    hooks/            # 组件级 hooks
+  hooks/              # 全局 hooks
+  i18n/               # next-intl 路由与请求配置
+  lib/
+    api.ts            # clerkFetch / authFetch（统一附带 Clerk JWT）
+    token-manager.ts  # getAuthToken()
+    doc-menu.json     # 文档侧边栏菜单
+  messages/           # en.json / zh.json 文案
+  middleware.ts       # clerkMiddleware + 公开路由白名单
+public/docs/          # 站点文档 Markdown（新增文档需同步 src/lib/doc-menu.json）
+scripts/check-i18n.py # i18n 文案完整性检查
 ```
 
 详细的开发约定见 `public/docs/development.md` 与 `AGENTS.md`。
@@ -91,20 +122,32 @@ public/docs/     # 站点文档 Markdown（新增文档需同步 src/lib/doc-men
 npm install
 cp .env.example .env.development   # 填写 NEXT_PUBLIC_BACKEND_URL、Clerk Key、OAuth 变量
 npm run dev
-npm run lint                       # 提交前必跑
 ```
+
+常用命令：
+
+```bash
+npm run dev          # 本地开发
+npm run lint         # eslint，提交前必跑
+npm run typecheck    # tsc --noEmit
+npm run i18n:check   # 检查 zh.json / en.json 文案是否对齐
+npm run build        # 构建
+```
+
+> `next.config.ts` 开启了 `typescript.ignoreBuildErrors`：`.next/types/validator.ts` 会引用已删除的 `/login` 路由残留类型，属于历史包袱。因此 **lint 与 review 才是类型问题的真实关卡**，改动路由时留意。
 
 ### 部署与 CI/CD
 
 1. **代码规范**: 前端部署之前记得先跑一下 `npm run lint`。
 2. **前端部署**: 托管于 [Vercel](https://vercel.com/)。
     - 分支约定：提交到 `dev` → 合并到 `main`，Vercel 自动部署。
-    - *注意*: 后端接口地址需要配置在 `/vercel.json` 中（开发环境则由 `next.config.ts` 把 `/api/v1/*` 重写到 `NEXT_PUBLIC_BACKEND_URL`）。
-3. **自动化工作流**:
+    - *注意*: 生产环境的 `/api` 转发配置在 `/vercel.json` 中；开发环境则由 `next.config.ts` 把 `/api/v1/*` 重写到 `NEXT_PUBLIC_BACKEND_URL`。
+3. **后端部署**: 提交到 `dev` → 合并到 `master`，推送即触发 GitHub Actions 通过 SSH 部署，systemd 托管（`incremental-serve.service`）。
+4. **自动化工作流**:
     - **CI/CD**: 前端通过 Vercel 自动部署，后端通过 [GitHub Actions](https://github.com/features/actions) 部署。
-    - **定时任务**: 使用 GitHub Actions 处理定时同步任务。
+    - **定时任务**: GitHub Actions 负责定时同步（心率、睡眠、佳明体能指标、主运动同步、FIT 归档），通过 `X-Sync-Token` 共享密钥鉴权。
 
-后端等配合 infra 详见后端仓库 [incremental-serve](https://github.com/inrenping/incremental-serve)。
+若数据库有变更，**先执行迁移 SQL，再发布后端**，最后发布前端。后端不引入 Alembic，DDL 采用手工 SQL 迁移（全量 `__init__.sql`，增量 `migrations/YYYYMMDD_*.sql`，需保证幂等可重复执行）。
 
 ### 监控与分析
 
@@ -113,9 +156,8 @@ npm run lint                       # 提交前必跑
 
 ### 参考资源与授权
 
-- **登录逻辑参考**:  [running_page](https://github.com/yihong0618/running_page) (前端佳明高驰登录逻辑参考，但因为前端登录的有效性会掉，目前已经不采用前端登录的方式)
+- **登录逻辑参考**: [running_page](https://github.com/yihong0618/running_page)（早期参考过其佳明 / 高驰前端登录逻辑；因前端登录态有效期不稳，现已不再采用前端直连登录）
 - **佳明高驰数据同步参考**: [garmin-sync-coros](https://github.com/XiaoSiHwang/garmin-sync-coros)
-- **身份验证**: 支持 Google 和 GitHub 原生的 OAuth 单点登录。
 
 ## 🤖 MCP 接口对接
 
