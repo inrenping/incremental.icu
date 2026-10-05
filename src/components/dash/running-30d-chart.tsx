@@ -11,7 +11,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from 'recharts';
 
 /**
  * 跑步类运动的原始类型 key。
- * 后端 getActivitiesByPage 会把这些 key 展开成对应的 name
+ * 后端 /api/v1/main/getActivitiesByPage 会把这些 key 展开成对应的 name
  * （100/101/102/103 → running / treadmill_running / trail_running / track_running）。
  */
 const RUNNING_SPORT_TYPES = '100,101,102,103';
@@ -94,7 +94,8 @@ export function Running30dChart({
       sport_types: RUNNING_SPORT_TYPES,
     });
 
-    authFetch(`/api/v1/base/getActivitiesByPage?${params.toString()}`)
+    // 数据源：t_main_activity（主数据源汇总表），不是 t_base_activity
+    authFetch(`/api/v1/main/getActivitiesByPage?${params.toString()}`)
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
       .then((result) => {
         if (cancelled) return;

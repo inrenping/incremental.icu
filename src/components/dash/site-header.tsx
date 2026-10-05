@@ -88,6 +88,7 @@ export function SiteHeader() {
 
   const navItems = [
     { name: t("dash"), href: '/dash' },
+    { name: "体能指标", href: '/dash/fitness' },
     { name: "定时任务", href: '/dash/task' },
     { name: "快速开始", href: '/doc/guide' },
     { name: "网站状态", href: 'https://status.incremental.icu' },
