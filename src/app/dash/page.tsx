@@ -112,22 +112,8 @@ const PR_LABEL: Record<number, string> = {
 // 仪表盘「个人记录」卡片只展示这六条，其余（如「最长距离」）在前端过滤掉。
 const ALLOWED_PR_TYPES = new Set<number>([1, 2, 3, 4, 5, 6]);
 
-const ACTIVITY_LABEL: Record<string, string> = {
-  running: "跑步",
-  cycling: "骑行",
-  swimming: "游泳",
-  walking: "步行",
-  hiking: "徒步",
-  long_distance: "长距离",
-};
-
 function prLabel(record: PersonalRecord): string {
   return PR_LABEL[record.type_id] ?? record.type_key ?? `type_${record.type_id}`;
-}
-
-function activityLabel(activityType?: string | null): string {
-  if (!activityType) return "";
-  return ACTIVITY_LABEL[activityType] ?? activityType;
 }
 
 function formatPrSeconds(seconds?: number | null): string {
@@ -650,7 +636,6 @@ export default function DashPage() {
                     {personalRecords.length > 0 ? (
                       <ul className="divide-y">
                         {personalRecords.map((record) => {
-                          const actLabel = activityLabel(record.activity_type);
                           const time =
                             record.unit === "meter"
                               ? formatPrMeters(record.value_meters)
@@ -662,9 +647,6 @@ export default function DashPage() {
                             >
                               <div className="min-w-0 space-y-0.5">
                                 <div className="text-sm font-medium">{prLabel(record)}</div>
-                                {actLabel ? (
-                                  <div className="text-[11px] text-muted-foreground">{actLabel}</div>
-                                ) : null}
                                 <div className="text-[11px] text-muted-foreground">
                                   {record.achieved_at
                                     ? dayjs(record.achieved_at).format("YYYY-MM-DD HH:mm")
