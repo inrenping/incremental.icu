@@ -1,6 +1,6 @@
 {
   "name": "incremental.icu",
-  "version": "1.0.20261004",
+  "version": "1.0.20261005",
   "private": true,
   "scripts": {
     "dev": "next dev",
