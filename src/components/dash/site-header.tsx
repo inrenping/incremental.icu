@@ -90,7 +90,8 @@ export function SiteHeader() {
     { name: t("dash"), href: '/dash' },
     { name: "定时任务", href: '/dash/task' },
     { name: "快速开始", href: '/doc/guide' },
-    { name: "网站状态", href: 'https://status.incremental.icu' }
+    { name: "网站状态", href: 'https://status.incremental.icu' },
+    { name: "联系作者", href: '/doc/community' }
   ];
 
   const handleLogout = async () => {
