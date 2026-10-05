@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { cn } from "@/lib/utils";
 import dayjs from 'dayjs';
 import { authFetch } from '@/lib/api';
@@ -35,18 +36,18 @@ interface ChartDataPoint {
   yesterdayHeartRate: number | null;
 }
 
-const chartConfig = {
-  heartRate: {
-    label: '今日心率',
-    color: 'hsl(0 72% 51%)',
-  },
-  yesterdayHeartRate: {
-    label: '昨日心率',
-    color: 'hsl(0 0% 60%)',
-  },
+const CHART_COLORS = {
+  heartRate: 'hsl(0 72% 51%)',
+  yesterdayHeartRate: 'hsl(0 0% 60%)',
 };
 
 export function HeartRatePanel({ className }: { className?: string }) {
+  const t = useTranslations('HeartRatePanel');
+  // shadcn 的 chartConfig 要求 label 是静态字符串，这里在渲染期按语言组装
+  const chartConfig = {
+    heartRate: { label: t('today'), color: CHART_COLORS.heartRate },
+    yesterdayHeartRate: { label: t('yesterday'), color: CHART_COLORS.yesterdayHeartRate },
+  };
   const [data, setData] = useState<HeartRateData | null>(null);
   const [yesterdayData, setYesterdayData] = useState<HeartRateData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,7 +143,7 @@ export function HeartRatePanel({ className }: { className?: string }) {
       <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">最高心率</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('maxHr')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.daily?.max_heart_rate ?? '--'}</div>
@@ -151,7 +152,7 @@ export function HeartRatePanel({ className }: { className?: string }) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">最低心率</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('minHr')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.daily?.min_heart_rate ?? '--'}</div>
@@ -160,7 +161,7 @@ export function HeartRatePanel({ className }: { className?: string }) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">静息心率</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('restingHr')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.daily?.resting_heart_rate ?? '--'}</div>
@@ -169,7 +170,7 @@ export function HeartRatePanel({ className }: { className?: string }) {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">近7日平均静息</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">{t('restingHr7d')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{data?.daily?.last_seven_days_avg_resting_heart_rate ?? '--'}</div>
@@ -217,12 +218,12 @@ export function HeartRatePanel({ className }: { className?: string }) {
             </div>
           </CardAction>
           <CardDescription className="self-center text-right">
-            {loading ? '加载中…' : `共 ${chartData.length} 个采样点`}
+            {loading ? t('loading') : t('samplePoints', { count: chartData.length })}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="flex h-[350px] items-center justify-center text-muted-foreground">加载中…</div>
+            <div className="flex h-[350px] items-center justify-center text-muted-foreground">{t('loading')}</div>
           ) : (
             <ChartContainer config={chartConfig} className="aspect-auto h-[350px] w-full">
               <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>

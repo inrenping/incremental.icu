@@ -67,6 +67,7 @@ const initialSideState: SideState = {
 
 export default function ActivityComparePage() {
   const t = useTranslations('ListPage');
+  const tc = useTranslations('Common');
   const tCompare = useTranslations('ComparePage');
   const { layout } = useLayout();
 
@@ -370,14 +371,14 @@ export default function ActivityComparePage() {
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>确认进行全量同步？</AlertDialogTitle>
+                <AlertDialogTitle>{tc('fullSyncConfirmTitle')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  全量同步将尝试获取该平台下的所有历史活动数据。由于数据量可能较大，同步过程可能会比较缓慢，且在网络不稳定的情况下存在失败风险。建议在网络环境良好时进行此操作。
+                                  {tc('fullSyncConfirmDesc')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>取消</AlertDialogCancel>
-                <AlertDialogAction onClick={() => handleFullSync(side)}>确认同步</AlertDialogAction>
+                <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleFullSync(side)}>{tc('fullSyncConfirmAction')}</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
@@ -464,14 +465,14 @@ export default function ActivityComparePage() {
                             {act.source_type} - {act.activity_name} - {dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}
                           </DialogTitle>
                           <DialogDescription className="sr-only">
-                            显示该活动的详细原始数据。
+                            {tCompare('rawDataHint')}
                           </DialogDescription>
                         </DialogHeader>
 
                         {loadingDetail ? (
                           <div className="flex-1 flex items-center justify-center py-12 text-muted-foreground">
                             <IconRefresh className="animate-spin mr-2" size={20} />
-                            加载中...
+                            {tCompare('loadingDetails')}
                           </div>
                         ) : selectedDetail ? (
                           <div className="flex-1 overflow-auto px-6 py-4">
@@ -541,7 +542,7 @@ export default function ActivityComparePage() {
 
         {!isLeft && (
           <div className="text-xs text-muted-foreground text-right">
-            共 {state.total} 条记录
+            {tCompare('totalRecords', { count: state.total })}
           </div>
         )}
       </div>

@@ -52,7 +52,7 @@ export function SiteHeader() {
           const parsedUser = typeof userData === 'string' ? JSON.parse(userData) : userData;
           setUser(parsedUser);
         } catch (error) {
-          console.error("解析用户信息失败:", error);
+          console.error("Failed to parse stored user info:", error);
         }
         return;
       }
@@ -75,7 +75,7 @@ export function SiteHeader() {
           }
         }
       } catch (error) {
-        console.error("获取用户信息失败:", error);
+        console.error("Failed to load user info:", error);
       }
     };
 
@@ -85,12 +85,13 @@ export function SiteHeader() {
   const router = useRouter();
 
   const t = useTranslations("IndexPage");
+  const tn = useTranslations("SiteHeader");
 
   const navItems = [
     { name: t("dash"), href: '/dash' },
-    { name: "快速开始", href: '/doc/guide' },
-    { name: "网站状态", href: 'https://status.incremental.icu' },
-    { name: "联系作者", href: '/doc/community' }
+    { name: tn("quickStart"), href: '/doc/guide' },
+    { name: tn("siteStatus"), href: 'https://status.incremental.icu' },
+    { name: tn("contactAuthor"), href: '/doc/community' }
   ];
 
   const handleLogout = async () => {
@@ -98,7 +99,7 @@ export function SiteHeader() {
     storage.clearAuth();
     // 调用 Clerk signOut 清除 session
     await signOut();
-    toast.success("logout Success");
+    toast.success(tn("logoutSuccess"));
     router.replace('/sign-in');
   };
 
@@ -193,19 +194,19 @@ export function SiteHeader() {
                   <span>{t("gptCode")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/fitness')} className="focus:bg-primary/50">
-                  <span>体能指标</span>
+                  <span>{tn("fitness")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/task')} className="focus:bg-primary/50">
                   <span>{t("task")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/files')} className="focus:bg-primary/50">
-                  <span>文件管理</span>
+                  <span>{tn("fileManagement")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/activities/files')} className="focus:bg-primary/50">
-                  <span>文件比对</span>
+                  <span>{tn("fileCompare")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => router.push('/dash/activities/compare')} className="focus:bg-primary/50">
-                  <span>数据比对</span>
+                  <span>{tn("dataCompare")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600 focus:bg-red-50 dark:focus:bg-red-950">

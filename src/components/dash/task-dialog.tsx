@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -66,6 +67,8 @@ const MAX_HOURS = MAX_EXECUTIONS_PER_DAY;
 const DEFAULT_HOURS = [8, 20];
 
 export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = [] }: TaskDialogProps) {
+  const t = useTranslations('TaskDialog');
+  const tc = useTranslations('Common');
   // 单个任务只允许一条「源 -> 目标」同步配置
   const [source, setSource] = useState('');
   const [target, setTarget] = useState('');
@@ -130,7 +133,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
       return;
     }
     if (!canAddHour) {
-      toast.error(`每个任务每天最多执行 ${MAX_EXECUTIONS_PER_DAY} 次，请先取消一个时间点`);
+      toast.error(t('hourLimitToast', { max: MAX_EXECUTIONS_PER_DAY }));
       return;
     }
     setHours([...hours, hour].sort((a, b) => a - b));
@@ -138,23 +141,23 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
 
   const handleSave = async () => {
     if (!source || !target) {
-      toast.error('请选择源账号和目标账号');
+      toast.error(t('selectBothToast'));
       return;
     }
     if (source === target) {
-      toast.error('源账号与目标账号不能相同');
+      toast.error(t('sameAccountError'));
       return;
     }
     if (hours.length === 0) {
-      toast.error('请至少选择一个执行时间');
+      toast.error(t('needTimeToast'));
       return;
     }
     if (hours.length > MAX_HOURS) {
-      toast.error(`每个任务每天最多执行 ${MAX_EXECUTIONS_PER_DAY} 次，请取消多余的时间点`);
+      toast.error(t('hourLimitToast', { max: MAX_EXECUTIONS_PER_DAY }));
       return;
     }
     if (conflictTaskId !== null) {
-      toast.error(`该同步配置已在任务 #${conflictTaskId} 中配置过，不能重复`);
+      toast.error(t('duplicatePairToast', { id: conflictTaskId }));
       return;
     }
 
@@ -180,15 +183,15 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
 
       const result = await response.json();
       if (result.status === 'success') {
-        toast.success(task ? '任务已更新' : '任务已创建');
+        toast.success(task ? t('updated') : t('created'));
         // 先刷新列表再关闭，避免关闭后列表仍是旧数据
         await onSuccess();
         onOpenChange(false);
       } else {
-        toast.error(result.message || '操作失败');
+        toast.error(result.message || t('saveFailed'));
       }
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : '保存失败');
+      toast.error(err instanceof Error ? err.message : t('saveFailed'));
     } finally {
       setLoading(false);
     }
@@ -206,9 +209,9 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
     >
       <DialogContent className="max-h-[90vh] w-[calc(100vw-2rem)] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{task ? '编辑任务' : '新建任务'}</DialogTitle>
+          <DialogTitle>{task ? t('editTitle') : t('createTitle')}</DialogTitle>
           <DialogDescription>
-            {task ? '修改该任务的同步配置与触发时间' : '创建一个定时数据同步任务'}
+            {task ? t('editDesc') : t('createDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -216,19 +219,17 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
           {/* 执行额度提示 */}
           {overLimit ? (
             <div className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              当前选了 {hours.length} 个时间点，已超过单个任务 {MAX_EXECUTIONS_PER_DAY} 次/天的上限，
-              请取消多余的时间点后再保存。
+              {t('quotaOver', { count: hours.length, max: MAX_EXECUTIONS_PER_DAY })}
             </div>
           ) : (
             <div className="rounded-lg border bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-              本任务额度：1 条同步配置 × {hours.length || 0} 个时间 = {totalExecutions} 次/天
-              （每个任务上限 {MAX_EXECUTIONS_PER_DAY} 次）
+              {t('quota', { hours: hours.length || 0, total: totalExecutions, max: MAX_EXECUTIONS_PER_DAY })}
             </div>
           )}
 
           {/* 同步配置（源 -> 目标），每个任务只允许一条 */}
           <div className="grid gap-2">
-            <Label>同步配置</Label>
+            <Label>{t('syncPair')}</Label>
             <div className="flex items-center gap-2">
               <Select
                 value={source}
@@ -241,7 +242,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
                     sameAccount && 'border-destructive text-destructive'
                   )}
                 >
-                  <SelectValue placeholder="选择源账号" />
+                  <SelectValue placeholder={t('selectSource')} />
                 </SelectTrigger>
                 <SelectContent>
                   {activeApps.map((app) => (
@@ -259,7 +260,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
                     sameAccount && 'border-destructive text-destructive'
                   )}
                 >
-                  <SelectValue placeholder="选择目标账号" />
+                  <SelectValue placeholder={t('selectTarget')} />
                 </SelectTrigger>
                 <SelectContent>
                   {activeApps
@@ -273,14 +274,14 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
               </Select>
             </div>
             <p className="text-xs text-muted-foreground">
-              每个任务仅支持一条「源 → 目标」同步配置，且不能与其它任务的配置重复；更多同步方向请新建任务。
+              {t('syncPairHint')}
             </p>
             {sameAccount && (
-              <p className="text-xs text-destructive">源账号与目标账号不能相同</p>
+              <p className="text-xs text-destructive">{t('sameAccountError')}</p>
             )}
             {conflictTaskId !== null && (
               <p className="text-xs text-destructive">
-                该同步配置已在任务 #{conflictTaskId} 中配置过，请换个方向，或去编辑任务 #{conflictTaskId}。
+                {t('conflictError', { id: conflictTaskId })}
               </p>
             )}
           </div>
@@ -290,10 +291,10 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
             <div className="flex items-center justify-between">
               <Label className="flex items-center gap-1.5">
                 <IconClock className="h-3.5 w-3.5 text-muted-foreground" />
-                执行时间（{hours.length}/{MAX_HOURS}）
+                {t('executionTime', { count: hours.length, max: MAX_HOURS })}
               </Label>
               <span className="text-xs text-muted-foreground">
-                每天最多 {MAX_HOURS} 个时间点，即最多执行 {MAX_EXECUTIONS_PER_DAY} 次
+                {t('executionTimeHint', { max: MAX_HOURS })}
               </span>
             </div>
             <div className="grid grid-cols-6 gap-1.5 sm:grid-cols-8">
@@ -347,7 +348,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
               className="text-sm font-medium leading-none cursor-pointer"
               onClick={() => !loading && setIsActive(!isActive)}
             >
-              {isActive ? '已启用' : '已停用'}
+              {isActive ? t('enabled') : t('disabled')}
             </Label>
           </div>
         </div>
@@ -364,7 +365,7 @@ export function TaskDialog({ open, onOpenChange, task, apps, onSuccess, tasks = 
             }
             className="w-full sm:w-auto"
           >
-            {loading ? '保存中...' : '保存'}
+            {loading ? tc('saving') : tc('save')}
           </Button>
         </DialogFooter>
       </DialogContent>

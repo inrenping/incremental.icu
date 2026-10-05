@@ -6,9 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "i18n:check": "python3 scripts/check-i18n.py",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@clerk/localizations": "^4.21.2",
     "@clerk/nextjs": "^7.7.8",
     "@microsoft/fetch-event-source": "^2.0.1",
     "@next/third-parties": "^16.2.4",

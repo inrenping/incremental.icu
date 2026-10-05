@@ -3,11 +3,11 @@
     "divider": true,
     "items": [
       {
-        "text": "项目介绍",
+        "key": "menuIntro",
         "href": "/doc/intro"
       },
       {
-        "text": "联系作者",
+        "key": "menuCommunity",
         "href": "/doc/community"
       }
     ]
@@ -16,19 +16,19 @@
     "divider": true,
     "items": [
       {
-        "text": "快速开始",
+        "key": "menuGuide",
         "href": "/doc/guide"
       },
       {
-        "text": "常见问题",
+        "key": "menuFaq",
         "href": "/doc/faq"
       },
       {
-        "text": "推荐",
+        "key": "menuRecommended",
         "href": "/doc/recommended"
       },
       {
-        "text": "开发指南",
+        "key": "menuDevelopment",
         "href": "/doc/development"
       }
     ]
@@ -37,11 +37,11 @@
     "divider": true,
     "items": [
       {
-        "text": "使用条款",
+        "key": "menuTos",
         "href": "/doc/tos"
       },
       {
-        "text": "隐私政策",
+        "key": "menuPrivacy",
         "href": "/doc/privacy"
       }
     ]

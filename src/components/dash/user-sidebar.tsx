@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 import { IconUser, IconKey } from "@tabler/icons-react"
 
 import {
@@ -16,15 +17,16 @@ import {
 } from "@/components/ui/sidebar"
 
 const USER_MENU_ITEMS = [
-  { name: "Profile", href: "/dash/profile", icon: IconUser },
-  { name: "Apps", href: "/dash/accounts", icon: IconUser },
-  { name: "GPT Code", href: "/dash/gpt", icon: IconKey }
-]
+  { nameKey: "profile", href: "/dash/profile", icon: IconUser },
+  { nameKey: "apps", href: "/dash/accounts", icon: IconUser },
+  { nameKey: "gptCode", href: "/dash/gpt", icon: IconKey }
+] as const
 
 export function UserSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname()
+  const t = useTranslations("UserSidebar")
 
   return (
     <Sidebar
@@ -42,9 +44,10 @@ export function UserSidebar({
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {USER_MENU_ITEMS.map(({ name, href, icon: Icon }) => {
+              {USER_MENU_ITEMS.map(({ nameKey, href, icon: Icon }) => {
+                const name = t(nameKey)
                 return (
-                  <SidebarMenuItem key={name}>
+                  <SidebarMenuItem key={nameKey}>
                     <SidebarMenuButton
                       asChild
                       isActive={pathname === href}

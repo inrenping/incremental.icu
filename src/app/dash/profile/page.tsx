@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { storage } from '@/lib/storage';
@@ -41,6 +42,8 @@ const SOCIAL_PROVIDERS = [
 ];
 
 export default function ProfilePage() {
+  const t = useTranslations('ProfilePage');
+  const tc = useTranslations('Common');
   const [user, setUser] = useState<User | null>(null);
   const [socials, setSocials] = useState<SocialAccount[]>([]);
   const [loadingSocials, setLoadingSocials] = useState(true);
@@ -61,12 +64,12 @@ export default function ProfilePage() {
             parsedUser.yearly_target?.toString() ?? String(new Date().getFullYear())
           );
         } catch (error) {
-          console.error('解析用户信息失败:', error);
+          console.error('Failed to parse stored user info:', error);
         }
         return;
       }
 
-      // localStorage 中没有用户信息，从后端 API 获取
+      // No user info in localStorage, fall back to the backend API
       try {
         const res = await authFetch('/api/v1/user/me');
         if (res.ok) {
@@ -86,7 +89,7 @@ export default function ProfilePage() {
           }
         }
       } catch (error) {
-        console.error('获取用户信息失败:', error);
+        console.error('Failed to fetch user info:', error);
       }
     };
 
@@ -98,14 +101,14 @@ export default function ProfilePage() {
       try {
         const res = await authFetch('/api/v1/user/socials', { method: 'GET' });
         if (!res.ok) {
-          console.error('获取社交账号信息失败:', res.status);
+          console.error('Failed to fetch social accounts:', res.status);
           return;
         }
 
         const data = await res.json();
         setSocials(data ?? []);
       } catch (error) {
-        console.error('获取社交账号信息出错:', error);
+        console.error('Error while fetching social accounts:', error);
       } finally {
         setLoadingSocials(false);
       }
@@ -115,30 +118,30 @@ export default function ProfilePage() {
   }, []);
 
   const handleConnect = (provider: string) => {
-    console.log(`连接社交账号: ${provider}`);
+    console.log(`Connect social account: ${provider}`);
   };
 
   const handleDeleteAccount = async () => {
     try {
       const res = await authFetch('/api/v1/user', { method: 'DELETE' });
       if (res.ok) {
-        // 清除本地存储并跳转
+        // Clear local storage and redirect
         storage.remove('user');
         storage.remove('token');
         window.location.href = '/';
       } else {
-        console.error('删除账号失败:', res.status);
-        // 这里可以添加一个 Toast 提示
+        console.error('Failed to delete account:', res.status);
+        // TODO: surface this as a toast
       }
     } catch (error) {
-      console.error('删除账号出错:', error);
+      console.error('Error while deleting account:', error);
     }
   };
 
   const handleSaveYearlyTarget = async () => {
     const value = Number(yearlyTarget);
     if (!Number.isInteger(value) || value < 0) {
-      toast.error('请输入有效的年度跑量目标（非负整数）');
+      toast.error(t('invalidYearlyTarget'));
       return;
     }
     setSavingYearlyTarget(true);
@@ -157,13 +160,13 @@ export default function ProfilePage() {
           storage.set('user', parsed);
         }
         setUser((prev) => prev ? { ...prev, yearly_target: data.yearly_target } : prev);
-        toast.success(`年度跑量目标已更新: ${data.yearly_target} 公里`);
+        toast.success(t('yearlyTargetUpdated', { value: data.yearly_target }));
       } else {
-        toast.error('更新年度跑量目标失败');
+        toast.error(t('yearlyTargetFailed'));
       }
     } catch (error) {
-      console.error('更新年度跑量目标失败:', error);
-      toast.error('更新年度跑量目标失败，请稍后重试');
+      console.error('Failed to update yearly target:', error);
+      toast.error(t('yearlyTargetFailedRetry'));
     } finally {
       setSavingYearlyTarget(false);
     }
@@ -172,22 +175,22 @@ export default function ProfilePage() {
   return (
     <div className="w-full max-w-2xl flex flex-col gap-4 py-4 md:gap-6 md:py-6">
       <div className="space-y-1 ">
-        <h1 className="text-xl font-semibold">我的个人资料</h1>
+        <h1 className="text-xl font-semibold">{t('title')}</h1>
       </div>
       <div className="rounded-xl bg-background p-6">
         <div className="grid gap-y-4 text-sm text-foreground">
           <div className="grid items-center gap-4 border-b border-border pb-4">
-            <span className="text-sm text-muted-foreground">用户名</span>
+            <span className="text-sm text-muted-foreground">{t('username')}</span>
             <span className="font-semibold">{user?.username}</span>
           </div>
           <div className="grid items-center gap-4 border-b border-border pb-4">
-            <span className="text-sm text-muted-foreground">邮箱</span>
+            <span className="text-sm text-muted-foreground">{t('email')}</span>
             <span className="font-semibold">{user?.email}</span>
           </div>
           <div className="grid items-center gap-4 border-b border-border pb-4">
-            <span className="text-sm text-muted-foreground">时区</span>
+            <span className="text-sm text-muted-foreground">{t('timezone')}</span>
             <div className="flex items-center justify-between gap-3">
-              <span className="font-semibold">{user?.timezone ?? '未设置'}</span>
+              <span className="font-semibold">{user?.timezone ?? t('timezoneUnset')}</span>
               <Button variant="outline" size="sm" onClick={async () => {
                 const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
                 setUser((prev) => prev ? { ...prev, timezone: tz } : prev);
@@ -205,21 +208,21 @@ export default function ProfilePage() {
                       parsed.timezone = data.timezone;
                       storage.set('user', parsed);
                     }
-                    toast.success(`时区已更新: ${data.timezone}`);
+                    toast.success(t('timezoneUpdated', { value: data.timezone }));
                   } else {
-                    toast.error('更新时区失败');
+                    toast.error(t('timezoneFailed'));
                   }
                 } catch (error) {
-                  console.error('更新时区失败:', error);
-                  toast.error('更新时区失败，请稍后重试');
+                  console.error('Failed to update timezone:', error);
+                  toast.error(t('timezoneFailedRetry'));
                 }
               }}>
-                刷新
+                {t('refresh')}
               </Button>
             </div>
           </div>
           <div className="grid items-center gap-4 border-b border-border pb-4">
-            <span className="text-sm text-muted-foreground">年度跑量目标</span>
+            <span className="text-sm text-muted-foreground">{t('yearlyTarget')}</span>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Input
@@ -227,10 +230,10 @@ export default function ProfilePage() {
                   min={0}
                   value={yearlyTarget}
                   onChange={(e) => setYearlyTarget(e.target.value)}
-                  placeholder="如：2026"
+                  placeholder={t('yearlyTargetPlaceholder')}
                   className="w-32"
                 />
-                <span className="text-sm text-muted-foreground">公里</span>
+                <span className="text-sm text-muted-foreground">{t('km')}</span>
               </div>
               <Button
                 variant="outline"
@@ -238,7 +241,7 @@ export default function ProfilePage() {
                 onClick={handleSaveYearlyTarget}
                 disabled={savingYearlyTarget}
               >
-                {savingYearlyTarget ? '保存中...' : '保存'}
+                {savingYearlyTarget ? tc('saving') : tc('save')}
               </Button>
             </div>
           </div>
@@ -250,14 +253,14 @@ export default function ProfilePage() {
                 <div className="flex items-center justify-between gap-3">
                   <span className="font-semibold">
                     {loadingSocials
-                      ? '加载中...'
+                      ? tc('loading')
                       : social
-                        ? `已连接，连接于 ${dayjs(social.created_at).format('YYYY-MM-DD HH:mm')}`
-                        : '未连接'}
+                        ? t('socialConnected', { date: dayjs(social.created_at).format('YYYY-MM-DD HH:mm') })
+                        : t('socialNotConnected')}
                   </span>
                   {!loadingSocials && !social ? (
                     <Button variant="outline" size="sm" onClick={() => handleConnect(item.provider)}>
-                      连接
+                      {t('connect')}
                     </Button>
                   ) : null}
                 </div>
@@ -265,34 +268,34 @@ export default function ProfilePage() {
             );
           })}
           <div className="grid items-center gap-4 border-b border-border pb-4">
-            <span className="text-sm text-muted-foreground">最后修改时间</span>
-            <span className="font-semibold">{user?.updated_at ? dayjs(user.updated_at).format('YYYY-MM-DD HH:mm') : '未记录'}</span>
+            <span className="text-sm text-muted-foreground">{t('lastModified')}</span>
+            <span className="font-semibold">{user?.updated_at ? dayjs(user.updated_at).format('YYYY-MM-DD HH:mm') : t('notRecorded')}</span>
           </div>
           <div className="flex flex-col items-start gap-2">
             <AlertDialog>
               <AlertDialogTrigger asChild>
-                <Button variant="destructive" size="default">删除账号</Button>
+                <Button variant="destructive" size="default">{t('deleteAccount')}</Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>您确定要删除账号吗？</AlertDialogTitle>
+                  <AlertDialogTitle>{t('deleteAccountTitle')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    此操作将永久删除您的个人资料、设置以及所有相关数据。一旦确认，您将无法恢复这些内容。
+                    {t('deleteAccountDesc')}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>取消</AlertDialogCancel>
+                  <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    确认删除
+                    {t('deleteAccountConfirm')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
             <p className="text-xs text-muted-foreground">
-              一旦删除账号，您的所有数据将被永久移除，此操作不可撤销。
+              {t('deleteAccountWarning')}
             </p>
           </div>
         </div>

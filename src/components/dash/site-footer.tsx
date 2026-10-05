@@ -1,12 +1,14 @@
 "use client";
 
 import { useLayout } from "@/hooks/use-layout";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 import { IconSlash, IconHeartFilled } from "@tabler/icons-react";
 
 export function SiteFooter() {
   const { layout } = useLayout();
+  const t = useTranslations("SiteFooter");
 
   return (
     <footer className="border-t bg-background w-full py-4">
@@ -15,12 +17,12 @@ export function SiteFooter() {
         layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
       )}>
         <div className="flex h-(--header-height) items-center justify-center gap-x-4 text-sm text-zinc-400 dark:text-zinc-500 tracking-wide">
-          <span>© 2026 incremental.icu. All rights reserved.</span>
+          <span>{t("copyright")}</span>
           <IconSlash className="h-3 w-3 opacity-40" />
           <div className="flex items-center gap-1">
-            <span>Made with</span>
+            <span>{t("madeWith")}</span>
             <IconHeartFilled className="h-3 w-3" />
-            <span>by inrenping.</span>
+            <span>{t("by")}</span>
           </div>
         </div>
       </div>

@@ -90,6 +90,8 @@ interface DetailedActivity {
 
 const ActivityFilesPage = () => {
   const t = useTranslations('ListPage');
+  const tFiles = useTranslations('ActivityFilesPage');
+  const tc = useTranslations('Common');
   const { layout } = useLayout();
   const router = useRouter();
   const pathname = usePathname();
@@ -413,7 +415,7 @@ const ActivityFilesPage = () => {
       "p-6 mx-auto bg-slate-50/50 dark:bg-background min-h-screen text-sm transition-all duration-300",
       layout === "fixed" ? "max-w-7xl" : "max-w-none w-full"
     )}>
-      {/* 平台选择器 & 过滤栏 */}
+      {/* Platform picker and filters */}
       <div className="bg-card dark:bg-muted/20 p-2 rounded-lg border border-border shadow-sm mb-4 flex items-center gap-3 max-[768px]:flex-wrap max-[768px]:p-3">
         <Select
           value={appSelected || ""}
@@ -457,10 +459,10 @@ const ActivityFilesPage = () => {
           onValueChange={handleSportTypeChange}
         >
           <SelectTrigger className="w-[160px] bg-background max-[768px]:w-full max-[768px]:min-h-[44px]">
-            <SelectValue placeholder="全部运动" />
+            <SelectValue placeholder={tFiles('allSports')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">全部运动</SelectItem>
+            <SelectItem value="all">{tFiles('allSports')}</SelectItem>
             {ACTIVITY_TYPES.map((group: ActivityTypeEntry) => {
               const childKeys = group.children && group.children.length > 0
                 ? Array.from(new Set(group.children.map((c) => c.key))).join(',')
@@ -535,14 +537,14 @@ const ActivityFilesPage = () => {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>确认进行全量同步？</AlertDialogTitle>
+              <AlertDialogTitle>{tc('fullSyncConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                全量同步将尝试获取该平台下的所有历史活动数据。由于数据量可能较大，同步过程可能会比较缓慢，且在网络不稳定的情况下存在失败风险。建议在网络环境良好时进行此操作。
+                                {tc('fullSyncConfirmDesc')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={handleFullPull}>确认同步</AlertDialogAction>
+              <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleFullPull}>{tc('fullSyncConfirmAction')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -558,7 +560,7 @@ const ActivityFilesPage = () => {
         </Button>
       </div>
 
-      {/* 活动列表表格 */}
+      {/* Activity file table */}
       <div className="bg-card rounded-lg border border-border shadow-sm overflow-x-auto">
         <table className="w-full text-left border-collapse table-fixed">
           <thead>
@@ -567,10 +569,10 @@ const ActivityFilesPage = () => {
               <th className="px-4 py-3 font-medium">{t("name")}</th>
               <th className="px-4 py-3 font-medium">{t("startTime")}</th>
               <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{t("distance")}</th>
-              <th className="px-4 py-3 font-medium">平台 id</th>
-              <th className="px-4 py-3 font-medium">文件名</th>
-              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">文件大小</th>
-              <th className="px-4 py-3 font-medium w-24">操作</th>
+              <th className="px-4 py-3 font-medium">{tFiles('platformId')}</th>
+              <th className="px-4 py-3 font-medium">{tFiles('fileName')}</th>
+              <th className="px-4 py-3 font-medium text-right max-[768px]:hidden">{tFiles('fileSize')}</th>
+              <th className="px-4 py-3 font-medium w-24">{tFiles('actions')}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -705,7 +707,7 @@ const ActivityFilesPage = () => {
           </tbody>
         </table>
 
-        {/* 分页 */}
+        {/* Pagination */}
         <Pagination
           total={total}
           page={page}

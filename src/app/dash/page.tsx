@@ -98,22 +98,26 @@ interface PersonalRecord {
   activity_id: number | null;
 }
 
-// 个人纪录：按 type_id 给出中文名（与后端 PR_TYPE_MAP 对应）。
-const PR_LABEL: Record<number, string> = {
-  1: "1 公里最快",
-  2: "1 英里最快",
-  3: "5 公里最快",
-  4: "10 公里最快",
-  5: "半程马拉松最快",
-  6: "全程马拉松最快",
-  7: "最长距离",
+// Personal records: type_id -> key in the PersonalRecords namespace (mirrors the backend PR_TYPE_MAP).
+const PR_LABEL_KEY: Record<number, string> = {
+  1: "pr1",
+  2: "pr2",
+  3: "pr3",
+  4: "pr4",
+  5: "pr5",
+  6: "pr6",
+  7: "pr7",
 };
 
-// 仪表盘「个人记录」卡片只展示这六条，其余（如「最长距离」）在前端过滤掉。
+// The dashboard "Personal Records" card only shows these six; the rest (e.g. longest distance) are filtered out here.
 const ALLOWED_PR_TYPES = new Set<number>([1, 2, 3, 4, 5, 6]);
 
-function prLabel(record: PersonalRecord): string {
-  return PR_LABEL[record.type_id] ?? record.type_key ?? `type_${record.type_id}`;
+type LabelFn = (key: string) => string;
+
+function prLabel(record: PersonalRecord, t: LabelFn): string {
+  const key = PR_LABEL_KEY[record.type_id];
+  if (key) return t(key);
+  return record.type_key ?? `type_${record.type_id}`;
 }
 
 function formatPrSeconds(seconds?: number | null): string {
@@ -126,9 +130,9 @@ function formatPrSeconds(seconds?: number | null): string {
   return `${m}:${String(s).padStart(2, "0")}`;
 }
 
-function formatPrMeters(meters?: number | null): string {
+function formatPrMeters(meters: number | null | undefined, unit: string): string {
   if (meters == null || Number.isNaN(meters)) return "-";
-  return `${(meters / 1000).toFixed(2)} km`;
+  return `${(meters / 1000).toFixed(2)} ${unit}`;
 }
 
 function getPlatformInitials(sourceType: string) {
@@ -219,6 +223,9 @@ function RunningStatCard({
     duration: number;
   };
 }) {
+  const ts = useTranslations('DashStats');
+  const tc = useTranslations('Common');
+
   const completionPercent = data.target > 0 ? (data.total / data.target) * 100 : 0;
   const completionDisplay = `${completionPercent.toFixed(2)}%`;
 
@@ -234,28 +241,32 @@ function RunningStatCard({
         <CardHeader className="px-4 py-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-semibold">{title}</CardTitle>
-            <span className="text-lg font-semibold">跑步 {data.count} 次</span>
+            <span className="text-lg font-semibold">{ts('runCount', { count: data.count })}</span>
           </div>
         </CardHeader>
         <CardContent className="space-y-3 px-4 pb-4 pt-1">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">距离</span>
-            <span className="text-lg font-semibold"><span className="text-emerald-600">{data.total}</span> / {data.target} 公里</span>
+            <span className="text-sm text-muted-foreground">{ts('distance')}</span>
+            <span className="text-lg font-semibold">
+              <span className="text-emerald-600">{data.total}</span> / {data.target} {tc('unitKm')}
+            </span>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">时长</span>
-            <span className="text-lg font-semibold">{data.duration} 小时</span>
+            <span className="text-sm text-muted-foreground">{ts('duration')}</span>
+            <span className="text-lg font-semibold">
+              {data.duration} {tc('unitHour')}
+            </span>
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">目标完成</span>
+              <span className="text-muted-foreground">{ts('goalProgress')}</span>
               <span className="text-emerald-600">{completionDisplay}</span>
             </div>
             <Progress value={completionPercent} className="h-2" indicatorClassName="bg-emerald-600" />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">时间已过</span>
+              <span className="text-muted-foreground">{ts('timeElapsed')}</span>
               <span>{progressDisplay}</span>
             </div>
             <Progress value={progressPercent} className="h-2" indicatorClassName="bg-black dark:bg-white" />
@@ -325,8 +336,11 @@ function SecurityNotice() {
 
 export default function DashPage() {
   const t = useTranslations('DashPage');
+  const ts = useTranslations('DashStats');
+  const tc = useTranslations('Common');
+  const tp = useTranslations('PersonalRecords');
   const { layout } = useLayout();
-  // 移动端四等分下未选中项只显示图标，选中项才补回文字，需要受控的当前 tab。
+  // On narrow screens only the selected tab shows its label, so the tab state must be controlled.
   const [activeTab, setActiveTab] = useState("console");
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [loading, setLoading] = useState(false);
@@ -526,20 +540,27 @@ export default function DashPage() {
         <StatCard
           title={t("totalSyncs")}
           value={loading ? '—' : String(stats.totalSyncs)}
-          subtext={masterApp ? `主数据源 · ${getPlatformDisplayName(masterApp.source_type, masterApp.region)} ( ${stats.masterTotalSyncs} )` : '—'}
+          subtext={
+            masterApp
+              ? ts('masterSource', {
+                  platform: getPlatformDisplayName(masterApp.source_type, masterApp.region),
+                  count: stats.masterTotalSyncs,
+                })
+              : '—'
+          }
           icon={IconRefresh}
           href="/dash/activities"
         />
       </div>
 
-      {/* Running Stats */}
+      {/* Running stats */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {runningDataLoading ? (
           <>
             <Card className="gap-0 py-0 shadow-sm">
               <CardHeader className="px-4 py-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl font-semibold">今年</CardTitle>
+                  <CardTitle className="text-2xl font-semibold">{ts('thisYear')}</CardTitle>
                   <div className="h-5 w-16 animate-pulse rounded bg-muted" />
                 </div>
               </CardHeader>
@@ -553,7 +574,7 @@ export default function DashPage() {
             <Card className="gap-0 py-0 shadow-sm">
               <CardHeader className="px-4 py-2">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl font-semibold">本月</CardTitle>
+                  <CardTitle className="text-2xl font-semibold">{ts('thisMonth')}</CardTitle>
                   <div className="h-5 w-16 animate-pulse rounded bg-muted" />
                 </div>
               </CardHeader>
@@ -568,7 +589,7 @@ export default function DashPage() {
         ) : runningData ? (
           <>
             <RunningStatCard
-              title="今年"
+              title={ts('thisYear')}
               period="year"
               data={{
                 count: runningData.yearly_count,
@@ -578,7 +599,7 @@ export default function DashPage() {
               }}
             />
             <RunningStatCard
-              title="本月"
+              title={ts('thisMonth')}
               period="month"
               data={{
                 count: runningData.monthly_count,
@@ -591,10 +612,10 @@ export default function DashPage() {
         ) : null}
       </div>
 
-      {/* 近 30 天跑量 + 主数据源最近记录（7 : 3） */}
+      {/* Last 30 days running volume + recent activities from the primary source (7 : 3) */}
       {loading ? null : masterApp ? (
         <div className="space-y-4">
-          {/* 第一行：近 30 天跑量 | 最近记录 */}
+          {/* Row 1: 30-day running volume | recent activities */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
             <div className="lg:col-span-7">
               <Running30dChart connectId={masterApp.id} />
@@ -604,7 +625,7 @@ export default function DashPage() {
             </div>
           </div>
 
-          {/* 第二行：近 30 天心率 | 个人记录（7 : 3，两卡等高） */}
+          {/* Row 2: 30-day heart rate | personal records (7 : 3, equal-height cards) */}
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
             <div className="lg:col-span-7">
               <HeartRate30dChart />
@@ -615,7 +636,7 @@ export default function DashPage() {
                   <CardHeader className="px-5 py-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <IconTrophy className="h-4 w-4 text-amber-500" />
-                      个人记录
+                      {tp('title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-3 px-5 pb-5 pt-1">
@@ -629,7 +650,7 @@ export default function DashPage() {
                   <CardHeader className="px-5 py-3">
                     <CardTitle className="flex items-center gap-2 text-base">
                       <IconTrophy className="h-4 w-4 text-amber-500" />
-                      个人记录
+                      {tp('title')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="px-0 py-0">
@@ -638,7 +659,7 @@ export default function DashPage() {
                         {personalRecords.map((record) => {
                           const time =
                             record.unit === "meter"
-                              ? formatPrMeters(record.value_meters)
+                              ? formatPrMeters(record.value_meters, tc('unitKm'))
                               : formatPrSeconds(record.value_seconds);
                           return (
                             <li
@@ -646,7 +667,7 @@ export default function DashPage() {
                               className="flex items-start justify-between gap-4 px-5 py-3"
                             >
                               <div className="min-w-0 space-y-0.5">
-                                <div className="text-sm font-medium">{prLabel(record)}</div>
+                                <div className="text-sm font-medium">{prLabel(record, tp)}</div>
                                 <div className="text-[11px] text-muted-foreground">
                                   {record.achieved_at
                                     ? dayjs(record.achieved_at).format("YYYY-MM-DD HH:mm")
@@ -662,7 +683,7 @@ export default function DashPage() {
                       </ul>
                     ) : (
                       <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-                        还没有个人记录数据
+                        {tp('empty')}
                       </div>
                     )}
                   </CardContent>
@@ -756,7 +777,7 @@ export default function DashPage() {
                 <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>
                   <Link href="/dash/task">
                     <IconClock className="h-5 w-5" />
-                    定时执行任务
+                    {t("taskTitle")}
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="h-10 rounded-full px-4 text-sm" asChild>

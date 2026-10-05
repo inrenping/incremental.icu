@@ -14,6 +14,8 @@ import { SiteFooter } from "@/components/dash/site-footer"
 import { StarsCount } from "@/components/githubLink"
 export default function Home() {
   const t = useTranslations('IndexPage')
+  const td = useTranslations('DocPage')
+  const th = useTranslations('SiteHeader')
   const router = useRouter()
 
   return (
@@ -55,19 +57,19 @@ export default function Home() {
               <div className="flex flex-wrap justify-start gap-3">
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
                   onClick={() => router.push('/doc/intro')}>
-                  项目介绍
+                  {td('menuIntro')}
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
                   onClick={() => router.push('/doc/guide')}>
-                  快速开始
+                  {td('menuGuide')}
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
                   onClick={() => router.push('https://github.com/users/inrenping/projects/1')}>
-                  开发进度
+                  {t('devProgress')}
                 </Button>
                 <Button variant="outline" size="sm" className="rounded-full h-9 px-4 text-muted-foreground hover:text-foreground"
                   onClick={() => router.push('https://status.incremental.icu')}>
-                  网站状态
+                  {th('siteStatus')}
                 </Button>
               </div>
             </div>

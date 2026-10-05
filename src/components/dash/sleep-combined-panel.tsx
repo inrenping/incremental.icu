@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import dayjs from 'dayjs';
 import { authFetch } from '@/lib/api';
 import { cn } from '@/lib/utils';
@@ -27,10 +28,12 @@ import {
   STAGE_LIGHT,
   STAGE_REM,
   STAGE_AWAKE,
-  STAGE_META,
+  STAGE_COLORS,
   ROW_ORDER,
-  WEEKDAY_HEADERS,
-  formatDuration,
+  useStageLabel,
+  useSleepDuration,
+  useSleepDurationShort,
+  useWeekdayLabels,
   polar,
 } from './sleep-shared';
 
@@ -47,15 +50,6 @@ const MONTH_R_OUTER = 272;
 function clockAngle(iso: string): number {
   const t = dayjs(iso);
   return (30 * ((t.hour() + t.minute() / 60) % 12) + 360) % 360;
-}
-
-/** 中心大字用的简短时长：7时36分 */
-function formatShort(seconds?: number | null): string {
-  if (!seconds || seconds <= 0) return '--';
-  const h = Math.floor(seconds / 3600);
-  const m = Math.round((seconds % 3600) / 60);
-  if (h <= 0) return `${m}分`;
-  return m > 0 ? `${h}时${String(m).padStart(2, '0')}分` : `${h}时`;
 }
 
 /** 分钟数（自 0:00 起）转时钟角 */
@@ -110,6 +104,8 @@ function polarAttrs(
 }
 
 function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) {
+  const t = useTranslations('SleepPanel');
+  const shortDuration = useSleepDurationShort();
   const daysInMonth = dayjs(monthStr + '-01').daysInMonth();
   const thickness = (MONTH_R_OUTER - MONTH_R_INNER) / daysInMonth;
 
@@ -148,15 +144,15 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
   })();
 
   const bedLabel =
-    stats.avgBedMin === null ? null : `日均入睡 ${formatHM(stats.avgBedMin)}`;
+    stats.avgBedMin === null ? null : t('avgBed', { time: formatHM(stats.avgBedMin) });
   const wakeLabel =
-    stats.avgWakeMin === null ? null : `日均醒来 ${formatHM(stats.avgWakeMin)}`;
+    stats.avgWakeMin === null ? null : t('avgWake', { time: formatHM(stats.avgWakeMin) });
   const monthNo = dayjs(monthStr + '-01').month() + 1;
 
   if (stats.daysWithData === 0) {
     return (
       <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-        本月还没有睡眠数据，同步后才会出现
+        {t('noMonthData')}
       </div>
     );
   }
@@ -168,7 +164,7 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
       role="img"
       preserveAspectRatio="xMidYMid meet"
     >
-      <title>{monthStr} 睡眠报告</title>
+      <title>{t('monthReportTitle', { month: monthStr })}</title>
 
       {/* 外圈日间色带：整圈闭合的圆环 */}
       <circle
@@ -210,7 +206,7 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
                 <path
                   key={idx}
                   d={arcStroke(MONTH_CX, MONTH_CY, r, seg.a1, a2)}
-                  stroke={STAGE_META[seg.level]?.color ?? 'var(--muted)'}
+                  stroke={STAGE_COLORS[seg.level] ?? 'var(--muted)'}
                   strokeWidth={w}
                   fill="none"
                   strokeLinecap="butt"
@@ -305,7 +301,7 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
         fill="var(--foreground)"
         textAnchor="middle"
       >
-        {formatShort(stats.avgSleep ? Math.round(stats.avgSleep) : null)}
+        {shortDuration(stats.avgSleep ? Math.round(stats.avgSleep) : null)}
       </text>
       <text
         x={MONTH_CX}
@@ -314,7 +310,7 @@ function MonthChart({ monthStr, days }: { monthStr: string; days: MonthDay[] }) 
         fill="var(--muted-foreground)"
         textAnchor="middle"
       >
-        日均睡眠
+        {t('avgSleep')}
       </text>
 
       {/* 外圈弧形标签：日均入睡 / 日均醒来（沿闭合色带弯曲排布） */}
@@ -411,6 +407,9 @@ function DayChart({
   daily: SleepDaily | null;
   levels: SleepLevel[];
 }) {
+  const t = useTranslations('SleepPanel');
+  const stageLabel = useStageLabel();
+  const longDuration = useSleepDuration();
   // 时间窗默认：前一天 18:00 → 当天 12:00（18 小时），数据超出时自动扩展
   const anchor = dayjs(dateStr);
   let windowStart = anchor.subtract(1, 'day').hour(18).minute(0).second(0);
@@ -449,7 +448,7 @@ function DayChart({
   if (!daily) {
     return (
       <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-        {dateStr} 暂无睡眠数据
+        {t('noDayData', { date: dateStr })}
       </div>
     );
   }
@@ -461,11 +460,10 @@ function DayChart({
       role="img"
       preserveAspectRatio="xMidYMid meet"
     >
-      <title>当日睡眠阶段时间轴</title>
+      <title>{t('dayStagesTitle')}</title>
 
       {ROW_ORDER.map((stage, rowIdx) => {
         const rowY = DAY_PAD.top + rowIdx * DAY_ROW_H;
-        const meta = STAGE_META[stage];
         return (
           <g key={stage}>
             <rect
@@ -484,10 +482,10 @@ function DayChart({
               fontWeight={500}
               fill="var(--foreground)"
             >
-              {meta.label}
+              {stageLabel(stage)}
             </text>
             <text x={8} y={rowY + 42} fontSize={12} fill="var(--muted-foreground)">
-              {formatDuration(durationByStage[stage])}
+              {longDuration(durationByStage[stage])}
             </text>
           </g>
         );
@@ -524,7 +522,7 @@ function DayChart({
             width={w}
             height={30}
             rx={3}
-            fill={STAGE_META[lv.activity_level].color}
+            fill={STAGE_COLORS[lv.activity_level]}
           />
         );
       })}
@@ -585,6 +583,9 @@ function SleepCalendar({
   today: string;
   onPick: (dateStr: string) => void;
 }) {
+  const t = useTranslations('SleepPanel');
+  const shortDuration = useSleepDurationShort();
+  const weekdays = useWeekdayLabels('CalendarPage');
   const first = dayjs(monthStr + '-01');
   const daysInMonth = first.daysInMonth();
   // 周一 = 第 0 列
@@ -605,9 +606,9 @@ function SleepCalendar({
   return (
     <div className="w-full">
       <div className="grid grid-cols-7 border-b">
-        {WEEKDAY_HEADERS.map((d) => (
+        {weekdays.map((d) => (
           <div key={d} className="py-2 text-center text-xs text-muted-foreground">
-            周{d}
+            {d}
           </div>
         ))}
       </div>
@@ -670,7 +671,7 @@ function SleepCalendar({
                 {hasData ? (
                   <>
                     <span className="flex flex-1 items-center justify-center text-xl font-bold leading-none tabular-nums text-foreground">
-                      {formatShort(d?.sleep_time_seconds)}
+                      {shortDuration(d?.sleep_time_seconds)}
                     </span>
                     <span className="text-center text-[10px] leading-none tabular-nums text-muted-foreground">
                       {formatClock(d?.sleep_start_at)} → {formatClock(d?.sleep_end_at)}
@@ -678,7 +679,7 @@ function SleepCalendar({
                   </>
                 ) : (
                   <span className="flex flex-1 items-center justify-center text-xs text-muted-foreground/70">
-                    无数据
+                    {t('emptyDay')}
                   </span>
                 )}
 
@@ -692,7 +693,7 @@ function SleepCalendar({
                         key={s.level}
                         style={{
                           width: `${(s.v / secsSum) * 100}%`,
-                          background: STAGE_META[s.level].color,
+                          background: STAGE_COLORS[s.level],
                         }}
                       />
                     ))}
@@ -709,6 +710,9 @@ function SleepCalendar({
 // ==================== 睡眠面板（日历在上 + 月报在下，共用同一个月份控件） ====================
 
 export function SleepCombinedPanel({ className }: { className?: string }) {
+  const t = useTranslations('SleepPanel');
+  const tc = useTranslations('Common');
+  const stageLabel = useStageLabel();
   const today = dayjs().format('YYYY-MM-DD');
   const [monthStr, setMonthStr] = useState(dayjs().format('YYYY-MM'));
   const [monthDays, setMonthDays] = useState<MonthDay[]>([]);
@@ -779,8 +783,8 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
         <Card>
           <CardHeader className="has-[[data-slot=card-action]]:grid-cols-[auto_1fr_auto]">
             <TabsList className="col-start-1 row-start-1 self-center justify-self-start">
-              <TabsTrigger value="cal">日历</TabsTrigger>
-              <TabsTrigger value="rad">环形图</TabsTrigger>
+              <TabsTrigger value="cal">{t('tabCalendar')}</TabsTrigger>
+              <TabsTrigger value="rad">{t('tabRadial')}</TabsTrigger>
             </TabsList>
             {/* 统一图例：放在 tabs 与月份控件之间 */}
             <div className="col-start-2 row-start-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 self-center text-xs text-muted-foreground">
@@ -788,18 +792,18 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
                 <span key={stage} className="inline-flex items-center gap-1.5">
                   <span
                     className="inline-block h-[3px] w-4 rounded-full"
-                    style={{ background: STAGE_META[stage].color }}
+                    style={{ background: STAGE_COLORS[stage] }}
                   />
-                  {STAGE_META[stage].label}
+                  {stageLabel(stage)}
                 </span>
               ))}
               <span className="inline-flex items-center gap-1.5">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-foreground" />
-                入睡时间
+                {t('legendBedTime')}
               </span>
               <span className="inline-flex items-center gap-1.5">
                 <span className="inline-block h-1.5 w-1.5 rounded-full bg-muted-foreground" />
-                睡醒时间
+                {t('legendWakeTime')}
               </span>
             </div>
             <CardAction className="col-start-3 row-start-1 self-center justify-self-end">
@@ -840,19 +844,19 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
                 type="button"
                 onClick={handleSync}
                 disabled={syncing}
-                title="同步整月睡眠数据"
+                title={t('syncMonth')}
                 className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm ring-offset-background hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <IconRefresh className={cn('h-4 w-4', syncing && 'animate-spin')} />
               </button>
             </div>
           </CardAction>
-          <CardTitle className="sr-only">睡眠</CardTitle>
+          <CardTitle className="sr-only">{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="flex h-[300px] items-center justify-center text-muted-foreground">
-              加载中…
+              {tc('loading')}
             </div>
           ) : (
             <>
@@ -884,13 +888,13 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
           <DialogHeader>
             <DialogTitle>
               {dialogDate
-                ? `${dayjs(dialogDate).format('YYYY年M月D日')} 睡眠详情`
-                : '睡眠详情'}
+                ? t('dayDetailFor', { date: dayjs(dialogDate).format('YYYY-MM-DD') })
+                : t('dayDetail')}
             </DialogTitle>
           </DialogHeader>
           {dialogLoading ? (
             <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
-              加载中…
+              {tc('loading')}
             </div>
           ) : (
             <DayChart

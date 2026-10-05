@@ -89,6 +89,7 @@ interface DetailedActivity {
 }
 const ActivityListPage = () => {
   const t = useTranslations('ListPage');
+  const tc = useTranslations('Common');
   const { layout } = useLayout();
   const router = useRouter();
   const pathname = usePathname();
@@ -115,7 +116,7 @@ const ActivityListPage = () => {
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [pushResult, setPushResult] = useState<{ success: boolean; result: Record<string, unknown> } | null>(null);
 
-  // 当 URL 参数变化时（如点击浏览器后退），同步本地状态
+  // Keep local state in sync when the URL changes (e.g. the browser back button)
   useEffect(() => {
     setStartDate(searchParams.get('startDate') || "");
     setEndDate(searchParams.get('endDate') || "");
@@ -125,7 +126,7 @@ const ActivityListPage = () => {
 
 
 
-  // 处理平台切换逻辑：统一使用 connect_id 并重置页码和列表
+  // Platform switch: always key off connect_id and reset paging
   const handlePlatformChange = useCallback((id: string) => {
     setActivities([]);
     setTotal(0);
@@ -163,12 +164,12 @@ const ActivityListPage = () => {
     fetchAppsStatus();
   }, [fetchAppsStatus]);
 
-  // 对接后端分页接口
+  // Paged endpoint on the backend
   const fetchActivities = useCallback(async () => {
     if (!appSelected) return;
 
     setLoading(true);
-    // 获取 URL 中的最新参数进行查询，确保只有“已提交”的条件生效
+    // Read the latest URL params so only submitted filters take effect
     const currentParams = new URLSearchParams(window.location.search);
     const urlStartDate = currentParams.get('startDate');
     const urlEndDate = currentParams.get('endDate');
@@ -228,7 +229,7 @@ const ActivityListPage = () => {
     setSportType(value === 'all' ? "" : value);
   };
 
-  // 处理点击查询按钮：将当前所有本地状态同步到 URL，触发 useEffect 中的 fetchActivities
+  // Query button: push local state into the URL, which triggers fetchActivities
   const handleSearch = () => {
     const params = new URLSearchParams(searchParams.toString());
     if (startDate) params.set('startDate', startDate); else params.delete('startDate');
@@ -350,8 +351,8 @@ const ActivityListPage = () => {
   };
 
   /**
-   * 把指定活动数据推送到目标账号
-   * @param selectedActivityId 运动数据 ID
+   * Push one activity to the target account
+   * @param selectedActivityId activity data id
    * @param targetConnectId 目标账号 ID
    * @returns 
    */
@@ -450,7 +451,7 @@ const ActivityListPage = () => {
             <SelectValue placeholder="全部运动" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">全部运动</SelectItem>
+            <SelectItem value="all">{t('allSports')}</SelectItem>
             {ACTIVITY_TYPES.map((group: ActivityTypeEntry) => {
               const childKeys = group.children && group.children.length > 0
                 ? Array.from(new Set(group.children.map((c) => c.key))).join(',')
@@ -525,14 +526,14 @@ const ActivityListPage = () => {
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>确认进行全量同步？</AlertDialogTitle>
+              <AlertDialogTitle>{tc('fullSyncConfirmTitle')}</AlertDialogTitle>
               <AlertDialogDescription>
-                全量同步将尝试获取该平台下的所有历史活动数据。由于数据量可能较大，同步过程可能会比较缓慢，且在网络不稳定的情况下存在失败风险。建议在网络环境良好时进行此操作。
+                                {tc('fullSyncConfirmDesc')}
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>取消</AlertDialogCancel>
-              <AlertDialogAction onClick={handleFullPull}>确认同步</AlertDialogAction>
+              <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+              <AlertDialogAction onClick={handleFullPull}>{tc('fullSyncConfirmAction')}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -633,7 +634,7 @@ const ActivityListPage = () => {
                         {act.source_type} - {act.activity_name} - {dayjs(act.start_time_local).format('YYYY-MM-DD HH:mm')}
                       </DialogTitle>
                       <DialogDescription className="sr-only">
-                        显示该活动的详细原始数据和平台指标。
+                        {t('rawDataHint')}
                       </DialogDescription>
                     </DialogHeader>
 

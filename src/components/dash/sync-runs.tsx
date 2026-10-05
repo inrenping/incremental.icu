@@ -51,18 +51,32 @@ interface SyncRunsProps {
   limit?: number;
 }
 
+// 只保留配色，标签走 SyncRuns 命名空间
+const STATUS_CLS: Record<string, string> = {
+  success: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  partial: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  failed: "bg-red-500/10 text-red-600 border-red-500/20",
+  no_diff: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+  error: "bg-red-500/10 text-red-600 border-red-500/20",
+};
+
+const STATUS_LABEL_KEY: Record<string, string> = {
+  success: "statusSuccess",
+  partial: "statusPartial",
+  failed: "statusFailed",
+  no_diff: "statusNoDiff",
+  error: "statusError",
+};
+
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string }> = {
-    success: { label: "成功", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-    partial: { label: "部分成功", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-    failed: { label: "失败", cls: "bg-red-500/10 text-red-600 border-red-500/20" },
-    no_diff: { label: "无差异", cls: "bg-slate-500/10 text-slate-600 border-slate-500/20" },
-    error: { label: "异常", cls: "bg-red-500/10 text-red-600 border-red-500/20" },
-  };
-  const s = map[status] ?? { label: status, cls: "bg-slate-500/10 text-slate-600 border-slate-500/20" };
+  const t = useTranslations("SyncRuns");
+  const labelKey = STATUS_LABEL_KEY[status];
   return (
-    <Badge variant="outline" className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${s.cls}`}>
-      {s.label}
+    <Badge
+      variant="outline"
+      className={`shrink-0 px-1.5 py-0 text-[10px] font-bold ${STATUS_CLS[status] ?? "bg-slate-500/10 text-slate-600 border-slate-500/20"}`}
+    >
+      {labelKey ? t(labelKey) : status}
     </Badge>
   );
 }
@@ -84,6 +98,7 @@ function formatDistance(meters: number | null): string {
 
 export function SyncRuns({ limit = 10 }: SyncRunsProps) {
   const t = useTranslations("DashPage");
+  const tRuns = useTranslations("SyncRuns");
   const [runs, setRuns] = useState<SyncRun[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -98,21 +113,21 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
       const response = await authFetch(`/api/v1/base/syncRuns?limit=${limit}`);
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `获取同步记录失败 (HTTP ${response.status})`);
+        throw new Error(errorData.message || tRuns("loadFailedHttp", { status: response.status }));
       }
       const data = await response.json();
       if (data.status === "success" && Array.isArray(data.data)) {
         setRuns(data.data);
         setItemsCache({});
       } else {
-        throw new Error("服务器返回的数据格式异常");
+        throw new Error(tRuns("badPayload"));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "获取同步记录失败");
+      setError(err instanceof Error ? err.message : tRuns("loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, [limit]);
+  }, [limit, tRuns]);
 
   useEffect(() => {
     fetchRuns();
@@ -133,7 +148,7 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
         setItemsCache((prev) => ({ ...prev, [runId]: data.data }));
       }
     } catch {
-      // 详情加载失败不阻断列表展示
+      // A failure to load details must not break the list.
     } finally {
       setLoadingItems(null);
     }
@@ -141,10 +156,10 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
 
   const summary = (r: SyncRun) => {
     const parts: string[] = [];
-    if (r.uploaded_count > 0) parts.push(`成功 ${r.uploaded_count}`);
-    if (r.duplicated_count > 0) parts.push(`已存在 ${r.duplicated_count}`);
-    if (r.failed_count > 0) parts.push(`失败 ${r.failed_count}`);
-    return parts.length ? parts.join(" · ") : "无同步项";
+    if (r.uploaded_count > 0) parts.push(tRuns("statUploaded", { count: r.uploaded_count }));
+    if (r.duplicated_count > 0) parts.push(tRuns("statDuplicated", { count: r.duplicated_count }));
+    if (r.failed_count > 0) parts.push(tRuns("statFailed", { count: r.failed_count }));
+    return parts.length ? parts.join(" · ") : tRuns("statNone");
   };
 
   return (
@@ -153,7 +168,7 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconClock className="h-4 w-4 text-muted-foreground" />
-            <CardTitle className="text-base">同步记录</CardTitle>
+            <CardTitle className="text-base">{tRuns("title")}</CardTitle>
           </div>
           <div className="flex items-center gap-3">
             <Link
@@ -169,11 +184,11 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
       <CardContent className="p-0">
         <div className="divide-y divide-border">
           {loading ? (
-            <div className="p-8 text-center text-muted-foreground">加载中…</div>
+            <div className="p-8 text-center text-muted-foreground">{tRuns("loading")}</div>
           ) : error ? (
             <div className="p-8 text-center text-destructive">{error}</div>
           ) : runs.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground">暂无同步记录</div>
+            <div className="p-8 text-center text-muted-foreground">{tRuns("empty")}</div>
           ) : (
             runs.map((run) => (
               <div key={run.id}>
@@ -199,7 +214,7 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
                     <span className="text-xs text-muted-foreground">
-                      同步 {run.diff_count} 条 · {summary(run)}
+                      {tRuns("headline", { count: run.diff_count, summary: summary(run) })}
                     </span>
                     <StatusBadge status={run.status} />
                     <span className="font-mono text-xs text-muted-foreground">
@@ -210,7 +225,7 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
                 {openId === run.id && (
                   <div className="bg-muted/20 px-5 py-2">
                     {loadingItems === run.id ? (
-                      <div className="py-3 text-center text-xs text-muted-foreground">加载明细…</div>
+                      <div className="py-3 text-center text-xs text-muted-foreground">{tRuns("loadingItems")}</div>
                     ) : (
                       <div className="divide-y divide-border/60">
                         {(itemsCache[run.id] ?? []).map((item) => (
@@ -243,16 +258,16 @@ export function SyncRuns({ limit = 10 }: SyncRunsProps) {
                                   {item.message}
                                 </span>
                               ) : item.status === "duplicate" ? (
-                                <span className="text-[11px] text-slate-400">已存在</span>
+                                <span className="text-[11px] text-slate-400">{tRuns("itemDuplicated")}</span>
                               ) : (
-                                <span className="text-[11px] text-emerald-600">已同步</span>
+                                <span className="text-[11px] text-emerald-600">{tRuns("itemUploaded")}</span>
                               )}
                             </div>
                           </div>
                         ))}
                         {(itemsCache[run.id] ?? []).length === 0 && (
                           <div className="py-3 text-center text-xs text-muted-foreground">
-                            本次无明细
+                            {tRuns("noItems")}
                           </div>
                         )}
                       </div>

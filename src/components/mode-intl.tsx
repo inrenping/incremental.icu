@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import { useRouter } from "next/navigation"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 import { IconLanguage, IconCheck, IconLoader2 } from "@tabler/icons-react" // 引入了加载图标
 
 import { Button } from "@/components/ui/button"
@@ -16,6 +16,7 @@ import {
 export function ModeIntl() {
   const router = useRouter();
   const locale = useLocale();
+  const t = useTranslations("ModeIntl");
   const [isPending, startTransition] = useTransition();
 
   const changeLocale = (newLocale: string) => {
@@ -31,8 +32,8 @@ export function ModeIntl() {
   };
 
   const languages = [
-    { label: "简体中文", value: "zh" },
-    { label: "English (25%)", value: "en" },
+    { label: t("zh"), value: "zh" },
+    { label: t("en"), value: "en" },
   ]
 
   return (
@@ -49,7 +50,7 @@ export function ModeIntl() {
           ) : (
             <IconLanguage className="h-[1.2rem] w-[1.2rem]" />
           )}
-          <span className="sr-only">Toggle locale</span>
+          <span className="sr-only">{t("toggleLocale")}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

@@ -1,4 +1,5 @@
 import { createElement } from 'react';
+import { useTranslations } from 'next-intl';
 import {
   IconRun,
   IconBike,
@@ -162,4 +163,46 @@ export function ActivityTypeIcon({ name, className }: ActivityTypeIconProps) {
   const iconName = getActivityIconByName(name);
   const Icon = ACTIVITY_ICON_MAP[iconName];
   return createElement(Icon, { className });
+}
+
+/**
+ * 运动类型显示名。优先查 ActivityTypes.<原始 name>，命中失败再按关键字猜测，
+ * 都查不到就退回原始 key（多数情况下是可读的英文 slug）。
+ * 注意：调用方必须保证组件在 NextIntlClientProvider 内部（全部页面均满足）。
+ */
+export function useActivityTypeLabel() {
+  const t = useTranslations('ActivityTypes');
+
+  return (raw: string | null | undefined, opts?: { group?: boolean }): string => {
+    const key = (raw ?? '').toLowerCase().trim();
+    if (!key) return '';
+
+    const prefixed = opts?.group ? `group_${key}` : key;
+    if (t.has(prefixed)) return t(prefixed);
+
+    const direct = t.has(key) ? t(key) : null;
+    if (direct) return direct;
+
+    const guess = guessTypeKey(key);
+    if (guess && t.has(guess)) return t(guess);
+
+    return key;
+  };
+}
+
+/** 原始 sport_type 字符串 → ActivityTypes 里的翻译键 */
+function guessTypeKey(normalized: string): string | null {
+  if (normalized.includes('run')) return 'running';
+  if (normalized.includes('cycl') || normalized.includes('bike')) return 'cycling';
+  if (normalized.includes('swim')) return 'lap_swimming';
+  if (normalized.includes('hik')) return 'hiking';
+  if (normalized.includes('walk')) return 'walking';
+  if (normalized.includes('yoga')) return 'yoga';
+  if (normalized.includes('row')) return 'rowing';
+  if (normalized.includes('ski') || normalized.includes('snow')) return 'resort_skiing_snowboarding_ws';
+  if (normalized.includes('sail')) return 'sailing';
+  if (normalized.includes('raft') || normalized.includes('kayak')) return 'whitewater_rafting_keyaking';
+  if (normalized.includes('surf')) return 'surfing';
+  if (normalized.includes('wind')) return 'windsurfing';
+  return null;
 }

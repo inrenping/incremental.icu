@@ -18,19 +18,19 @@ interface HeartRatePoint {
   max_heart_rate: number | null;
 }
 
-const chartConfig = {
-  resting_heart_rate: {
-    label: '静息心率',
-    color: '#2563EB',
-  },
-  max_heart_rate: {
-    label: '最大心率',
-    color: '#EF4444',
-  },
+const CHART_COLORS = {
+  resting_heart_rate: '#2563EB',
+  max_heart_rate: '#EF4444',
 };
 
 export function HeartRate30dChart({ className }: { className?: string }) {
   const t = useTranslations('DashPage');
+  const th = useTranslations('HeartRate30dChart');
+  // shadcn 的 chartConfig 要求 label 是静态字符串，这里在渲染期按语言组装
+  const chartConfig = {
+    resting_heart_rate: { label: th('restingLabel'), color: CHART_COLORS.resting_heart_rate },
+    max_heart_rate: { label: th('maxLabel'), color: CHART_COLORS.max_heart_rate },
+  };
   const [points, setPoints] = useState<HeartRatePoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -91,11 +91,15 @@ export function HeartRate30dChart({ className }: { className?: string }) {
   return (
     <Card className={cn('h-full gap-0 py-0 shadow-sm', className)}>
       <CardHeader className="border-b px-5 py-4">
-        <CardTitle className="text-base">近 30 天心率</CardTitle>
+        <CardTitle className="text-base">{th('title')}</CardTitle>
         <CardDescription>
           {summary
-            ? `静息均值 ${summary.avgRest.toFixed(0)} · 最大均值 ${summary.avgMax.toFixed(0)}（bpm，${summary.days} 天有数据）`
-            : '静息心率与最大心率趋势'}
+            ? th('summary', {
+                resting: summary.avgRest.toFixed(0),
+                max: summary.avgMax.toFixed(0),
+                days: summary.days,
+              })
+            : th('noData')}
         </CardDescription>
       </CardHeader>
       <CardContent className="px-2 py-4 sm:px-4">

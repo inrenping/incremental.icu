@@ -40,6 +40,7 @@ interface Log {
 export default function LogsPage() {
   const { layout } = useLayout();
   const t = useTranslations('DashPage');
+  const tLogs = useTranslations('SyslogsPage');
 
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
@@ -92,34 +93,34 @@ export default function LogsPage() {
             <Link href="/dash/logs" className="hover:text-primary transition-colors">
               <IconArrowLeft className="h-5 w-5 text-muted-foreground" />
             </Link>
-            <h2 className="font-semibold"> 接口调用日志</h2>
+            <h2 className="font-semibold"> {tLogs('title')}</h2>
           </div>
         </div>
         <div className="flex items-center justify-end px-2">
           <Button onClick={() => fetchLogs()} size="sm" variant="outline" className="gap-2">
             <IconSearch className="h-4 w-4" />
-            查询
+            {tLogs('query')}
           </Button>
         </div>
         <div className="rounded-md border bg-background overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>模块</TableHead>
-                <TableHead>类型</TableHead>
-                <TableHead>操作描述</TableHead>
-                <TableHead>方法</TableHead>
+                <TableHead>{tLogs('module')}</TableHead>
+                <TableHead>{tLogs('type')}</TableHead>
+                <TableHead>{tLogs('description')}</TableHead>
+                <TableHead>{tLogs('method')}</TableHead>
                 <TableHead>URL</TableHead>
-                <TableHead>请求参数</TableHead>
-                <TableHead>时间</TableHead>
-                <TableHead>耗时</TableHead>
-                <TableHead>响应数据</TableHead>
+                <TableHead>{tLogs('params')}</TableHead>
+                <TableHead>{tLogs('time')}</TableHead>
+                <TableHead>{tLogs('duration')}</TableHead>
+                <TableHead>{tLogs('response')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">加载中...</TableCell>
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">{tLogs('loading')}</TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
@@ -163,7 +164,7 @@ export default function LogsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">没数据</TableCell>
+                  <TableCell colSpan={9} className="h-24 text-center text-muted-foreground">{tLogs('noData')}</TableCell>
                 </TableRow>
               )}
             </TableBody>

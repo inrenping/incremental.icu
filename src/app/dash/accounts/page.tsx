@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { authFetch } from "@/lib/api";
 import { AppConnectionDialog } from "@/components/dash/connection-dialog";
 import { AppCard } from "@/components/dash/app-card";
@@ -34,15 +34,12 @@ interface AppConfig {
 
 export default function AccountsPage() {
   const t = useTranslations('DashPage')
+  const tPage = useTranslations('AccountsPage')
   const [apps, setApps] = useState<AppConfig[]>([]);
   const [open, setOpen] = useState(false);
   const [currentApp, setCurrentApp] = useState<AppConfig | null>(null);
 
-  useEffect(() => {
-    fetchAppsStatus();
-  }, []);
-
-  const fetchAppsStatus = async () => {
+  const fetchAppsStatus = useCallback(async () => {
     try {
       const response = await authFetch('/api/v1/base/getConnectConfigs');
       if (!response.ok) {
@@ -53,11 +50,15 @@ export default function AccountsPage() {
       setApps(data);
     } catch (err: unknown) {
       console.error("Fetch status error:", err);
-      toast.error("获取应用状态失败");
+      toast.error(tPage('statusFailed'));
     }
-  };
+  }, [tPage]);
 
-  // 刷新认证处理函数
+  useEffect(() => {
+    fetchAppsStatus();
+  }, [fetchAppsStatus]);
+
+  // Refresh the stored OAuth credentials for one app.
   const handleRefreshAuth = async (id: number) => {
     try {
       const response = await authFetch(`/api/v1/base/relogin?connect_id=${id}`, {
@@ -65,10 +66,10 @@ export default function AccountsPage() {
       });
       const result = await response.json();
       if (result.status === "success") {
-        toast.success("认证刷新成功");
+        toast.success(tPage('refreshSuccess'));
         fetchAppsStatus();
       } else {
-        toast.error(result.message || "刷新失败");
+        toast.error(result.message || tPage('refreshFailed'));
       }
 
     } catch (err: unknown) {
@@ -82,7 +83,7 @@ export default function AccountsPage() {
     <div className="flex flex-col gap-8 py-4 md:gap-6 md:py-6">
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-xl font-semibold">我的应用程序</h1>
+          <h1 className="text-xl font-semibold">{tPage('title')}</h1>
           <Button
             onClick={() => {
               setCurrentApp({ source_type: 'garmin_cn' } as unknown as AppConfig);
@@ -93,7 +94,7 @@ export default function AccountsPage() {
             {t("connectAccount")}
           </Button>
         </div>
-        <p className="text-muted-foreground text-sm">你已授权本站点访问你的应用数据。</p>
+        <p className="text-muted-foreground text-sm">{tPage('grantedDesc')}</p>
       </div>
       <section>
         <div className="grid grid-cols-1 gap-4">

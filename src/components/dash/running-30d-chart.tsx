@@ -31,12 +31,7 @@ interface DailyPoint {
   count: number;
 }
 
-const chartConfig = {
-  distance: {
-    label: '距离 (km)',
-    color: '#10A56C',
-  },
-};
+
 
 /** 把活动列表按自然日聚合，并把窗口内没有运动的日子补成 0 */
 function buildDailyPoints(rows: ActivityRow[]): DailyPoint[] {
@@ -73,6 +68,11 @@ export function Running30dChart({
   className?: string;
 }) {
   const t = useTranslations('DashPage');
+  const tr = useTranslations('Running30dChart');
+  // shadcn 的 chartConfig 要求 label 是静态字符串，这里在渲染期按语言组装
+  const chartConfig = {
+    distance: { label: tr('distanceLabel'), color: '#10A56C' },
+  };
   const [points, setPoints] = useState<DailyPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
