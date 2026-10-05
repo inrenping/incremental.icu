@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -24,10 +25,11 @@ import { IconAlertCircleFilled, IconCircleCheckFilled } from "@tabler/icons-reac
 import { authFetch } from '@/lib/api';
 import CryptoJS from 'crypto-js';
 
+// 平台名是品牌名，不随语言变化；描述文案在下方按语言取。
 const SUPPORTED_PLATFORMS = [
-  { id: 'garmin_cn', label: 'Garmin CN', platform: 'garmin_cn', description: '佳明中国区账号' },
-  { id: 'garmin', label: 'Garmin Global', platform: 'garmin', description: '佳明国际区账号' },
-  { id: 'coros', label: 'Coros', platform: 'coros', description: '高驰账号' },
+  { id: 'garmin_cn', label: 'Garmin CN', platform: 'garmin_cn' },
+  { id: 'garmin', label: 'Garmin Global', platform: 'garmin' },
+  { id: 'coros', label: 'Coros', platform: 'coros' },
 ];
 
 interface AppConfig {
@@ -70,6 +72,8 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [master, setMaster] = useState(false);
+  const t = useTranslations('ConnectionDialog');
+  const tc = useTranslations('Common');
 
   useEffect(() => {
     console.log(app);
@@ -126,18 +130,18 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `验证失败 (HTTP ${response.status})`);
+        throw new Error(errorData.error || t('verifyFailedHttp', { status: response.status }));
       }
       if (response.ok) {
         const result = await response.json();
         if (result.status === 'error')
-          throw new Error(result.message || '验证失败');
+          throw new Error(result.message || t('verifyFailed'));
       }
 
       setSuccess(true);
       onSuccess?.();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to verify and save account');
+      setError(err instanceof Error ? err.message : t('verifyFailedFallback'));
     } finally {
       setLoading(false);
     }
@@ -153,21 +157,26 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
     >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>连接 {app?.source_type || SUPPORTED_PLATFORMS.find(p => p.platform === selectedPlatform)?.label || '账号'}</DialogTitle>
-          <DialogDescription>
-            请输入您的账号凭据以授权数据同步
-          </DialogDescription>
+          <DialogTitle>
+            {t('connectTitle', {
+              platform:
+                app?.source_type ||
+                SUPPORTED_PLATFORMS.find(p => p.platform === selectedPlatform)?.label ||
+                t('connectFallback'),
+            })}
+          </DialogTitle>
+          <DialogDescription>{t('desc')}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label>选择平台</Label>
+            <Label>{t('selectPlatform')}</Label>
             <Select
               value={selectedPlatform}
               onValueChange={setSelectedPlatform}
               disabled={!!app?.id || loading || success}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="请选择平台" />
+                <SelectValue placeholder={t('selectPlatformPlaceholder')} />
               </SelectTrigger>
               <SelectContent>
                 {SUPPORTED_PLATFORMS.map((p) => (
@@ -179,21 +188,21 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="username">用户名 / 邮箱</Label>
+            <Label htmlFor="username">{t('username')}</Label>
             <Input
               id="username"
-              placeholder="请输入用户名"
+              placeholder={t('usernamePlaceholder')}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               disabled={loading || success}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="password">密码</Label>
+            <Label htmlFor="password">{t('password')}</Label>
             <Input
               id="password"
               type="password"
-              placeholder="请输入密码"
+              placeholder={t('passwordPlaceholder')}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={loading || success}
@@ -206,16 +215,14 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
               onCheckedChange={(checked) => setMaster(checked as boolean)}
               disabled={loading || success}
             />
-            <Label htmlFor="master" className="text-sm font-medium leading-none">设置为主数据源</Label>
+            <Label htmlFor="master" className="text-sm font-medium leading-none">{t('setMaster')}</Label>
           </div>
           <div className="bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg text-[13px] leading-relaxed text-amber-800 dark:text-amber-200 space-y-2 border border-amber-200 dark:border-amber-800">
             <div className="flex items-center gap-2 font-semibold">
               <IconAlertCircleFilled className="h-4 w-4" />
-              安全提示
+              {t('securityTitle')}
             </div>
-            <p>
-              为实现数据自动同步，服务端需要获取您的账号和密码。受限于品牌登录机制，使用本工具时请勿在其他终端同时登录，否则将导致凭证失效。<br />我们会尽力保护您的信息安全，但请您知晓并自行承担潜在的安全风险。
-            </p>
+            <p>{t('securityDesc')}</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
@@ -224,25 +231,25 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
               onCheckedChange={(checked) => setAgreed(checked as boolean)}
               disabled={loading || success}
             />
-            <Label htmlFor="terms" className="text-sm font-medium leading-none">我已阅读并知晓上述安全提示</Label>
+            <Label htmlFor="terms" className="text-sm font-medium leading-none">{t('agree')}</Label>
           </div>
 
           {success && (
             <div className="bg-emerald-50 dark:bg-emerald-950/20 p-3 rounded-lg text-[13px] text-emerald-800 border border-emerald-200">
               <div className="flex items-center gap-2 font-semibold">
-                <IconCircleCheckFilled className="h-4 w-4" />验证通过
+                <IconCircleCheckFilled className="h-4 w-4" />{t('verified')}
               </div>
-              <p>您的账号已成功验证并安全保存。</p>
+              <p>{t('verifiedDesc')}</p>
             </div>
           )}
           {error && <p className="text-sm text-destructive font-medium">{error}</p>}
         </div>
         <DialogFooter>
           <Button onClick={handleVerifyAndSave} disabled={loading || !selectedPlatform || !username || !password || !agreed || success} className="w-full sm:w-auto">
-            {loading ? '验证中...' : '验证'}
+            {loading ? t('verifying') : t('verify')}
           </Button>
           {success && (
-            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">关闭</Button>
+            <Button variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">{tc('close')}</Button>
           )}
         </DialogFooter>
       </DialogContent>

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from 'react';
+import { useLocale, useTranslations } from 'next-intl';
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import { cn } from '@/lib/utils';
 
-const WEEKDAY_HEADERS = ['一', '二', '三', '四', '五', '六', '日'];
+// Monday ~ Sunday -> translation keys in the CalendarPage namespace
+const WEEKDAY_KEYS = ['weekdayMon', 'weekdayTue', 'weekdayWed', 'weekdayThu', 'weekdayFri', 'weekdaySat', 'weekdaySun'] as const;
 
 interface CalendarProps {
   /** Currently selected date (day precision) */
@@ -17,11 +19,11 @@ interface CalendarProps {
 
 /** Lightweight month calendar with prev/next month navigation (weeks start on Monday) */
 export function Calendar({ selected, onSelect, className }: CalendarProps) {
+  const t = useTranslations('CalendarPage');
+  const locale = useLocale();
   const [view, setView] = useState(dayjs(selected || dayjs()).startOf('month'));
   const today = dayjs();
 
-  const year = view.year();
-  const month = view.month() + 1;
   const daysInMonth = view.daysInMonth();
   const firstWeekday = view.startOf('month').day(); // 0=Sun
   const leadingBlanks = firstWeekday === 0 ? 6 : firstWeekday - 1; // align to Monday
@@ -44,7 +46,9 @@ export function Calendar({ selected, onSelect, className }: CalendarProps) {
         >
           <IconChevronLeft className="h-4 w-4" />
         </button>
-        <div className="text-sm font-medium">{year}年{month}月</div>
+        <div className="text-sm font-medium">
+          {locale === 'zh' ? view.format('YYYY年M月') : view.format('MMMM YYYY')}
+        </div>
         <button
           type="button"
           onClick={() => setView(view.add(1, 'month'))}
@@ -54,9 +58,9 @@ export function Calendar({ selected, onSelect, className }: CalendarProps) {
         </button>
       </div>
       <div className="grid grid-cols-7 gap-1">
-        {WEEKDAY_HEADERS.map((d) => (
-          <div key={d} className="py-1 text-center text-xs text-muted-foreground">
-            {d}
+        {WEEKDAY_KEYS.map((key) => (
+          <div key={key} className="py-1 text-center text-xs text-muted-foreground">
+            {t(key)}
           </div>
         ))}
         {cells.map((cell, i) => {

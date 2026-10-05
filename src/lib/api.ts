@@ -1,6 +1,7 @@
 import { toast } from 'sonner';
 
 import { getAuthToken } from '@/lib/token-manager';
+import { getAuthErrorMessage } from '@/lib/auth-error-message';
 
 let lastAuthErrorToastAt = 0;
 const AUTH_ERROR_TOAST_INTERVAL_MS = 5000;
@@ -37,9 +38,8 @@ export async function clerkFetch(input: RequestInfo, init?: RequestInit) {
     const now = Date.now();
     if (now - lastAuthErrorToastAt > AUTH_ERROR_TOAST_INTERVAL_MS) {
       lastAuthErrorToastAt = now;
-      // 带上后端返回的原因：
-      // "Not authenticated" = 请求根本没带 Authorization 头；
-      // "无效的认证凭据"     = 带了头但 token 校验失败（过期/签名/用户未绑定）。
+      // 带上后端返回的原因，例如 "Not authenticated"（请求没带 Authorization 头）
+      // 或 "无效的认证凭据"（带了头但 token 校验失败：过期 / 签名 / 用户未绑定）。
       const detail = await response
         .clone()
         .json()
@@ -49,9 +49,8 @@ export async function clerkFetch(input: RequestInfo, init?: RequestInit) {
             : undefined
         )
         .catch(() => undefined);
-      toast.error(
-        `授权可能已失效（${response.status}${detail ? ` · ${detail}` : ''}），请重新登录。如果多次出现此提示，重新登录即可。`
-      );
+      // 文案走 Common.authExpired；这里是客户端 fetch，用 <I18nBridge /> 注入的格式化函数。
+      toast.error(getAuthErrorMessage(response.status, detail));
     }
   }
 

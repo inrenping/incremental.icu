@@ -1,7 +1,7 @@
 'use client';
 
 import { type Activity } from '@/lib/activities';
-import { ActivitySportIcon } from '@/lib/activity-icons';
+import { ActivitySportIcon, useActivityTypeLabel } from '@/lib/activity-icons';
 import { ActivityFeedDesktopCells } from '@/components/dash/activity-feed-layout';
 import dayjs from 'dayjs';
 import { formatDuration, formatDistance } from '@/lib/activities';
@@ -12,6 +12,7 @@ interface ActivityFeedCardProps {
 }
 
 export function ActivityFeedCard({ activity, onClick }: ActivityFeedCardProps) {
+  const typeLabel = useActivityTypeLabel();
   const hasDistance = activity.distance_meters > 0;
 
   return (
@@ -41,7 +42,7 @@ export function ActivityFeedCard({ activity, onClick }: ActivityFeedCardProps) {
           )}
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground truncate">
-          <span className="capitalize shrink-0">{activity.sport_type_raw}</span>
+          <span className="shrink-0">{typeLabel(activity.sport_type_raw)}</span>
           <span>·</span>
           <span className="tabular-nums shrink-0">
             {formatDuration(activity.moving_duration_seconds)}

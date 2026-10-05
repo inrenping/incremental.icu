@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { IconCarouselHorizontal } from "@tabler/icons-react";
 
 
@@ -11,6 +12,8 @@ import { Button } from "@/components/ui/button";
 
 export function SiteConfig({ className }: React.ComponentProps<typeof Button>) {
   const { layout, setLayout } = useLayout()
+  const t = useTranslations("SiteConfig")
+  const label = t("toggleLayout")
 
   return (
     <Button
@@ -25,9 +28,9 @@ export function SiteConfig({ className }: React.ComponentProps<typeof Button>) {
         })
       }}
       className={cn("hidden 3xl:inline-flex size-8", className)}
-      title="Toggle layout"
+      title={label}
     >
-      <span className="sr-only">Toggle layout</span>
+      <span className="sr-only">{label}</span>
       <IconCarouselHorizontal />
     </Button>
   )

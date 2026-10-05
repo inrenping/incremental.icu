@@ -11,8 +11,7 @@ import { Card, CardTitle } from "@/components/ui/card";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import { useLayout } from "@/hooks/use-layout";
-import Link from "next/link";
-import docMenu from "@/lib/doc-menu.json";
+import { DocSidebar } from "@/components/dash/doc-sidebar";
 import {
   IconPlus,
   IconClock,
@@ -177,31 +176,7 @@ export default function TasksPage() {
       "flex flex-row gap-6 p-6 mx-auto bg-slate-50/50 dark:bg-background flex-1 text-sm transition-all duration-300",
       layout === "fixed" ? "w-full max-w-7xl" : "w-full max-w-none"
     )}>
-      {/* Left side navigation menu */}
-      <aside className="hidden lg:block w-40 shrink-0">
-        <div className="sticky top-10">
-          <nav className="flex flex-col gap-4 text-muted-foreground/80">
-            {docMenu.map((section, sectionIndex) => (
-              <React.Fragment key={sectionIndex}>
-                {section.divider && sectionIndex > 0 && (
-                  <div className="border-t border-border/60" />
-                )}
-                <div className="flex flex-col gap-3">
-                  {section.items.map((item, itemIndex) => (
-                    <Link
-                      key={itemIndex}
-                      href={item.href}
-                      className="hover:text-primary transition-colors"
-                    >
-                      {item.text}
-                    </Link>
-                  ))}
-                </div>
-              </React.Fragment>
-            ))}
-          </nav>
-        </div>
-      </aside>
+      <DocSidebar />
 
       <div className="flex-1 min-w-0">
         <div className="flex flex-col gap-8 py-4 md:gap-6 md:py-6">

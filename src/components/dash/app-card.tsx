@@ -19,6 +19,7 @@ interface AppCardProps {
 
 export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
   const t = useTranslations('DashPage');
+  const tCard = useTranslations('AppCard');
 
   return (
     <Card className="relative">
@@ -36,7 +37,7 @@ export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
             {app.master && (
               <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 gap-1 border-emerald-200">
                 <IconCircleCheckFilled className="h-3 w-3" />
-                主数据源
+                {tCard("masterSource")}
               </Badge>
             )}
           </div>

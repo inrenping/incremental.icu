@@ -31,6 +31,7 @@ interface Log {
 export default function LogsPage() {
   const { layout } = useLayout();
   const t = useTranslations('DashPage');
+  const tLogs = useTranslations('LogsPage');
 
   const [logs, setLogs] = useState<Log[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,29 +85,29 @@ export default function LogsPage() {
             <h2 className="font-semibold">{t("recentLogs")}</h2>
           </div>
           <Link href="/dash/syslogs" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
-            接口调用记录
+            {tLogs('title')}
           </Link>
         </div>
         <div className="flex items-center justify-end px-2">
           <Button onClick={() => fetchLogs()} size="sm" variant="outline" className="gap-2">
             <IconSearch className="h-4 w-4" />
-            查询
+            {tLogs('query')}
           </Button>
         </div>
         <div className="rounded-md border bg-background overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>模块</TableHead>
-                <TableHead>类型</TableHead>
-                <TableHead>操作描述</TableHead>
-                <TableHead>时间</TableHead>
+                <TableHead>{tLogs('module')}</TableHead>
+                <TableHead>{tLogs('type')}</TableHead>
+                <TableHead>{tLogs('description')}</TableHead>
+                <TableHead>{tLogs('time')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">加载中...</TableCell>
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">{tLogs('loading')}</TableCell>
                 </TableRow>
               ) : error ? (
                 <TableRow>
@@ -135,7 +136,7 @@ export default function LogsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">没数据</TableCell>
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">{tLogs('noData')}</TableCell>
                 </TableRow>
               )}
             </TableBody>

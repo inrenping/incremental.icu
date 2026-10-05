@@ -8,7 +8,7 @@ This file defines conventions, architecture decisions, and workflows for AI agen
 
 - **Repos**: frontend `incremental.icu` (this repo, [github.com/inrenping/incremental.icu](https://github.com/inrenping/incremental.icu)) · backend `incremental-serve` · MCP `incremental-mcp`
 - **Frontend stack**: Next.js 16.2 (App Router), React 19, TypeScript, Tailwind CSS v4, shadcn/ui + Radix, Recharts, dayjs, sonner
-- **Auth**: Clerk (`@clerk/nextjs`) — email code, Google OAuth, GitHub OAuth. `next-auth` is a leftover dependency with no references in source; do not build on it.
+- **Auth**: Clerk (`@clerk/nextjs`) — email code, Google OAuth, GitHub OAuth. This is the only auth stack; the old `next-auth` / `@react-oauth/google` leftovers have been removed from `package.json`.
 - **Backend**: FastAPI (Python), SQLAlchemy, APScheduler — separate repo
 - **Database**: Neon (Serverless Postgres); activity files stored in Supabase Storage
 - **Internationalization**: next-intl (zh default, en available, `localePrefix: 'as-needed'`)
@@ -33,6 +33,7 @@ src/
       accounts/              # platform account management (incl. "master" source switch)
       activities/            # activity list (compare/, files/ subpages)
       calendar/              # weekly training calendar
+      fitness/               # Garmin fitness metrics (training status, fitness age, PRs, race prediction)
       task/                  # scheduled sync tasks
       sync-history/          # sync run history
       files/                 # Supabase activity files

@@ -57,18 +57,32 @@ interface SyncRunItem {
   synced_at: string | null;
 }
 
+// 只保留配色，标签走 SyncHistory 命名空间
+const STATUS_CLS: Record<string, string> = {
+  success: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  partial: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  failed: "bg-red-500/10 text-red-600 border-red-500/20",
+  no_diff: "bg-slate-500/10 text-slate-600 border-slate-500/20",
+  error: "bg-red-500/10 text-red-600 border-red-500/20",
+};
+
+const STATUS_LABEL_KEY: Record<string, string> = {
+  success: "statusSuccess",
+  partial: "statusPartial",
+  failed: "statusFailed",
+  no_diff: "statusNoDiff",
+  error: "statusError",
+};
+
 function StatusBadge({ status }: { status: string }) {
-  const map: Record<string, { label: string; cls: string; iconCls: string }> = {
-    success: { label: "成功", cls: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20", iconCls: "bg-emerald-500" },
-    partial: { label: "部分成功", cls: "bg-amber-500/10 text-amber-600 border-amber-500/20", iconCls: "bg-amber-500" },
-    failed: { label: "失败", cls: "bg-red-500/10 text-red-600 border-red-500/20", iconCls: "bg-red-500" },
-    no_diff: { label: "无差异", cls: "bg-slate-500/10 text-slate-600 border-slate-500/20", iconCls: "bg-slate-500" },
-    error: { label: "异常", cls: "bg-red-500/10 text-red-600 border-red-500/20", iconCls: "bg-red-500" },
-  };
-  const s = map[status] ?? { label: status, cls: "bg-slate-500/10 text-slate-600 border-slate-500/20", iconCls: "bg-slate-500" };
+  const t = useTranslations("SyncHistory");
+  const labelKey = STATUS_LABEL_KEY[status];
   return (
-    <Badge variant="outline" className={`shrink-0 px-2 py-0.5 text-[11px] font-semibold ${s.cls}`}>
-      {s.label}
+    <Badge
+      variant="outline"
+      className={`shrink-0 px-2 py-0.5 text-[11px] font-semibold ${STATUS_CLS[status] ?? "bg-slate-500/10 text-slate-600 border-slate-500/20"}`}
+    >
+      {labelKey ? t(labelKey) : status}
     </Badge>
   );
 }
@@ -85,19 +99,20 @@ function getStatusDotClass(status: string): string {
 }
 
 function TriggerBadge({ triggerMode, taskId }: { triggerMode?: string | null; taskId: number | null }) {
+  const t = useTranslations("SyncHistory");
   const isTask = taskId != null || triggerMode === "scheduled" || triggerMode === "auto";
   if (isTask) {
     return (
       <Badge variant="outline" className="shrink-0 gap-1 px-2 py-0.5 text-[11px] font-semibold bg-purple-500/10 text-purple-600 border-purple-500/20">
         <IconBolt className="h-3 w-3" />
-        自动同步
+        {t("autoSync")}
       </Badge>
     );
   }
   return (
     <Badge variant="outline" className="shrink-0 gap-1 px-2 py-0.5 text-[11px] font-semibold bg-green-500/10 text-green-600 border-green-500/20">
       <IconBolt className="h-3 w-3" />
-      手动同步
+      {t("manualSync")}
     </Badge>
   );
 }
@@ -133,6 +148,7 @@ function guessDeviceName(run: SyncRun): string {
 
 export default function SyncHistoryPage() {
   const t = useTranslations("DashPage");
+  const tHistory = useTranslations("SyncHistory");
   const { layout } = useLayout();
 
   const [runs, setRuns] = useState<SyncRun[]>([]);
@@ -155,22 +171,22 @@ export default function SyncHistoryPage() {
       );
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || `获取同步记录失败 (HTTP ${response.status})`);
+        throw new Error(errorData.message || tHistory("loadFailedHttp", { status: response.status }));
       }
       const data = await response.json();
       if (data.status === "success" && Array.isArray(data.data)) {
         setRuns(data.data);
         setTotal(data.total ?? data.data.length);
       } else {
-        throw new Error("服务器返回的数据格式异常");
+        throw new Error(tHistory("badPayload"));
       }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "获取同步记录失败");
+      setError(err instanceof Error ? err.message : tHistory("loadFailed"));
       console.error("Error fetching sync runs:", err);
     } finally {
       setLoading(false);
     }
-  }, [page, limit]);
+  }, [page, limit, tHistory]);
 
   useEffect(() => {
     fetchRuns();
@@ -199,10 +215,10 @@ export default function SyncHistoryPage() {
 
   const summary = (r: SyncRun) => {
     const parts: string[] = [];
-    if (r.uploaded_count > 0) parts.push(`成功 ${r.uploaded_count}`);
-    if (r.duplicated_count > 0) parts.push(`已存在 ${r.duplicated_count}`);
-    if (r.failed_count > 0) parts.push(`失败 ${r.failed_count}`);
-    return parts.length ? parts.join(" · ") : "无同步项";
+    if (r.uploaded_count > 0) parts.push(tHistory("statUploaded", { count: r.uploaded_count }));
+    if (r.duplicated_count > 0) parts.push(tHistory("statDuplicated", { count: r.duplicated_count }));
+    if (r.failed_count > 0) parts.push(tHistory("statFailed", { count: r.failed_count }));
+    return parts.length ? parts.join(" · ") : tHistory("statNone");
   };
 
   return (
@@ -281,7 +297,7 @@ export default function SyncHistoryPage() {
                           </div>
                           <div className="flex items-center gap-2 text-xs">
                             <span className="text-muted-foreground">
-                              同步 <span className="font-semibold text-foreground">{run.diff_count}</span> 条 · {summary(run)}
+                              {tHistory("diffCount", { count: run.diff_count })} · {summary(run)}
                             </span>
                           </div>
                         </div>
@@ -291,18 +307,23 @@ export default function SyncHistoryPage() {
                           <ul className="list-disc list-inside space-y-1 text-sm text-slate-600 dark:text-slate-400 pl-1">
                             {(itemsCache[run.id] ?? []).slice(0, openId === run.id ? undefined : 2).map((item) => (
                               <li key={item.id} className="truncate">
-                                上传到目标区：「{item.activity_name || item.activity_id}」，开始于「{item.start_time_local ? dayjs(item.start_time_local).format("YYYY-MM-DD HH:mm") : "-"}」
+                                {tHistory("uploadedTo", {
+                                  name: item.activity_name || item.activity_id,
+                                  time: item.start_time_local
+                                    ? dayjs(item.start_time_local).format("YYYY-MM-DD HH:mm")
+                                    : "-",
+                                })}
                               </li>
                             ))}
                             {(itemsCache[run.id] ?? []).length > 2 && openId !== run.id && (
                               <li className="text-slate-500 dark:text-slate-500">
-                                共 {(itemsCache[run.id] ?? []).length} 条，展开查看更多…
+                                {tHistory("moreItems", { count: (itemsCache[run.id] ?? []).length })}
                               </li>
                             )}
                           </ul>
                         ) : run.status === "no_diff" || run.diff_count === 0 ? (
                           <p className="text-sm text-slate-500 dark:text-slate-500 pl-1">
-                            没有要同步的活动内容
+                            {tHistory("noItems")}
                           </p>
                         ) : null}
 
@@ -377,15 +398,15 @@ export default function SyncHistoryPage() {
                                         {item.message}
                                       </span>
                                     ) : item.status === "duplicate" ? (
-                                      <span className="text-[11px] text-slate-400">已存在</span>
+                                      <span className="text-[11px] text-slate-400">{tHistory("itemDuplicated")}</span>
                                     ) : (
-                                      <span className="text-[11px] text-emerald-600">已同步</span>
+                                      <span className="text-[11px] text-emerald-600">{tHistory("itemUploaded")}</span>
                                     )}
                                   </div>
                                 </div>
                               ))}
                               {(itemsCache[run.id] ?? []).length === 0 && (
-                                <div className="py-3 text-center text-xs text-muted-foreground">{t("noItems")}</div>
+                                <div className="py-3 text-center text-xs text-muted-foreground">{tHistory("noItems")}</div>
                               )}
                             </div>
                           )}

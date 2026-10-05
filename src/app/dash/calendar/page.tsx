@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { authFetch } from '@/lib/api';
 import { useLayout } from '@/hooks/use-layout';
 import { cn } from '@/lib/utils';
-import { formatDistance } from '@/lib/activities';
+import { useUnitFormatter } from '@/lib/units';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { IconCalendar, IconRefresh } from '@tabler/icons-react';
 import dayjs from 'dayjs';
+import 'dayjs/locale/zh-cn';
+import 'dayjs/locale/en';
+import { toast } from 'sonner';
 
 interface MainActivity {
   id: number;
@@ -32,7 +36,16 @@ interface MainActivity {
   calories?: number | null;
 }
 
-const WEEKDAY_HEADERS = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+// 周一 → 周日，对应 CalendarPage 命名空间下的翻译键
+const WEEKDAY_KEYS = [
+  'weekdayMon',
+  'weekdayTue',
+  'weekdayWed',
+  'weekdayThu',
+  'weekdayFri',
+  'weekdaySat',
+  'weekdaySun',
+] as const;
 
 function getSportColor(sportType: string): string {
   const s = sportType.toLowerCase();
@@ -133,6 +146,10 @@ function buildWeekRows(activities: MainActivity[], referenceDate: string): WeekR
 }
 
 export default function MainFeedPage() {
+  const t = useTranslations('CalendarPage');
+  const tc = useTranslations('Common');
+  const locale = useLocale();
+  const { distance } = useUnitFormatter();
   const { layout } = useLayout();
   const [activities, setActivities] = useState<MainActivity[]>([]);
   const [loading, setLoading] = useState(true);
@@ -144,6 +161,11 @@ export default function MainFeedPage() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
 
   const ref = dayjs(referenceDate);
+  // 中文习惯「2026年3月5日」，英文习惯「Mar 5, 2026」
+  const dateLabel =
+    locale === 'zh'
+      ? ref.locale('zh-cn').format('YYYY年M月D日')
+      : ref.locale('en').format('MMM D, YYYY');
 
   useEffect(() => {
     let cancelled = false;
@@ -190,6 +212,7 @@ export default function MainFeedPage() {
       }
     } catch (err) {
       console.error('Failed to sync activities:', err);
+      toast.error(t('syncFailed'));
     } finally {
       setSyncing(false);
     }
@@ -211,7 +234,7 @@ export default function MainFeedPage() {
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm" className="h-7 px-3">
                 <IconCalendar className="h-3.5 w-3.5" />
-                {ref.format('YYYY年M月D日')}
+                {dateLabel}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -219,7 +242,7 @@ export default function MainFeedPage() {
             </PopoverContent>
           </Popover>
           <Button variant="ghost" size="sm" onClick={goToToday} className="h-7 px-3 text-xs">
-            今天
+            {tc('today')}
           </Button>
           <Button
             variant="ghost"
@@ -227,6 +250,8 @@ export default function MainFeedPage() {
             className="h-7 w-7"
             onClick={handleSync}
             disabled={syncing}
+            title={tc('sync')}
+            aria-label={tc('sync')}
           >
             <IconRefresh className={cn('h-3.5 w-3.5', syncing && 'animate-spin')} />
           </Button>
@@ -258,7 +283,7 @@ export default function MainFeedPage() {
         </div>
       ) : activities.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-          <p className="text-sm">暂无运动数据</p>
+          <p className="text-sm">{t('noActivity')}</p>
         </div>
       ) : (
         <div>
@@ -266,9 +291,9 @@ export default function MainFeedPage() {
           <div className="flex border-b">
             <div className="w-32 shrink-0" />
             <div className="grid flex-1 grid-cols-7">
-              {WEEKDAY_HEADERS.map((d) => (
-                <div key={d} className="py-2 text-center text-xs text-muted-foreground">
-                  {d}
+              {WEEKDAY_KEYS.map((key) => (
+                <div key={key} className="py-2 text-center text-xs text-muted-foreground">
+                  {t(key)}
                 </div>
               ))}
             </div>
@@ -298,12 +323,12 @@ export default function MainFeedPage() {
                   <p className="text-xs text-muted-foreground">
                     {week.weekStart.format('M/D')} – {week.weekEnd.format('M/D')}
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">总距离</p>
-                  <p className="text-sm font-semibold">{formatDistance(week.totalDistance)}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t('totalDistance')}</p>
+                  <p className="text-sm font-semibold">{distance(week.totalDistance)}</p>
                   {week.runningDistance > 0 && (
                     <>
-                      <p className="mt-1 text-xs text-muted-foreground">跑步距离</p>
-                      <p className="text-sm font-semibold">{formatDistance(week.runningDistance)}</p>
+                      <p className="mt-1 text-xs text-muted-foreground">{t('runningDistance')}</p>
+                      <p className="text-sm font-semibold">{distance(week.runningDistance)}</p>
                     </>
                   )}
                 </div>
@@ -321,7 +346,7 @@ export default function MainFeedPage() {
                         className="flex min-h-32 flex-col items-center border-l px-1 pt-2 first:border-l-0"
                       >
                         {isToday && (
-                          <span className="mb-1 text-[10px] font-medium text-orange-500">今天</span>
+                          <span className="mb-1 text-[10px] font-medium text-orange-500">{tc('today')}</span>
                         )}
 
                         <div className="flex flex-col items-center gap-2">
@@ -374,46 +399,46 @@ export default function MainFeedPage() {
                                       </p>
                                       <div className="mt-2 space-y-1 text-xs">
                                         <div className="flex justify-between">
-                                          <span className="text-muted-foreground">总里程</span>
-                                          <span className="font-medium tabular-nums">{formatDistance(act.distance_meters)}</span>
+                                          <span className="text-muted-foreground">{t('totalDistance')}</span>
+                                          <span className="font-medium tabular-nums">{distance(act.distance_meters)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                          <span className="text-muted-foreground">累计时间</span>
+                                          <span className="text-muted-foreground">{t('totalTime')}</span>
                                           <span className="font-medium tabular-nums">{fmtDuration(act.duration_seconds)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                          <span className="text-muted-foreground">运动时间</span>
+                                          <span className="text-muted-foreground">{t('movingTime')}</span>
                                           <span className="font-medium tabular-nums">{fmtDuration(act.moving_duration_seconds)}</span>
                                         </div>
                                         <div className="flex justify-between">
-                                          <span className="text-muted-foreground">平均配速</span>
+                                          <span className="text-muted-foreground">{t('avgPace')}</span>
                                           <span className="font-medium tabular-nums">{speedToPace(act.average_speed)} /km</span>
                                         </div>
                                         <div className="flex justify-between">
-                                          <span className="text-muted-foreground">最大配速</span>
+                                          <span className="text-muted-foreground">{t('maxPace')}</span>
                                           <span className="font-medium tabular-nums">{speedToPace(act.max_speed)} /km</span>
                                         </div>
                                         {act.average_hr && act.average_hr > 0 && (
                                           <div className="flex justify-between">
-                                            <span className="text-muted-foreground">平均心率</span>
+                                            <span className="text-muted-foreground">{t('avgHr')}</span>
                                             <span className="font-medium tabular-nums">{act.average_hr} bpm</span>
                                           </div>
                                         )}
                                         {act.max_hr && act.max_hr > 0 && (
                                           <div className="flex justify-between">
-                                            <span className="text-muted-foreground">最大心率</span>
+                                            <span className="text-muted-foreground">{t('maxHr')}</span>
                                             <span className="font-medium tabular-nums">{act.max_hr} bpm</span>
                                           </div>
                                         )}
                                         {act.elevation_gain > 0 && (
                                           <div className="flex justify-between">
-                                            <span className="text-muted-foreground">累计爬升</span>
+                                            <span className="text-muted-foreground">{t('elevationGain')}</span>
                                             <span className="font-medium tabular-nums">{act.elevation_gain} m</span>
                                           </div>
                                         )}
                                         {act.calories && act.calories > 0 && (
                                           <div className="flex justify-between">
-                                            <span className="text-muted-foreground">累计消耗</span>
+                                            <span className="text-muted-foreground">{t('calories')}</span>
                                             <span className="font-medium tabular-nums">{act.calories} kcal</span>
                                           </div>
                                         )}

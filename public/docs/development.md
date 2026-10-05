@@ -17,8 +17,6 @@
 | 部署 | 前端 Vercel；后端由 GitHub Actions 推送到 `master` 后自动 SSH 部署到服务器（systemd 托管） |
 | MCP 服务 | 独立仓库 `incremental-mcp`，对外端点 `https://incremental.icu/mcp` |
 
-> 历史依赖说明：`next-auth`、`@react-oauth/google` 仍留在 `package.json` 中，但代码里已无引用，认证统一走 Clerk，不要再用它们新增逻辑。
-
 ## 目录结构（前端）
 
 ```
@@ -36,6 +34,7 @@ src/
       accounts/         # 平台账号管理（含「主数据源」开关）
       activities/       # 详细数据查询，子页 compare / files
       calendar/         # 按周排布的运动日历
+      fitness/          # 佳明体能指标（训练状态·负荷、体能年龄、个人纪录、成绩预测）
       task/             # 定时任务
       sync-history/     # 同步历史
       files/            # 活动文件（Supabase）
@@ -70,6 +69,8 @@ src/
 public/
   docs/                 # 本站文档 Markdown
   docs/guide/           # 快速开始里的截图
+scripts/
+  check-i18n.py         # i18n 文案完整性检查（npm run i18n:check）
 ```
 
 ## 本地运行
@@ -97,9 +98,11 @@ npm run dev
 常用命令：
 
 ```bash
-npm run dev     # 本地开发
-npm run lint    # eslint，提交前必跑
-npm run build   # 构建（next.config.ts 中已开启 ignoreBuildErrors，见下方说明）
+npm run dev          # 本地开发
+npm run lint         # eslint，提交前必跑
+npm run typecheck    # tsc --noEmit
+npm run i18n:check   # 检查 zh.json / en.json 文案是否对齐
+npm run build        # 构建（next.config.ts 中已开启 ignoreBuildErrors，见下方说明）
 ```
 
 > `next.config.ts` 开启了 `typescript.ignoreBuildErrors`：`.next/types/validator.ts` 会引用已删除的 `/login` 路由残留类型导致构建失败，属于历史包袱，改动路由时留意。
@@ -129,8 +132,9 @@ uvicorn app.main:app --reload
 | 账号 | `/api/v1/base/getConnectConfigs`、`/api/v1/base/login`、`/api/v1/base/relogin` |
 | 活动 | `/api/v1/base/getActivitiesByPage(/WithFiles)`、`/api/v1/base/pullNewActivities`、`/api/v1/base/pullFullActivities`、`/api/v1/base/downloadActivity/{id}`、`/api/v1/base/cacheActivityFit/{id}`、`/api/v1/base/uploadActivity2Target/{id}/{targetId}` |
 | 同步 | `/api/v1/base/execute2`（一键同步）、`/api/v1/base/syncRuns`（同步记录） |
-| 心率 | `/api/v1/garmin/getDailyHeartRate`、`/api/v1/garmin/syncDailyHeartRate` |
+| 心率 | `/api/v1/garmin/getDailyHeartRate`、`/api/v1/garmin/syncDailyHeartRate`、`/api/v1/garmin/getDailyHeartRateRange` |
 | 睡眠 | `/api/v1/garmin/getDailySleep`、`/api/v1/garmin/getMonthlySleep`、`/api/v1/garmin/syncMonthlySleep` |
+| 体能 | `/api/v1/garmin/getFitnessMetrics`、`/api/v1/garmin/syncFitnessMetrics` |
 | 统计 | `/api/v1/base/getRunningTotal`、`/api/v1/main/getActivitiesByWeek`、`/api/v1/main/syncBaseToMainActivity` |
 | 任务 | `/api/v1/task`（增删改查） |
 | 文件 | `/api/v1/supabase/files`、`/api/v1/supabase/sync` |

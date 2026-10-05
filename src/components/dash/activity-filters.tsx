@@ -1,6 +1,12 @@
 'use client';
 
-import { ACTIVITY_TYPES, ActivityTypeIcon, type ActivityTypeEntry } from '@/lib/activity-icons';
+import { useTranslations } from 'next-intl';
+import {
+  ACTIVITY_TYPES,
+  ActivityTypeIcon,
+  useActivityTypeLabel,
+  type ActivityTypeEntry,
+} from '@/lib/activity-icons';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -64,6 +70,9 @@ export function ActivityFilters({
   onFullPull,
   viewToggle,
 }: ActivityFiltersProps) {
+  const t = useTranslations('ActivityFilters');
+  const tc = useTranslations('Common');
+  const typeLabel = useActivityTypeLabel();
   const isStacked = variant === 'stacked';
   const isResponsive = variant === 'responsive';
 
@@ -75,7 +84,7 @@ export function ActivityFilters({
           isStacked ? 'w-full' : isResponsive ? 'w-full md:w-[300px]' : 'w-[300px]'
         )}
       >
-        <SelectValue placeholder="选择平台账号" />
+        <SelectValue placeholder={t('selectAccount')} />
       </SelectTrigger>
       <SelectContent>
         {apps.filter((app) => app.is_active).map((app) => (
@@ -116,10 +125,10 @@ export function ActivityFilters({
           isStacked ? 'w-full' : isResponsive ? 'w-full md:w-[160px]' : 'w-[160px]'
         )}
       >
-        <SelectValue placeholder="全部运动" />
+        <SelectValue placeholder={t('allSports')} />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem value="all">全部运动</SelectItem>
+        <SelectItem value="all">{t('allSports')}</SelectItem>
         {ACTIVITY_TYPES.map((group: ActivityTypeEntry) => {
           const childKeys =
             group.children && group.children.length > 0
@@ -131,7 +140,7 @@ export function ActivityFilters({
               <SelectItem value={childKeys} className="font-bold uppercase">
                 <span className="flex items-center gap-2">
                   <ActivityTypeIcon name={group.name} className="h-4 w-4 shrink-0" />
-                  {group.name_zh}
+                  {typeLabel(group.name, { group: true })}
                 </span>
               </SelectItem>
               {group.children?.map((item, index) => (
@@ -142,7 +151,7 @@ export function ActivityFilters({
                 >
                   <span className="flex items-center gap-2">
                     <ActivityTypeIcon name={item.name} className="h-4 w-4 shrink-0 text-muted-foreground" />
-                    {item.name_zh}
+                    {typeLabel(item.name)}
                   </span>
                 </SelectItem>
               ))}
@@ -160,7 +169,7 @@ export function ActivityFilters({
         type="text"
         value={searchName}
         onChange={(e) => onSearchNameChange(e.target.value)}
-        placeholder="搜索关键词..."
+        placeholder={t('searchPlaceholder')}
         className="w-full pl-9 pr-3 py-1.5 border border-border bg-background rounded text-sm focus:outline-none focus:ring-1 focus:ring-ring"
       />
     </div>
@@ -170,33 +179,31 @@ export function ActivityFilters({
     <>
       <Button variant="outline" size="sm" onClick={onPull} disabled={syncing} className="gap-2">
         <IconRefresh className={cn(syncing && 'animate-spin')} />
-        {syncing ? '同步中...' : '增量同步'}
+        {syncing ? t('syncing') : t('incrementalSync')}
       </Button>
 
       <AlertDialog>
         <AlertDialogTrigger asChild>
           <Button variant="outline" size="sm" disabled={syncing} className="gap-2">
             <IconRefresh className={cn(syncing && 'animate-spin')} />
-            {syncing ? '同步中...' : '全量同步'}
+            {syncing ? t('syncing') : t('fullSync')}
           </Button>
         </AlertDialogTrigger>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>确认进行全量同步？</AlertDialogTitle>
-            <AlertDialogDescription>
-              全量同步将尝试获取该平台下的所有历史活动数据。由于数据量可能较大，同步过程可能会比较缓慢，且在网络不稳定的情况下存在失败风险。建议在网络环境良好时进行此操作。
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('fullSyncConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('fullSyncConfirmDesc')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={onFullPull}>确认同步</AlertDialogAction>
+            <AlertDialogCancel>{tc('cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={onFullPull}>{t('fullSyncConfirmAction')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
       <Button size="sm" onClick={onSearch} disabled={loading} className="gap-2">
         {loading ? <IconRefresh className="animate-spin" /> : <IconSearch />}
-        {loading ? '查询中...' : '查询'}
+        {loading ? t('querying') : t('query')}
       </Button>
       {viewToggle}
     </>

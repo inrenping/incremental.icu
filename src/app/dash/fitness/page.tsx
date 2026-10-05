@@ -8,6 +8,7 @@
  */
 
 import { useCallback, useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import dayjs from 'dayjs';
 import {
@@ -20,6 +21,7 @@ import {
 import { authFetch } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useLayout } from '@/hooks/use-layout';
+import { useActivityTypeLabel } from '@/lib/activity-icons';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 
@@ -77,21 +79,40 @@ interface MetricsPayload {
   race_predictions: RacePrediction[];
 }
 
-const STATUS_LABEL: Record<string, { label: string; cls: string }> = {
-  PRODUCTIVE: { label: '高效', cls: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20' },
-  MAINTAINING: { label: '维持', cls: 'bg-blue-500/10 text-blue-600 border-blue-500/20' },
-  PEAKING: { label: '巅峰', cls: 'bg-purple-500/10 text-purple-600 border-purple-500/20' },
-  OVERREACHING: { label: '过度', cls: 'bg-amber-500/10 text-amber-600 border-amber-500/20' },
-  DETRAINING: { label: '退步', cls: 'bg-red-500/10 text-red-600 border-red-500/20' },
-  UNPRODUCTIVE: { label: '低效', cls: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
-  NO_STATUS: { label: '无状态', cls: 'bg-slate-500/10 text-slate-600 border-slate-500/20' },
+// 只保留配色，标签走 FitnessPage 命名空间
+const STATUS_CLS: Record<string, string> = {
+  PRODUCTIVE: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  MAINTAINING: 'bg-blue-500/10 text-blue-600 border-blue-500/20',
+  PEAKING: 'bg-purple-500/10 text-purple-600 border-purple-500/20',
+  OVERREACHING: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  DETRAINING: 'bg-red-500/10 text-red-600 border-red-500/20',
+  UNPRODUCTIVE: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
+  NO_STATUS: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
 };
 
-const RACE_LABEL: Record<string, string> = {
-  FIVE_K: '5 公里',
-  TEN_K: '10 公里',
-  HALF_MARATHON: '半程马拉松',
-  MARATHON: '全程马拉松',
+const STATUS_LABEL_KEY: Record<string, string> = {
+  PRODUCTIVE: 'statusProductive',
+  MAINTAINING: 'statusMaintaining',
+  PEAKING: 'statusPeaking',
+  OVERREACHING: 'statusOverreaching',
+  DETRAINING: 'statusDetraining',
+  UNPRODUCTIVE: 'statusUnproductive',
+  NO_STATUS: 'statusNone',
+};
+
+const RACE_LABEL_KEY: Record<string, string> = {
+  FIVE_K: 'race5k',
+  TEN_K: 'race10k',
+  HALF_MARATHON: 'raceHalf',
+  MARATHON: 'raceFull',
+};
+
+/** 同步结果里的模块名 → 翻译键 */
+const SYNC_ITEM_KEY: Record<string, string> = {
+  training_status: 'syncItemTrainingStatus',
+  fitness_age: 'syncItemFitnessAge',
+  personal_records: 'syncItemPersonalRecords',
+  race_predictions: 'syncItemRacePredictions',
 };
 
 function formatSeconds(seconds?: number | null): string {
@@ -104,9 +125,9 @@ function formatSeconds(seconds?: number | null): string {
   return `${m}:${String(s).padStart(2, '0')}`;
 }
 
-function formatMeters(meters?: number | null): string {
+function formatMeters(meters: number | null | undefined, unit: string): string {
   if (meters == null || Number.isNaN(meters)) return '-';
-  return `${(meters / 1000).toFixed(2)} km`;
+  return `${(meters / 1000).toFixed(2)} ${unit}`;
 }
 
 function formatNumber(value?: number | null, digits = 1): string {
@@ -129,6 +150,7 @@ function SectionCard({
   syncedAt?: string | null;
   children: React.ReactNode;
 }) {
+  const t = useTranslations('FitnessPage');
   return (
     <div className="rounded-2xl border bg-white/80 dark:bg-slate-900/60 shadow-sm">
       <div className="flex items-center justify-between px-5 py-3.5 border-b">
@@ -138,7 +160,7 @@ function SectionCard({
         </div>
         {syncedAt ? (
           <span className="text-[11px] text-muted-foreground">
-            同步于 {formatTime(syncedAt)}
+            {t('syncedAt', { time: formatTime(syncedAt) })}
           </span>
         ) : null}
       </div>
@@ -158,6 +180,9 @@ function Metric({ label, value, hint }: { label: string; value: string; hint?: s
 }
 
 export default function FitnessMetricsPage() {
+  const t = useTranslations('FitnessPage');
+  const tc = useTranslations('Common');
+  const typeLabel = useActivityTypeLabel();
   const { layout } = useLayout();
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -176,14 +201,14 @@ export default function FitnessMetricsPage() {
       if (json.status === 'success') {
         setData(json.data as MetricsPayload);
       } else {
-        setError(json.message ?? '读取体能指标失败');
+        setError(json.message ?? t('loadError'));
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '读取体能指标失败');
+      setError(err instanceof Error ? err.message : t('loadError'));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   const handleSync = useCallback(async () => {
     setSyncing(true);
@@ -196,31 +221,38 @@ export default function FitnessMetricsPage() {
           .filter(([, v]) => typeof v === 'object' && v && (v as { synced?: boolean }).synced === false)
           .map(([k]) => k);
         if (failed.length === 0) {
-          toast.success('体能指标同步完成');
+          toast.success(t('syncSuccess'));
         } else {
-          toast.warning(`同步完成，${failed.length} 项未取到：${failed.join('、')}`);
+          toast.warning(
+            t('syncPartial', {
+              count: failed.length,
+              items: failed.map((k) => (SYNC_ITEM_KEY[k] ? t(SYNC_ITEM_KEY[k]) : k)).join(', '),
+            })
+          );
         }
         await fetchMetrics();
       } else {
-        toast.error(json.message ?? '同步失败');
+        toast.error(json.message ?? t('syncFailed'));
       }
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : '同步失败');
+      toast.error(err instanceof Error ? err.message : t('syncFailed'));
     } finally {
       setSyncing(false);
     }
-  }, [fetchMetrics]);
+  }, [fetchMetrics, t]);
 
   useEffect(() => {
     fetchMetrics();
   }, [fetchMetrics]);
 
   const status = data?.training_status ?? null;
-  const statusMeta = status?.training_status
-    ? STATUS_LABEL[status.training_status] ?? {
-        label: status.training_status,
-        cls: 'bg-slate-500/10 text-slate-600 border-slate-500/20',
-      }
+  const statusCls = status?.training_status
+    ? STATUS_CLS[status.training_status] ?? 'bg-slate-500/10 text-slate-600 border-slate-500/20'
+    : null;
+  const statusLabel = status?.training_status
+    ? (STATUS_LABEL_KEY[status.training_status]
+        ? t(STATUS_LABEL_KEY[status.training_status])
+        : status.training_status)
     : null;
 
   return (
@@ -235,7 +267,7 @@ export default function FitnessMetricsPage() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <IconBolt className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-lg font-semibold tracking-tight">体能指标</h2>
+            <h2 className="text-lg font-semibold tracking-tight">{t('title')}</h2>
           </div>
           <Button
             onClick={handleSync}
@@ -244,11 +276,11 @@ export default function FitnessMetricsPage() {
             className="gap-2 rounded-full"
           >
             <IconRefresh className={cn('h-3.5 w-3.5', syncing && 'animate-spin')} />
-            {syncing ? '同步中…' : '手动同步'}
+            {syncing ? t('syncing') : t('manualSync')}
           </Button>
         </div>
         <p className="text-xs text-muted-foreground">
-          数据来自佳明主账号，每天自动同步一次；这里只保留最新一份快照，不记录历史。
+          {t('headerDesc')}
         </p>
       </section>
 
@@ -265,11 +297,15 @@ export default function FitnessMetricsPage() {
                   ) : (
                     <IconAlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                   )}
-                  <span className="font-medium">{key}</span>
+                  <span className="font-medium">
+                    {SYNC_ITEM_KEY[key] ? t(SYNC_ITEM_KEY[key]) : key}
+                  </span>
                   <span className="text-muted-foreground">
                     {item.synced
-                      ? `已同步${item.count != null ? ` · ${item.count} 条` : ''}`
-                      : `未取到 · ${item.reason ?? '接口无数据'}`}
+                      ? item.count != null
+                        ? `${t('itemSynced')} · ${t('itemCount', { count: item.count })}`
+                        : t('itemSynced')
+                      : t('itemMissing', { reason: item.reason ?? t('noApiData') })}
                   </span>
                 </div>
               );
@@ -278,7 +314,7 @@ export default function FitnessMetricsPage() {
       ) : null}
 
       {loading ? (
-        <div className="py-20 text-center text-muted-foreground">加载中…</div>
+        <div className="py-20 text-center text-muted-foreground">{tc('loading')}</div>
       ) : error ? (
         <div className="py-20 text-center text-destructive">{error}</div>
       ) : (
@@ -292,14 +328,14 @@ export default function FitnessMetricsPage() {
             {status ? (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
-                  {statusMeta ? (
-                    <Badge variant="outline" className={cn('px-2 py-0.5 text-[11px] font-semibold', statusMeta.cls)}>
-                      {statusMeta.label}
+                  {statusLabel ? (
+                    <Badge variant="outline" className={cn('px-2 py-0.5 text-[11px] font-semibold', statusCls ?? undefined)}>
+                      {statusLabel}
                     </Badge>
                   ) : null}
                   {status.training_paused ? (
                     <Badge variant="outline" className="px-2 py-0.5 text-[11px]">
-                      训练已暂停
+                      {t('trainingPaused')}
                     </Badge>
                   ) : null}
                   {status.calendar_date ? (
@@ -308,19 +344,19 @@ export default function FitnessMetricsPage() {
                 </div>
 
                 <div className="grid grid-cols-3 gap-4">
-                  <Metric label="周训练负荷" value={formatNumber(status.weekly_training_load)} />
-                  <Metric label="急性负荷" value={formatNumber(status.daily_training_load_acute)} />
-                  <Metric label="慢性负荷" value={formatNumber(status.daily_training_load_chronic)} />
+                  <Metric label={t('weeklyLoad')} value={formatNumber(status.weekly_training_load)} />
+                  <Metric label={t('acuteLoad')} value={formatNumber(status.daily_training_load_acute)} />
+                  <Metric label={t('chronicLoad')} value={formatNumber(status.daily_training_load_chronic)} />
                   <Metric
-                    label="ACWR"
+                    label={t('acwr')}
                     value={formatNumber(status.acute_chronic_workload_ratio, 2)}
                     hint={status.acwr_status ?? undefined}
                   />
                   <Metric
-                    label="建议负荷区间"
+                    label={t('loadTunnel')}
                     value={`${formatNumber(status.load_tunnel_min)} ~ ${formatNumber(status.load_tunnel_max)}`}
                   />
-                  <Metric label="VO2max" value={formatNumber(status.vo2_max_value, 1)} />
+                  <Metric label={t('vo2max')} value={formatNumber(status.vo2_max_value, 1)} />
                 </div>
 
                 {status.training_status_feedback_phrase ? (
@@ -330,30 +366,30 @@ export default function FitnessMetricsPage() {
                 ) : null}
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">还没有训练状态数据，点右上角「手动同步」拉取。</p>
+              <p className="text-xs text-muted-foreground">{t('noTrainingStatus')}</p>
             )}
           </SectionCard>
 
           {/* 体能年龄 */}
           <SectionCard
-            title="体能年龄"
+            title={t('sectionFitnessAge')}
             icon={<IconBolt className="h-4 w-4 text-muted-foreground" />}
             syncedAt={data?.fitness_age?.synced_at}
           >
             {data?.fitness_age ? (
               <div className="grid grid-cols-3 gap-4">
-                <Metric label="体能年龄" value={formatNumber(data.fitness_age.fitness_age)} hint="岁" />
-                <Metric label="VO2max" value={formatNumber(data.fitness_age.vo2_max_value, 1)} />
-                <Metric label="最大 MET" value={formatNumber(data.fitness_age.max_met, 1)} />
+                <Metric label={t('fitnessAge')} value={formatNumber(data.fitness_age.fitness_age)} hint={t('yearsOld')} />
+                <Metric label={t('vo2max')} value={formatNumber(data.fitness_age.vo2_max_value, 1)} />
+                <Metric label={t('maxMet')} value={formatNumber(data.fitness_age.max_met, 1)} />
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">还没有体能年龄数据。</p>
+              <p className="text-xs text-muted-foreground">{t('noFitnessAge')}</p>
             )}
           </SectionCard>
 
           {/* 个人纪录 */}
           <SectionCard
-            title="个人纪录"
+            title={t('sectionPersonalRecords')}
             icon={<IconBolt className="h-4 w-4 text-muted-foreground" />}
           >
             {(data?.personal_records ?? []).length > 0 ? (
@@ -364,7 +400,9 @@ export default function FitnessMetricsPage() {
                       <div className="text-sm font-medium truncate">
                         {record.type_key ?? `type_${record.type_id}`}
                         {record.activity_type ? (
-                          <span className="ml-1 text-[11px] text-muted-foreground">{record.activity_type}</span>
+                          <span className="ml-1 text-[11px] text-muted-foreground">
+                            {typeLabel(record.activity_type)}
+                          </span>
                         ) : null}
                       </div>
                       <div className="text-[11px] text-muted-foreground truncate">
@@ -374,20 +412,20 @@ export default function FitnessMetricsPage() {
                     </div>
                     <div className="shrink-0 text-sm font-semibold tabular-nums">
                       {record.unit === 'meter'
-                        ? formatMeters(record.value_meters)
+                        ? formatMeters(record.value_meters, tc('unitKm'))
                         : formatSeconds(record.value_seconds)}
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-muted-foreground">还没有个人纪录数据。</p>
+              <p className="text-xs text-muted-foreground">{t('noPersonalRecords')}</p>
             )}
           </SectionCard>
 
           {/* 比赛成绩预测 */}
           <SectionCard
-            title="比赛成绩预测"
+            title={t('sectionRacePrediction')}
             icon={<IconBolt className="h-4 w-4 text-muted-foreground" />}
           >
             {(data?.race_predictions ?? []).length > 0 ? (
@@ -395,7 +433,9 @@ export default function FitnessMetricsPage() {
                 {data!.race_predictions.map((prediction) => (
                   <li key={prediction.race_type} className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium">
-                      {RACE_LABEL[prediction.race_type] ?? prediction.race_type}
+                      {RACE_LABEL_KEY[prediction.race_type]
+                        ? t(RACE_LABEL_KEY[prediction.race_type])
+                        : prediction.race_type}
                     </span>
                     <span className="text-sm font-semibold tabular-nums">
                       {prediction.predicted_time_text ?? formatSeconds(prediction.predicted_seconds)}
@@ -404,9 +444,7 @@ export default function FitnessMetricsPage() {
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                佳明暂未提供比赛预测（该接口对没有手表 VO2max 数据的账号会返回 404）。
-              </p>
+              <p className="text-xs text-muted-foreground">{t('noRacePrediction')}</p>
             )}
           </SectionCard>
         </div>

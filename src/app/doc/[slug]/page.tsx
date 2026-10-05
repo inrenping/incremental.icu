@@ -1,37 +1,46 @@
 'use client';
 
 import React, { useEffect, useState, use, useRef } from 'react';
+import { useTranslations } from 'next-intl';
 import { useLayout } from "@/hooks/use-layout";
 import { cn } from "@/lib/utils";
 import MarkdownRenderer from "@/components/markdown-renderer";
-import docMenu from "@/lib/doc-menu.json";
+import { DocSidebar } from "@/components/dash/doc-sidebar";
 
 interface DocPageProps {
   params: Promise<{ slug: string }>;
 }
 export default function DocPage({ params }: DocPageProps) {
+  const t = useTranslations('DocPage');
   const { layout } = useLayout();
   const { slug } = use(params);
-  const [mdContent, setMdContent] = useState<string>('');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [doc, setDoc] = useState<{ slug: string; content: string; failed: boolean } | null>(null);
   const [toc, setToc] = useState<{ id: string; text: string }[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
 
+  // 状态按 slug 记录，切页时无需手动 reset（slug 变了就当作重新加载中）
+  const isCurrent = doc?.slug === slug;
+  const mdContent = isCurrent ? doc.content : '';
+  const isLoading = !isCurrent;
+  const loadFailed = isCurrent && doc.failed;
+
   useEffect(() => {
+    let cancelled = false;
     fetch(`/docs/${slug}.md`)
       .then((res) => {
-        if (!res.ok) throw new Error('文档加载失败');
+        if (!res.ok) throw new Error('doc fetch failed');
         return res.text();
       })
       .then((data) => {
-        setMdContent(data);
-        setIsLoading(false);
+        if (!cancelled) setDoc({ slug, content: data, failed: false });
       })
       .catch((err) => {
         console.error(err);
-        setMdContent('# 加载失败');
-        setIsLoading(false);
+        if (!cancelled) setDoc({ slug, content: '', failed: true });
       });
+    return () => {
+      cancelled = true;
+    };
   }, [slug]);
 
   // 当 Markdown 内容加载并渲染后，从 DOM 中提取所有 h2 并设置 ID
@@ -77,30 +86,7 @@ export default function DocPage({ params }: DocPageProps) {
       layout === "fixed" ? "w-full max-w-7xl" : "w-full max-w-none"
     )}>
       {/* 左侧自定义导航菜单 */}
-      <aside className="hidden lg:block w-40 shrink-0">
-        <div className="sticky top-10">
-          <nav className="flex flex-col gap-4 text-muted-foreground/80">
-            {docMenu.map((section, sectionIndex) => (
-              <React.Fragment key={sectionIndex}>
-                {section.divider && sectionIndex > 0 && (
-                  <div className="border-t border-border/60" />
-                )}
-                <div className="flex flex-col gap-3">
-                  {section.items.map((item, itemIndex) => (
-                    <a
-                      key={itemIndex}
-                      href={item.href}
-                      className="hover:text-primary transition-colors"
-                    >
-                      {item.text}
-                    </a>
-                  ))}
-                </div>
-              </React.Fragment>
-            ))}
-          </nav>
-        </div>
-      </aside>
+      <DocSidebar />
 
       {/* 中间正文内容 */}
       <div className="flex-1 min-w-0" ref={contentRef}>
@@ -109,7 +95,11 @@ export default function DocPage({ params }: DocPageProps) {
             <div className="space-y-4 text-foreground">
               {isLoading ? (
                 <div className="flex items-center justify-center py-10 text-muted-foreground animate-pulse">
-                  正在加载文档内容...
+                  {t('loading')}
+                </div>
+              ) : loadFailed ? (
+                <div className="flex items-center justify-center py-10 text-destructive">
+                  {t('loadFailed')}
                 </div>
               ) : (
                 <MarkdownRenderer content={mdContent} />
@@ -123,9 +113,9 @@ export default function DocPage({ params }: DocPageProps) {
       {!isLoading && toc.length > 0 && (
         <aside className="hidden xl:block w-64 shrink-0">
           <div className="sticky top-10 space-y-4">
-            {/* <div className="font-semibold text-foreground/70 uppercase tracking-wider text-[11px] px-4">
-              本页目录
-            </div> */}
+            <div className="font-semibold text-foreground/70 uppercase tracking-wider text-[11px] px-4">
+              {t('toc')}
+            </div>
             <nav className="flex flex-col border-l border-border/60">
               {toc.map((item, index) => (
                 <a

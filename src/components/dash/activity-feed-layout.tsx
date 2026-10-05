@@ -1,6 +1,6 @@
 import type { Activity } from '@/lib/activities';
 import { formatDuration, formatDistance } from '@/lib/activities';
-import { ActivitySportIcon } from '@/lib/activity-icons';
+import { ActivitySportIcon, useActivityTypeLabel } from '@/lib/activity-icons';
 import dayjs from 'dayjs';
 
 /** 中等桌面宽度：核心字段 */
@@ -28,16 +28,17 @@ export const FEED_HEADER_XL = [
 type TranslateFn = (key: string) => string;
 
 function FeedCells({ activity, full }: { activity: Activity; full: boolean }) {
+  const typeLabel = useActivityTypeLabel();
   const hasDistance = activity.distance_meters > 0;
 
   return (
     <>
-      <span className="flex items-center gap-1.5 capitalize truncate text-muted-foreground">
+      <span className="flex items-center gap-1.5 truncate text-muted-foreground">
         <ActivitySportIcon sportType={activity.sport_type_raw} className="h-3.5 w-3.5 shrink-0" />
-        {activity.sport_type_raw}
+        {typeLabel(activity.sport_type_raw)}
       </span>
       <span className="font-medium truncate text-foreground">
-        {activity.activity_name || activity.sport_type_raw}
+        {activity.activity_name || typeLabel(activity.sport_type_raw)}
       </span>
       <span className="text-right font-semibold tabular-nums text-foreground">
         {hasDistance ? formatDistance(activity.distance_meters) : '--'}
