@@ -109,6 +109,9 @@ const PR_LABEL: Record<number, string> = {
   7: "最长距离",
 };
 
+// 仪表盘「个人记录」卡片只展示这六条，其余（如「最长距离」）在前端过滤掉。
+const ALLOWED_PR_TYPES = new Set<number>([1, 2, 3, 4, 5, 6]);
+
 const ACTIVITY_LABEL: Record<string, string> = {
   running: "跑步",
   cycling: "骑行",
@@ -372,6 +375,7 @@ export default function DashPage() {
         const result = await response.json();
         if (result.status === 'success' && result.data?.personal_records) {
           const records = (result.data.personal_records as PersonalRecord[])
+            .filter((r: PersonalRecord) => ALLOWED_PR_TYPES.has(r.type_id))
             .slice()
             .sort((a: PersonalRecord, b: PersonalRecord) => a.type_id - b.type_id);
           setPersonalRecords(records);
