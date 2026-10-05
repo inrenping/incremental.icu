@@ -36,6 +36,7 @@ import { HeartRatePanel } from "@/components/dash/heart-rate-panel";
 import { SleepCombinedPanel } from "@/components/dash/sleep-combined-panel";
 import { Running30dChart } from "@/components/dash/running-30d-chart";
 import { RecentActivities } from "@/components/dash/recent-activities";
+import { HeartRate30dChart } from "@/components/dash/heart-rate-30d-chart";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
@@ -602,12 +603,86 @@ export default function DashPage() {
 
       {/* 近 30 天跑量 + 主数据源最近记录（7 : 3） */}
       {loading ? null : masterApp ? (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
-          <div className="lg:col-span-7">
-            <Running30dChart connectId={masterApp.id} />
+        <div className="space-y-4">
+          {/* 第一行：近 30 天跑量 | 最近记录 */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+            <div className="lg:col-span-7">
+              <Running30dChart connectId={masterApp.id} />
+            </div>
+            <div className="lg:col-span-3">
+              <RecentActivities connectId={masterApp.id} />
+            </div>
           </div>
-          <div className="lg:col-span-3">
-            <RecentActivities connectId={masterApp.id} />
+
+          {/* 第二行：近 30 天心率 | 个人记录（7 : 3，两卡等高） */}
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-10">
+            <div className="lg:col-span-7">
+              <HeartRate30dChart />
+            </div>
+            <div className="lg:col-span-3">
+              {personalRecordsLoading ? (
+                <Card className="h-full gap-0 py-0 shadow-sm">
+                  <CardHeader className="px-5 py-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <IconTrophy className="h-4 w-4 text-amber-500" />
+                      个人记录
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3 px-5 pb-5 pt-1">
+                    <div className="h-4 animate-pulse rounded bg-muted" />
+                    <div className="h-4 animate-pulse rounded bg-muted" />
+                    <div className="h-4 animate-pulse rounded bg-muted" />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card className="h-full gap-0 py-0 shadow-sm">
+                  <CardHeader className="px-5 py-3">
+                    <CardTitle className="flex items-center gap-2 text-base">
+                      <IconTrophy className="h-4 w-4 text-amber-500" />
+                      个人记录
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-0 py-0">
+                    {personalRecords.length > 0 ? (
+                      <ul className="divide-y">
+                        {personalRecords.map((record) => {
+                          const actLabel = activityLabel(record.activity_type);
+                          const time =
+                            record.unit === "meter"
+                              ? formatPrMeters(record.value_meters)
+                              : formatPrSeconds(record.value_seconds);
+                          return (
+                            <li
+                              key={`${record.type_id}-${record.activity_type ?? ""}`}
+                              className="flex items-start justify-between gap-4 px-5 py-3"
+                            >
+                              <div className="min-w-0 space-y-0.5">
+                                <div className="text-sm font-medium">{prLabel(record)}</div>
+                                {actLabel ? (
+                                  <div className="text-[11px] text-muted-foreground">{actLabel}</div>
+                                ) : null}
+                                <div className="text-[11px] text-muted-foreground">
+                                  {record.achieved_at
+                                    ? dayjs(record.achieved_at).format("YYYY-MM-DD HH:mm")
+                                    : "-"}
+                                </div>
+                              </div>
+                              <div className="shrink-0 text-base font-semibold tabular-nums">
+                                {time}
+                              </div>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    ) : (
+                      <div className="px-5 py-10 text-center text-sm text-muted-foreground">
+                        还没有个人记录数据
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </div>
         </div>
       ) : (
@@ -622,74 +697,6 @@ export default function DashPage() {
                 {t("platformAccountMgmt")}
               </Link>
             </Button>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* 个人记录 */}
-      {personalRecordsLoading ? (
-        <Card className="gap-0 py-0 shadow-sm">
-          <CardHeader className="px-5 py-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <IconTrophy className="h-4 w-4 text-amber-500" />
-              个人记录
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 px-5 pb-5 pt-1">
-            <div className="h-4 animate-pulse rounded bg-muted" />
-            <div className="h-4 animate-pulse rounded bg-muted" />
-            <div className="h-4 animate-pulse rounded bg-muted" />
-          </CardContent>
-        </Card>
-      ) : (
-        <Card className="gap-0 py-0 shadow-sm">
-          <CardHeader className="px-5 py-3">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <IconTrophy className="h-4 w-4 text-amber-500" />
-              个人记录
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-0 py-0">
-            {personalRecords.length > 0 ? (
-              <ul className="divide-y">
-                {personalRecords.map((record) => {
-                  const actLabel = activityLabel(record.activity_type);
-                  const time =
-                    record.unit === "meter"
-                      ? formatPrMeters(record.value_meters)
-                      : formatPrSeconds(record.value_seconds);
-                  return (
-                    <li
-                      key={`${record.type_id}-${record.activity_type ?? ""}`}
-                      className="flex items-center justify-between gap-4 px-5 py-3"
-                    >
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">{prLabel(record)}</span>
-                          {actLabel ? (
-                            <span className="rounded-full bg-muted px-1.5 py-0.5 text-[11px] text-muted-foreground">
-                              {actLabel}
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="mt-0.5 text-[11px] text-muted-foreground">
-                          {record.achieved_at
-                            ? dayjs(record.achieved_at).format("YYYY-MM-DD HH:mm")
-                            : "-"}
-                        </div>
-                      </div>
-                      <div className="shrink-0 text-base font-semibold tabular-nums">
-                        {time}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            ) : (
-              <div className="px-5 py-10 text-center text-sm text-muted-foreground">
-                还没有个人记录数据
-              </div>
-            )}
           </CardContent>
         </Card>
       )}
