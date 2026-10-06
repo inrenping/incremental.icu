@@ -131,7 +131,7 @@ export default function ProfilePage() {
         window.location.href = '/';
       } else {
         console.error('Failed to delete account:', res.status);
-        // TODO: surface this as a toast
+        toast.error(t('deleteFailed'));
       }
     } catch (error) {
       console.error('Error while deleting account:', error);

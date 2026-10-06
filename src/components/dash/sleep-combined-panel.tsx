@@ -716,6 +716,7 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
   const today = dayjs().format('YYYY-MM-DD');
   const [monthStr, setMonthStr] = useState(dayjs().format('YYYY-MM'));
   const [monthDays, setMonthDays] = useState<MonthDay[]>([]);
+  const [missingDays, setMissingDays] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   // 日历 / 环形图 切换（不进 URL，纯本地状态）
@@ -733,6 +734,9 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
       const res = await authFetch(`/api/v1/garmin/getMonthlySleep?month=${m}`);
       const json = await res.json();
       setMonthDays(json.status === 'success' ? json.data?.days ?? [] : []);
+      setMissingDays(
+        json.status === 'success' ? json.data?.missing_days ?? [] : []
+      );
     } catch (err) {
       console.error('Failed to fetch monthly sleep data:', err);
       setMonthDays([]);
@@ -854,6 +858,13 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
           <CardTitle className="sr-only">{t('title')}</CardTitle>
         </CardHeader>
         <CardContent>
+          {!loading &&
+          monthStr === dayjs().format('YYYY-MM') &&
+          missingDays.length > 0 ? (
+            <div className="mb-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              {t('missingDaysHint', { count: missingDays.length })}
+            </div>
+          ) : null}
           {loading ? (
             <div className="flex h-[300px] items-center justify-center text-muted-foreground">
               {tc('loading')}

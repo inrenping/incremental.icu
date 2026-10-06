@@ -458,7 +458,8 @@
     "deleteAccountTitle": "Delete your account?",
     "deleteAccountDesc": "This permanently removes your profile, settings and all related data. It cannot be undone.",
     "deleteAccountConfirm": "Delete",
-    "deleteAccountWarning": "Once deleted, all your data is permanently removed. This action is irreversible."
+    "deleteAccountWarning": "Once deleted, all your data is permanently removed. This action is irreversible.",
+    "deleteFailed": "Failed to delete the account, please try again later"
   },
   "SleepPanel": {
     "title": "Sleep",
@@ -486,7 +487,8 @@
     "durationMinutes": "{m}min",
     "shortHoursMinutes": "{h}h{m}m",
     "shortHours": "{h}h",
-    "shortMinutes": "{m}m"
+    "shortMinutes": "{m}m",
+    "missingDaysHint": "This month is missing {count} days of sleep data — click the refresh button at the top right to backfill"
   },
   "HeartRatePanel": {
     "today": "Today's HR",

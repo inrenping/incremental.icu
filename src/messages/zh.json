@@ -458,7 +458,8 @@
     "deleteAccountTitle": "您确定要删除账号吗？",
     "deleteAccountDesc": "此操作将永久删除您的个人资料、设置以及所有相关数据。一旦确认，您将无法恢复这些内容。",
     "deleteAccountConfirm": "确认删除",
-    "deleteAccountWarning": "一旦删除账号，您的所有数据将被永久移除，此操作不可撤销。"
+    "deleteAccountWarning": "一旦删除账号，您的所有数据将被永久移除，此操作不可撤销。",
+    "deleteFailed": "删除账号失败，请稍后重试"
   },
   "SleepPanel": {
     "title": "睡眠",
@@ -486,7 +487,8 @@
     "durationMinutes": "{m}分钟",
     "shortHoursMinutes": "{h}时{m}分",
     "shortHours": "{h}时",
-    "shortMinutes": "{m}分"
+    "shortMinutes": "{m}分",
+    "missingDaysHint": "本月有 {count} 天睡眠数据缺失，点击右上角刷新按钮可补齐"
   },
   "HeartRatePanel": {
     "today": "今日心率",
