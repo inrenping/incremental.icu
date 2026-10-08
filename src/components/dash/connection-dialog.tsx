@@ -30,6 +30,8 @@ const SUPPORTED_PLATFORMS = [
   { id: 'garmin_cn', label: 'Garmin CN', platform: 'garmin_cn' },
   { id: 'garmin', label: 'Garmin Global', platform: 'garmin' },
   { id: 'coros', label: 'Coros', platform: 'coros' },
+  { id: 'suunto_intl', label: 'Suunto 国际版', platform: 'suunto_intl' },
+  { id: 'suunto_cn', label: 'Suunto 国内版', platform: 'suunto_cn' },
 ];
 
 interface AppConfig {
@@ -38,7 +40,7 @@ interface AppConfig {
   guid: string | null;
   account: string;
   encrypted_password?: string;
-  source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
+  source_type: 'garmin' | 'garmin_cn' | 'coros' | 'suunto' | string;
   region: string;
   is_active: boolean;
   master: boolean;
@@ -79,9 +81,14 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
     console.log(app);
 
     if (open && app) {
-      setSelectedPlatform(app.source_type);
-      if (app.region === 'cn') {
-        setSelectedPlatform('garmin_cn');
+      if (app.source_type === 'suunto') {
+        // 颂拓按 region 区分国际版 / 国内版
+        setSelectedPlatform(app.region === 'cn' ? 'suunto_cn' : 'suunto_intl');
+      } else {
+        setSelectedPlatform(app.source_type);
+        if (app.region === 'cn') {
+          setSelectedPlatform('garmin_cn');
+        }
       }
       setMaster(app.master || false);
     }
@@ -103,24 +110,41 @@ export function AppConnectionDialog({ open, onOpenChange, app, action, onSuccess
 
     try {
       const isGarmin = selectedPlatform.startsWith('garmin');
+      const isSuunto = selectedPlatform.startsWith('suunto');
       const key = process.env.NEXT_PUBLIC_KEY?.toString() || '';
-      const loginPayload = isGarmin
-        ? {
+      let loginPayload: Record<string, unknown>;
+      if (isGarmin) {
+        loginPayload = {
           id: app?.id ? app.id : 0,
           region: selectedPlatform === 'garmin_cn' ? 'cn' : 'global',
           email: username,
           password: CryptoJS.AES.encrypt(password, key).toString(),
+          source_type: 'garmin',
           master,
           action,
-        }
-        : {
+        };
+      } else if (isSuunto) {
+        // 颂拓（国际版/国内版）：密码同样走前端 AES 加密，后端解密后发往 login2
+        loginPayload = {
+          id: app?.id ? app.id : 0,
+          region: selectedPlatform === 'suunto_cn' ? 'cn' : 'intl',
+          email: username,
+          password: CryptoJS.AES.encrypt(password, key).toString(),
+          source_type: 'suunto',
+          master,
+          action,
+        };
+      } else {
+        loginPayload = {
           id: app?.id ? app.id : 0,
           region: 'coros',
           email: username,
           password: CryptoJS.MD5(password).toString(),
+          source_type: 'coros',
           master,
           action,
         };
+      }
 
       const response = await authFetch('/api/v1/base/login', {
         method: 'POST',
