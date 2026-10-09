@@ -2,10 +2,10 @@
   "IndexPage": {
     "title": "incremental.icu",
     "hello": "保持你各个平台的数据同步",
-    "description": "incremental.icu 是一个专注于跨平台同步运动数据的网页应用。它是完全免费开源的，通过调用官方公开的 API 来实现跨平台的数据同步，目前已经支持佳明和高驰两个平台。",
+    "description": "incremental.icu 是一个专注于跨平台同步运动数据的网页应用。它是完全免费开源的，通过各平台官方开放的接口实现跨平台的数据同步，目前已经支持佳明、高驰和颂拓三个品牌。",
     "getStarted": "开始使用",
     "card1Title": "一键同步",
-    "card1Desc": "一键拉取最新数据比对后差量同步。",
+    "card1Desc": "一键拉取最新数据比对后差量同步，佳明、高驰、颂拓之间任意指定源平台与目标平台。",
     "card2Title": "定时任务",
     "card2Desc": "自动更新记录，你偷懒的时候程序也还在跑。",
     "card3Title": "免费使用",
@@ -16,6 +16,8 @@
     "garmin": "佳明",
     "garminCn": "佳明中国版",
     "coros": "高驰",
+    "suunto": "颂拓",
+    "suuntoCn": "颂拓国内版",
     "accounts": "账号管理",
     "gptCode": "GPT 授权码",
     "logs": "操作日志",
@@ -638,10 +640,14 @@
     "grantedDesc": "你已授权本站点访问你的应用数据。",
     "statusFailed": "获取应用状态失败",
     "refreshSuccess": "认证刷新成功",
-    "refreshFailed": "刷新失败"
+    "refreshFailed": "刷新失败",
+    "reorderHint": "拖拽左侧手柄可调整顺序，所有页面的账号下拉框都会按此顺序展示。",
+    "reorderSuccess": "排序已保存",
+    "reorderFailed": "排序保存失败，已恢复原顺序"
   },
   "AppCard": {
-    "masterSource": "主数据源"
+    "masterSource": "主数据源",
+    "dragToReorder": "拖拽调整顺序"
   },
   "SyncRuns": {
     "title": "同步记录",

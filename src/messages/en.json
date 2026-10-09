@@ -2,10 +2,10 @@
   "IndexPage": {
     "title": "incremental.icu",
     "hello": "Keep Your Data In Sync Across All Platforms.",
-    "description": "Keep Garmin (Global & China) and Coros data platforms in sync.",
+    "description": "Keep Garmin (Global & China), Coros and Suunto data platforms in sync.",
     "getStarted": "Get Started on incremental.icu",
     "card1Title": "One-Click Sync",
-    "card1Desc": "Sync your data in a single tap—easy and fast!",
+    "card1Desc": "Pull the latest records, diff them and sync incrementally — pick any source and target across Garmin, Coros and Suunto.",
     "card2Title": "Automatic Updates",
     "card2Desc": "Your records stay fresh, even when you take a break.",
     "card3Title": "Free",
@@ -16,6 +16,8 @@
     "garmin": "Garmin",
     "garminCn": "Garmin CN",
     "coros": "Coros",
+    "suunto": "Suunto",
+    "suuntoCn": "Suunto CN",
     "userSettings": "User Settings",
     "task": "Task",
     "logout": "Logout",
@@ -638,10 +640,14 @@
     "grantedDesc": "You have authorized this site to access your app data.",
     "statusFailed": "Failed to load app status",
     "refreshSuccess": "Credentials refreshed",
-    "refreshFailed": "Refresh failed"
+    "refreshFailed": "Refresh failed",
+    "reorderHint": "Drag the handle on the left to reorder. Account dropdowns across all pages follow this order.",
+    "reorderSuccess": "Order saved",
+    "reorderFailed": "Failed to save order, reverted"
   },
   "AppCard": {
-    "masterSource": "Primary source"
+    "masterSource": "Primary source",
+    "dragToReorder": "Drag to reorder"
   },
   "SyncRuns": {
     "title": "Sync runs",

@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
   IconTrendingUp, IconRepeat, IconStack, IconShield, IconChartBar, IconBrandGithubFilled, IconMinusVertical, IconStarFilled,
-  IconChevronLeft, IconChevronRight, IconX
+  IconChevronLeft, IconChevronRight, IconX, IconArrowsExchange, IconDeviceWatch, IconCircleDot, IconMountain
 } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button"
 import { useTranslations } from 'next-intl'
@@ -31,6 +31,7 @@ export default function Home() {
             </h1>
             <p className="text-5xl text-foreground font-black tracking-tighter">{t('hello')}</p>
             <p className="text-lg text-muted-foreground max-w-xl">{t('description')}</p>
+            <PlatformRow />
             <div className="pt-8 flex flex-col items-start gap-6">
               <div className="flex flex-wrap justify-start gap-6">
                 <Button
@@ -101,6 +102,36 @@ export default function Home() {
 
       </main>
       <SiteFooter />
+    </div>
+  )
+}
+
+function PlatformRow() {
+  const t = useTranslations('IndexPage')
+
+  const platforms = [
+    { label: t('garmin'), icon: <IconDeviceWatch className="h-4 w-4" /> },
+    { label: t('garminCn'), icon: <IconDeviceWatch className="h-4 w-4" /> },
+    { label: t('coros'), icon: <IconCircleDot className="h-4 w-4" /> },
+    { label: t('suunto'), icon: <IconMountain className="h-4 w-4" /> },
+    { label: t('suuntoCn'), icon: <IconMountain className="h-4 w-4" /> },
+  ]
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 pt-2">
+      <span className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground">
+        <IconArrowsExchange className="h-4 w-4" />
+        {t('supportPlatform')}
+      </span>
+      {platforms.map((platform) => (
+        <span
+          key={platform.label}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-sm font-medium text-foreground"
+        >
+          {platform.icon}
+          {platform.label}
+        </span>
+      ))}
     </div>
   )
 }
