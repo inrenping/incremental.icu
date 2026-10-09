@@ -95,7 +95,7 @@
 - **对象存储**: Supabase Storage（活动文件）、阿里云 OSS / AWS S3（高驰 FIT 上传）
 - **邮件服务**: [Resend](https://resend.com/)
 - **佳明客户端**: [garth](https://github.com/matin/garth) —— 模拟佳明客户端的 Python 包，`requirements.txt` 中锁定版本
-- **多平台服务**: `app/services/` 下按平台拆分客户端（`garmin_service` / `coros_service` / `suunto_service`），颂拓额外含 `suunto_sml.py`（FIT → SML 转换）与 `suunto_probe.py`（接口探测脚本）
+- **多平台服务**: `app/services/` 下按平台拆分客户端（`garmin_service` / `coros_service` / `suunto_service`），各平台统一以 `.FIT` 作为交换格式
 
 ### 目录结构
 
