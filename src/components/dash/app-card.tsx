@@ -6,9 +6,12 @@ import { Card, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   IconCircleCheckFilled,
-  IconDeviceWatch
+  IconDeviceWatch,
+  IconGripVertical
 } from "@tabler/icons-react";
 import { useTranslations } from "next-intl";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { AppConfig } from "@/app/dash/page";
 
 interface AppCardProps {
@@ -20,10 +23,29 @@ interface AppCardProps {
 export function AppCard({ app, onConnect, onRefresh }: AppCardProps) {
   const t = useTranslations('DashPage');
   const tCard = useTranslations('AppCard');
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: app.id });
 
   return (
-    <Card className="relative">
-      <div className="flex items-center gap-6 p-6">
+    <Card
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className="relative"
+    >
+      {/* 拖拽中的原位卡片压暗，让被拖动的那张更醒目 */}
+      <div
+        className={`flex items-center gap-6 p-6 ${isDragging ? 'opacity-60' : ''}`}
+      >
+        <button
+          type="button"
+          className="cursor-grab touch-none text-muted-foreground transition-colors hover:text-foreground active:cursor-grabbing"
+          aria-label={tCard("dragToReorder")}
+          title={tCard("dragToReorder")}
+          {...attributes}
+          {...listeners}
+        >
+          <IconGripVertical className="h-5 w-5" />
+        </button>
         <div className="p-3 bg-primary/10 rounded-xl">
           <IconDeviceWatch className="h-6 w-6 text-primary" />
         </div>

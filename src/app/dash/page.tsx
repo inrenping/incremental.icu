@@ -51,6 +51,7 @@ export interface AppConfig {
   source_type: 'garmin' | 'garmin_cn' | 'coros' | string;
   region: string;
   is_active: boolean;
+  sort_order: number;
   access_token: string | null;
   access_token_expires_at: string | null;
   refresh_token: string | null;
