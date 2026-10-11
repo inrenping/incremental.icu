@@ -57,6 +57,7 @@ interface TaskItem {
   user_id: number;
   hours: number[] | null;
   hour?: number;
+  minute?: number | null;
   is_active: boolean;
   created_at: string;
   updated_at?: string;
@@ -279,11 +280,17 @@ export default function TasksPage() {
                             <div className="flex items-center gap-2 text-sm">
                               <span className="text-muted-foreground">{t('executionTime')}</span>
                               <span className="flex flex-wrap gap-1">
-                                {getTaskHours(task).map((hour) => (
-                                  <Badge key={hour} variant="outline" className="font-mono tabular-nums">
-                                    {hour.toString().padStart(2, '0')}:00
-                                  </Badge>
-                                ))}
+                                {getTaskHours(task).map((hour) => {
+                                  const minuteStr =
+                                    task.minute != null
+                                      ? task.minute.toString().padStart(2, '0')
+                                      : '00';
+                                  return (
+                                    <Badge key={hour} variant="outline" className="font-mono tabular-nums">
+                                      {hour.toString().padStart(2, '0')}:{minuteStr}
+                                    </Badge>
+                                  );
+                                })}
                               </span>
                               <span
                                 className={cn(
