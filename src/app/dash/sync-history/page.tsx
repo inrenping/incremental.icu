@@ -16,7 +16,6 @@ import {
   IconCopy,
   IconRefresh,
   IconBolt,
-  IconDeviceWatch,
   IconCircleDot,
 } from "@tabler/icons-react";
 import { useEffect, useState, useCallback } from "react";
@@ -27,8 +26,12 @@ interface SyncRun {
   id: number;
   source_platform: string;
   source_account: string;
+  /** 源账号区域（cn / global / intl），高驰无区域概念时为 coros */
+  source_region?: string | null;
   target_platform: string;
   target_account: string;
+  /** 目标账号区域，同上 */
+  target_region?: string | null;
   window_size: number;
   diff_count: number;
   uploaded_count: number;
@@ -40,7 +43,6 @@ interface SyncRun {
   duration_ms: number | null;
   task_id: number | null;
   trigger_mode?: string | null;
-  device_name?: string | null;
 }
 
 interface SyncRunItem {
@@ -138,14 +140,6 @@ function formatDuration(ms: number | null): string {
   return `${(ms / 1000).toFixed(1)} 秒`;
 }
 
-function guessDeviceName(run: SyncRun): string {
-  if (run.device_name) return run.device_name;
-  const plat = (run.source_platform || "").toLowerCase();
-  if (plat.includes("garmin")) return "Forerunner 255";
-  if (plat.includes("coros")) return "Pace 3";
-  return "运动手表";
-}
-
 export default function SyncHistoryPage() {
   const t = useTranslations("DashPage");
   const tHistory = useTranslations("SyncHistory");
@@ -193,6 +187,8 @@ export default function SyncHistoryPage() {
   }, [fetchRuns]);
 
   const toggleExpand = async (runId: number) => {
+    const run = runs.find((r) => r.id === runId);
+    if (run && !hasDetail(run)) return; // 无明细可展开
     if (openId === runId) {
       setOpenId(null);
       return;
@@ -212,6 +208,9 @@ export default function SyncHistoryPage() {
       setLoadingItems(null);
     }
   };
+
+  // 该次同步是否有可展开的明细：差异条数为 0（含 no_diff）时展开必然是空的，直接隐藏「展开详情」
+  const hasDetail = (r: SyncRun) => (r.diff_count ?? 0) > 0;
 
   const summary = (r: SyncRun) => {
     const parts: string[] = [];
@@ -288,11 +287,11 @@ export default function SyncHistoryPage() {
                         <div className="flex flex-wrap items-center justify-between gap-3">
                           <div className="flex min-w-0 items-center gap-2">
                             <span className="truncate text-sm font-medium text-foreground">
-                              {formatPlatformAccount(t, run.source_platform, run.source_account)}
+                              {formatPlatformAccount(t, run.source_platform, run.source_account, run.source_region)}
                             </span>
                             <IconArrowsRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
                             <span className="truncate text-sm font-medium text-foreground">
-                              {formatPlatformAccount(t, run.target_platform, run.target_account)}
+                              {formatPlatformAccount(t, run.target_platform, run.target_account, run.target_region)}
                             </span>
                           </div>
                           <div className="flex items-center gap-2 text-xs">
@@ -327,39 +326,27 @@ export default function SyncHistoryPage() {
                           </p>
                         ) : null}
 
-                        {/* Bottom row: device, duration, toggle */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <div className="flex items-center gap-1.5">
-                              <IconDeviceWatch className="h-3.5 w-3.5" />
-                              <span className="font-semibold tracking-wide text-slate-600 dark:text-slate-400">
-                                {guessDeviceName(run).toUpperCase()}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <IconArrowsRight className="h-3 w-3" />
-                              <span>
-                                {formatPlatformAccount(t, run.source_platform, run.source_account)} → {formatPlatformAccount(t, run.target_platform, run.target_account)}
-                              </span>
-                            </div>
-                          </div>
+                        {/* Bottom row: duration + toggle（账号与区域已在顶部行展示，不再重复手表型号） */}
+                        <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
                           <div className="flex items-center gap-3 text-xs text-muted-foreground">
                             <span>
                               {t("duration")}: <span className="font-mono">{formatDuration(run.duration_ms)}</span>
                             </span>
-                            <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
-                              {openId === run.id ? (
-                                <>
-                                  {t("hideDetails")}
-                                  <IconChevronUp className="h-3.5 w-3.5" />
-                                </>
-                              ) : (
-                                <>
-                                  {t("showDetails")}
-                                  <IconChevronDown className="h-3.5 w-3.5" />
-                                </>
-                              )}
-                            </div>
+                            {hasDetail(run) && (
+                              <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
+                                {openId === run.id ? (
+                                  <>
+                                    {t("hideDetails")}
+                                    <IconChevronUp className="h-3.5 w-3.5" />
+                                  </>
+                                ) : (
+                                  <>
+                                    {t("showDetails")}
+                                    <IconChevronDown className="h-3.5 w-3.5" />
+                                  </>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </button>
