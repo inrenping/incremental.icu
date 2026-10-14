@@ -326,28 +326,26 @@ export default function SyncHistoryPage() {
                           </p>
                         ) : null}
 
-                        {/* Bottom row: duration + toggle（账号与区域已在顶部行展示，不再重复手表型号） */}
-                        <div className="flex flex-wrap items-center justify-end gap-3 pt-1">
-                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                            <span>
-                              {t("duration")}: <span className="font-mono">{formatDuration(run.duration_ms)}</span>
-                            </span>
-                            {hasDetail(run) && (
-                              <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
-                                {openId === run.id ? (
-                                  <>
-                                    {t("hideDetails")}
-                                    <IconChevronUp className="h-3.5 w-3.5" />
-                                  </>
-                                ) : (
-                                  <>
-                                    {t("showDetails")}
-                                    <IconChevronDown className="h-3.5 w-3.5" />
-                                  </>
-                                )}
-                              </div>
-                            )}
-                          </div>
+                        {/* Bottom row: 展开详情（左对齐） + 耗时（右） */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-1 text-xs text-muted-foreground">
+                          {hasDetail(run) && (
+                            <div className="flex items-center gap-1 text-slate-500 group-hover:text-foreground transition-colors">
+                              {openId === run.id ? (
+                                <>
+                                  {t("hideDetails")}
+                                  <IconChevronUp className="h-3.5 w-3.5" />
+                                </>
+                              ) : (
+                                <>
+                                  {t("showDetails")}
+                                  <IconChevronDown className="h-3.5 w-3.5" />
+                                </>
+                              )}
+                            </div>
+                          )}
+                          <span>
+                            {t("duration")}: <span className="font-mono">{formatDuration(run.duration_ms)}</span>
+                          </span>
                         </div>
                       </button>
 
