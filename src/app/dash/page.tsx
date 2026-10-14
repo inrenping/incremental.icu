@@ -32,6 +32,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { SyncRuns } from "@/components/dash/sync-runs";
+import { NoticeBar } from "@/components/dash/notice-bar";
 import { HeartRatePanel } from "@/components/dash/heart-rate-panel";
 import { SleepCombinedPanel } from "@/components/dash/sleep-combined-panel";
 import { Running30dChart } from "@/components/dash/running-30d-chart";
@@ -397,6 +398,11 @@ export default function DashPage() {
 
   const activeApps = useMemo(() => apps.filter((a) => a.is_active), [apps]);
   const masterApp = useMemo(() => activeApps.filter((a) => a.master)?.[0], [activeApps]);
+  // 睡眠 / 心率数据只来自 Garmin 端点，主账号非 Garmin 时无法同步
+  const masterIsGarmin = useMemo(
+    () => !!masterApp && (masterApp.source_type === 'garmin' || masterApp.source_type === 'garmin_cn'),
+    [masterApp]
+  );
 
   const stats = useMemo(() => {
     const platformNames = [...new Set(activeApps.map((a) => getPlatformDisplayName(a.source_type, a.region)))].join(' / ');
@@ -816,11 +822,17 @@ export default function DashPage() {
 
       {/* 睡眠 */}
       <TabsContent value="sleep" className="flex flex-col gap-6">
+        <NoticeBar variant={masterIsGarmin ? 'info' : 'warning'}>
+          {masterIsGarmin ? t('garminSyncNotice') : t('garminSyncWarning')}
+        </NoticeBar>
         <SleepCombinedPanel />
       </TabsContent>
 
       {/* 心率 */}
       <TabsContent value="heart" className="flex flex-col gap-6">
+        <NoticeBar variant={masterIsGarmin ? 'info' : 'warning'}>
+          {masterIsGarmin ? t('garminSyncNotice') : t('garminSyncWarning')}
+        </NoticeBar>
         <HeartRatePanel />
       </TabsContent>
     </Tabs>

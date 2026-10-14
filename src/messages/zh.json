@@ -107,6 +107,9 @@
     "platformGarmin": "佳明",
     "platformGarminCn": "佳明中国版",
     "platformCoros": "高驰",
+    "platformSuunto": "颂拓",
+    "regionCn": "中国区",
+    "regionIntl": "国际区",
     "mobileDataQuery": "移动端查询",
     "dataSecurity": "使用须知",
     "dataSecuritySummary": "为实现运动数据的同步，本工具需在服务端登录并保存您的账号及密码信息。我们将严格遵循业界通用标准对您的凭证进行加密存储，保障您的信息安全。继续使用本工具，即表示您已阅读并同意我们的",
@@ -176,7 +179,9 @@
     "noMasterSourceDesc": "近 30 天跑量与最近运动记录都取自主数据源，先到账号管理里指定一个",
     "chartLoadFailed": "跑量数据加载失败",
     "listLoadFailed": "最近记录加载失败",
-    "noActivityData": "暂无运动记录"
+    "noActivityData": "暂无运动记录",
+    "garminSyncNotice": "睡眠与心率数据由 Garmin（佳明）账号同步提供，主账号为 Garmin 时可正常获取与展示。",
+    "garminSyncWarning": "睡眠与心率数据仅支持主账号为 Garmin（佳明）账号时同步。请将 Garmin 账号设为「主账号」后再查看本页数据。"
   },
   "ListPage": {
     "loadingActivity": "正在加载运动数据...",

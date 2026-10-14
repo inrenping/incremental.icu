@@ -107,6 +107,9 @@
     "platformGarmin": "Garmin",
     "platformGarminCn": "Garmin CN",
     "platformCoros": "Coros",
+    "platformSuunto": "Suunto",
+    "regionCn": "China region",
+    "regionIntl": "International region",
     "mobileDataQuery": "Mobile Query",
     "dataSecurity": "Data Security & Usage Notice",
     "dataSecuritySummary": "To sync your sports data, this tool needs to log in and store your account credentials on the server. We encrypt and store your credentials following industry standards to protect your information. By continuing to use this tool, you acknowledge that you have read and agree to our",
@@ -176,7 +179,9 @@
     "noMasterSourceDesc": "The 30-day chart and recent activities both read from your primary data source — pick one in account management first",
     "chartLoadFailed": "Failed to load running data",
     "listLoadFailed": "Failed to load recent activities",
-    "noActivityData": "No activities yet"
+    "noActivityData": "No activities yet",
+    "garminSyncNotice": "Sleep and heart-rate data are synced from your Garmin account; they display normally when your primary account is Garmin.",
+    "garminSyncWarning": "Sleep and heart-rate data can only be synced when your primary account is a Garmin account. Set your Garmin account as the primary account to view this page."
   },
   "ListPage": {
     "loadingActivity": "Loading activity data...",
