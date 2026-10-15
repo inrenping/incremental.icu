@@ -100,6 +100,7 @@
     "lastSync": "上次同步",
     "dataSync": "数据同步",
     "dataSyncDesc": "选择来源与目标平台，一键向目标平台同步最近 10 条记录",
+    "quickSyncWarning": "请不要连续多次点击「一键同步」。单次同步可能需要 10 秒以上才能执行完毕，短时间内频繁调用官方 API 可能会导致个人账号被短期封禁，请耐心等待本次同步完成后再操作。",
     "serviceStatus": "服务状态",
     "platformAccountMgmt": "平台账号管理",
     "detailedDataQuery": "详细数据查询",
