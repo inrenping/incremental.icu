@@ -719,6 +719,9 @@ export default function DashPage() {
 
       {/* 同步 */}
       <TabsContent value="sync" className="flex flex-col gap-6">
+        <NoticeBar variant="warning">
+          {t("quickSyncWarning")}
+        </NoticeBar>
         {/* Data Sync Card */}
         <Card className="gap-0 py-0 shadow-sm">
           <CardHeader className="border-b px-5 py-4">

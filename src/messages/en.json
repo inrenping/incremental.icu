@@ -100,6 +100,7 @@
     "lastSync": "Last Sync",
     "dataSync": "Data Sync",
     "dataSyncDesc": "Select the source and destination platforms, then sync your latest 10 activities with one click.",
+    "quickSyncWarning": "Please don't click \"Quick Sync\" repeatedly. A single sync can take 10+ seconds to finish, and frequent calls to the official API in a short time may get your account temporarily banned. Wait for the current sync to finish before starting another.",
     "serviceStatus": "Service Status",
     "platformAccountMgmt": "Platform Accounts",
     "detailedDataQuery": "Detailed Data Query",
