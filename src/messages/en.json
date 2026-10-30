@@ -633,7 +633,7 @@
   },
   "DashStats": {
     "runCount": "Running {count}×",
-    "distance": "Distance",
+    "distance": "Distance/Goal",
     "duration": "Duration",
     "goalProgress": "Goal progress",
     "timeElapsed": "Time elapsed",
