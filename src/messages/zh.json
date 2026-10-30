@@ -633,7 +633,7 @@
   },
   "DashStats": {
     "runCount": "跑步 {count} 次",
-    "distance": "距离",
+    "distance": "距离/目标",
     "duration": "时长",
     "goalProgress": "目标完成",
     "timeElapsed": "时间已过",
