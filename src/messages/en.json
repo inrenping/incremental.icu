@@ -490,6 +490,8 @@
     "stageRem": "REM",
     "stageLight": "Light",
     "stageDeep": "Deep",
+    "stageNap": "Nap",
+    "napListTitle": "Nap details",
     "durationHoursMinutes": "{h}h {m}min",
     "durationHours": "{h}h",
     "durationMinutes": "{m}min",

@@ -16,6 +16,9 @@ export const STAGE_COLORS: Record<number, string> = {
   [STAGE_DEEP]: '#7F77DD',
 };
 
+// 小睡配色（不属于睡眠阶段，单独一个 token，与四个阶段色区分）
+export const NAP_COLOR = '#E8963C';
+
 /** 阶段 → SleepPanel 下的翻译键 */
 export const STAGE_LABEL_KEYS: Record<number, string> = {
   [STAGE_AWAKE]: 'stageAwake',
@@ -60,11 +63,20 @@ export interface SleepLevel {
   activity_level: number;
 }
 
+/** 逐条小睡（佳明 dailyNapDTOS） */
+export interface SleepNap {
+  start_at: string;
+  end_at: string;
+  duration_seconds: number;
+  feedback: string | null;
+}
+
 export interface MonthDay {
   calendar_date: string;
   sleep_start_at: string | null;
   sleep_end_at: string | null;
   sleep_time_seconds: number | null;
+  nap_time_seconds?: number | null;
   deep_sleep_seconds: number | null;
   light_sleep_seconds: number | null;
   rem_sleep_seconds: number | null;

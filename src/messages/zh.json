@@ -490,6 +490,8 @@
     "stageRem": "REM",
     "stageLight": "浅睡",
     "stageDeep": "深睡",
+    "stageNap": "小睡",
+    "napListTitle": "小睡明细",
     "durationHoursMinutes": "{h}小时{m}分钟",
     "durationHours": "{h}小时",
     "durationMinutes": "{m}分钟",
