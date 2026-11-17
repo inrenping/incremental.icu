@@ -23,12 +23,14 @@ import { IconChevronLeft, IconChevronRight, IconRefresh } from '@tabler/icons-re
 import {
   SleepDaily,
   SleepLevel,
+  SleepNap,
   MonthDay,
   STAGE_DEEP,
   STAGE_LIGHT,
   STAGE_REM,
   STAGE_AWAKE,
   STAGE_COLORS,
+  NAP_COLOR,
   ROW_ORDER,
   useStageLabel,
   useSleepDuration,
@@ -402,10 +404,12 @@ function DayChart({
   dateStr,
   daily,
   levels,
+  naps = [],
 }: {
   dateStr: string;
   daily: SleepDaily | null;
   levels: SleepLevel[];
+  naps?: SleepNap[];
 }) {
   const t = useTranslations('SleepPanel');
   const stageLabel = useStageLabel();
@@ -424,6 +428,20 @@ function DayChart({
     if (lv.s.isBefore(windowStart)) windowStart = lv.s.subtract(30, 'minute');
     if (lv.e.isAfter(windowEnd)) windowEnd = lv.e.add(30, 'minute');
   }
+
+  const parsedNaps = naps
+    .map((np) => ({ ...np, s: dayjs(np.start_at), e: dayjs(np.end_at) }))
+    .filter((np) => np.s.isValid() && np.e.isValid())
+    .sort((a, b) => a.s.valueOf() - b.s.valueOf());
+
+  for (const np of parsedNaps) {
+    if (np.s.isBefore(windowStart)) windowStart = np.s.subtract(30, 'minute');
+    if (np.e.isAfter(windowEnd)) windowEnd = np.e.add(30, 'minute');
+  }
+
+  const hasNaps = parsedNaps.length > 0;
+  const plotH = (ROW_ORDER.length + (hasNaps ? 1 : 0)) * DAY_ROW_H;
+  const svgH = DAY_PAD.top + plotH + DAY_PAD.bottom;
 
   const spanMs = Math.max(windowEnd.diff(windowStart), 3600_000);
   const toX = (t: dayjs.Dayjs) =>
@@ -445,6 +463,8 @@ function DayChart({
     return acc;
   }, [levels]);
 
+  const napTotalSeconds = parsedNaps.reduce((acc, np) => acc + (np.duration_seconds || 0), 0);
+
   if (!daily) {
     return (
       <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">
@@ -455,7 +475,7 @@ function DayChart({
 
   return (
     <svg
-      viewBox={`0 0 ${DAY_W} ${DAY_H}`}
+      viewBox={`0 0 ${DAY_W} ${svgH}`}
       width="100%"
       role="img"
       preserveAspectRatio="xMidYMid meet"
@@ -491,6 +511,39 @@ function DayChart({
         );
       })}
 
+      {hasNaps && (
+        <g>
+          {(() => {
+            const rowY = DAY_PAD.top + ROW_ORDER.length * DAY_ROW_H;
+            return (
+              <>
+                <rect
+                  x={DAY_PAD.left}
+                  y={rowY + 14}
+                  width={DAY_PLOT_W}
+                  height={30}
+                  rx={6}
+                  fill="var(--muted)"
+                  opacity={0.35}
+                />
+                <text
+                  x={8}
+                  y={rowY + 24}
+                  fontSize={13}
+                  fontWeight={500}
+                  fill="var(--foreground)"
+                >
+                  {t('stageNap')}
+                </text>
+                <text x={8} y={rowY + 42} fontSize={12} fill="var(--muted-foreground)">
+                  {longDuration(napTotalSeconds)}
+                </text>
+              </>
+            );
+          })()}
+        </g>
+      )}
+
       {ticks.map((tick) => {
         const x = toX(tick);
         return (
@@ -499,7 +552,7 @@ function DayChart({
             x1={x}
             y1={DAY_PAD.top}
             x2={x}
-            y2={DAY_PAD.top + DAY_PLOT_H}
+            y2={DAY_PAD.top + plotH}
             stroke="var(--border)"
             strokeWidth={0.5}
             strokeDasharray="3 4"
@@ -527,11 +580,29 @@ function DayChart({
         );
       })}
 
+      {parsedNaps.map((np, idx) => {
+        const x1 = toX(np.s);
+        const x2 = toX(np.e);
+        const w = Math.max(x2 - x1, 2);
+        const y = DAY_PAD.top + ROW_ORDER.length * DAY_ROW_H + 14;
+        return (
+          <rect
+            key={`nap-${np.start_at}-${idx}`}
+            x={x1}
+            y={y}
+            width={w}
+            height={30}
+            rx={3}
+            fill={NAP_COLOR}
+          />
+        );
+      })}
+
       <line
         x1={DAY_PAD.left}
-        y1={DAY_PAD.top + DAY_PLOT_H + 6}
+        y1={DAY_PAD.top + plotH + 6}
         x2={DAY_PAD.left + DAY_PLOT_W}
-        y2={DAY_PAD.top + DAY_PLOT_H + 6}
+        y2={DAY_PAD.top + plotH + 6}
         stroke="var(--border)"
         strokeWidth={0.5}
       />
@@ -542,7 +613,7 @@ function DayChart({
           <text
             key={`label-${tick.valueOf()}`}
             x={x}
-            y={DAY_PAD.top + DAY_PLOT_H + 28}
+            y={DAY_PAD.top + plotH + 28}
             fontSize={12}
             fill="var(--muted-foreground)"
             textAnchor="middle"
@@ -667,7 +738,7 @@ function SleepCalendar({
                   )}
                 </span>
 
-                {/* 主信息：时长；副信息：入睡 → 醒来 */}
+                {/* 主信息：时长；副信息：入睡 → 醒来；有小睡时补一行小睡时长 */}
                 {hasData ? (
                   <>
                     <span className="flex flex-1 items-center justify-center text-xl font-bold leading-none tabular-nums text-foreground">
@@ -676,6 +747,14 @@ function SleepCalendar({
                     <span className="text-center text-[10px] leading-none tabular-nums text-muted-foreground">
                       {formatClock(d?.sleep_start_at)} → {formatClock(d?.sleep_end_at)}
                     </span>
+                    {(d?.nap_time_seconds ?? 0) > 0 ? (
+                      <span
+                        className="text-center text-[10px] leading-none tabular-nums"
+                        style={{ color: NAP_COLOR }}
+                      >
+                        {t('stageNap')} {shortDuration(d?.nap_time_seconds)}
+                      </span>
+                    ) : null}
                   </>
                 ) : (
                   <span className="flex flex-1 items-center justify-center text-xs text-muted-foreground/70">
@@ -713,6 +792,7 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
   const t = useTranslations('SleepPanel');
   const tc = useTranslations('Common');
   const stageLabel = useStageLabel();
+  const longDuration = useSleepDuration();
   const today = dayjs().format('YYYY-MM-DD');
   const [monthStr, setMonthStr] = useState(dayjs().format('YYYY-MM'));
   const [monthDays, setMonthDays] = useState<MonthDay[]>([]);
@@ -727,6 +807,7 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
   const [dialogDate, setDialogDate] = useState<string | null>(null);
   const [dialogDaily, setDialogDaily] = useState<SleepDaily | null>(null);
   const [dialogLevels, setDialogLevels] = useState<SleepLevel[]>([]);
+  const [dialogNaps, setDialogNaps] = useState<SleepNap[]>([]);
   const [dialogLoading, setDialogLoading] = useState(false);
 
   const fetchMonth = useCallback(async (m: string) => {
@@ -747,6 +828,7 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
     setDialogDate(d);
     setDialogDaily(null);
     setDialogLevels([]);
+    setDialogNaps([]);
     setDialogOpen(true);
     setDialogLoading(true);
     try {
@@ -755,6 +837,7 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
       if (json.status === 'success') {
         setDialogDaily(json.data?.daily ?? null);
         setDialogLevels(json.data?.levels ?? []);
+        setDialogNaps(json.data?.naps ?? []);
       }
     } catch (err) {
       console.error('Failed to fetch sleep data:', err);
@@ -908,11 +991,39 @@ export function SleepCombinedPanel({ className }: { className?: string }) {
               {tc('loading')}
             </div>
           ) : (
-            <DayChart
-              dateStr={dialogDate ?? today}
-              daily={dialogDaily}
-              levels={dialogLevels}
-            />
+            <div className="space-y-3">
+              <DayChart
+                dateStr={dialogDate ?? today}
+                daily={dialogDaily}
+                levels={dialogLevels}
+                naps={dialogNaps}
+              />
+              {dialogNaps.length > 0 && (
+                <div className="space-y-1.5 rounded-md border border-border p-3">
+                  <div className="text-sm font-medium">
+                    {t('napListTitle')}（{dialogNaps.length}）
+                  </div>
+                  {dialogNaps.map((np) => (
+                    <div
+                      key={`${np.start_at}-${np.end_at}`}
+                      className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-muted-foreground"
+                    >
+                      <span
+                        className="inline-block h-2 w-2 shrink-0 rounded-full"
+                        style={{ background: NAP_COLOR }}
+                      />
+                      <span className="tabular-nums">
+                        {formatClock(np.start_at)} → {formatClock(np.end_at)}
+                      </span>
+                      <span>· {longDuration(np.duration_seconds)}</span>
+                      {np.feedback && (
+                        <span className="text-xs">· {np.feedback}</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </DialogContent>
       </Dialog>
